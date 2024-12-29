@@ -3,6 +3,7 @@ import subprocess
 import shlex
 import sys
 from typing import List, Optional
+from flask_microservice_stocks_filterer.stocks_filtering_application.pipeline_status import PipelineStatus
 
 app = Flask(__name__)
 
@@ -16,9 +17,25 @@ def run_stock_screening(
         ranking_screens: Optional[List[str]] = None
 ) -> dict:
     """
-    Run the stock screening pipeline with the given parameters
+    Run the stock screening pipeline with the given parameters asynchronously.
+    Checks if another pipeline is already running before starting a new one.
     """
-    # Modified command to use relative path from stocks_filtering_application
+    # Check current pipeline status
+    current_status = PipelineStatus.get_status()
+
+    if current_status is not None:
+        # Check if there's a pipeline currently running
+        if current_status.get("status") == "running":
+            return {
+                "status": "error",
+                "message": "Another screening process is currently running",
+                "current_pipeline": {
+                    "step": current_status.get("current_step"),
+                    "started": current_status.get("start_time"),
+                    "last_updated": current_status.get("last_updated")
+                }
+            }
+
     command = ["python", "stock_screening_pipeline.py", str(price_increase)]
 
     if ranking_method:
@@ -36,25 +53,19 @@ def run_stock_screening(
     if ranking_screens:
         command.extend(["--ranking-screens"] + ranking_screens)
 
-    try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True,
-            cwd="./stocks_filtering_application"  # Set working directory
-        )
-        return {
-            "status": "success",
-            "output": result.stdout,
-            "command": " ".join(command)
-        }
-    except subprocess.CalledProcessError as e:
-        return {
-            "status": "error",
-            "error": e.stderr,
-            "command": " ".join(command)
-        }
+    # Start process without waiting for it to complete
+    subprocess.Popen(
+        command,
+        cwd="./stocks_filtering_application",
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    return {
+        "status": "success",
+        "message": "Screening process started",
+        "command": " ".join(command)
+    }
 
 def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
     """
@@ -86,10 +97,38 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
         }
 
 
+@app.route('/stock_filtering_app/status', methods=['GET'])
+def get_pipeline_status():
+    """
+    Get the current pipeline status
+
+    Returns:
+        JSON object containing:
+        - current_step: Current step being executed
+        - steps_completed: List of completed steps
+        - current_batch: Current batch number (if fetching data)
+        - total_batches: Total number of batches (if fetching data)
+        - status: Overall status (running/completed/failed)
+        - start_time: When the pipeline started
+        - end_time: When the pipeline ended (if completed/failed)
+        - last_updated: Last time the status was updated
+        - errors: List of errors if any occurred during execution
+    """
+    status = PipelineStatus.get_status()
+
+    if status is None:
+        return jsonify({
+            "status": "error",
+            "error": "No pipeline status found"
+        }), 404
+
+    return jsonify(status)
+
 @app.route('/stock_filtering_app/run_screening', methods=['POST'])
 def screen_stocks():
     """
-    API endpoint for stock screening
+    API endpoint for stock screening. Checks if another pipeline is already running
+    before starting a new one.
 
     Example POST body:
     {
@@ -117,6 +156,10 @@ def screen_stocks():
         obligatory_screens=data.get('obligatory_screens'),
         ranking_screens=data.get('ranking_screens')
     )
+
+    # If there's an error due to running pipeline, return 409 Conflict
+    if result["status"] == "error" and "Another screening process is currently running" in result["message"]:
+        return jsonify(result), 409
 
     return jsonify(result)
 
