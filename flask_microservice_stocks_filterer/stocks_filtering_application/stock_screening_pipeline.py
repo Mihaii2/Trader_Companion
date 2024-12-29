@@ -66,10 +66,28 @@ dirs_to_cleanup = [
 ]
 
 
-def find_csv_files():
+def get_dirs_to_cleanup(run_obligatory, run_sentiment):
+    """Get directories to clean up based on which screens are being run."""
+    dirs = []
+
+    # Always include ranking screens results
+    dirs.append(os.path.join(script_dir, "ranking_screens", "results"))
+
+    # Add obligatory screens results if running obligatory screens
+    if run_obligatory:
+        dirs.append(os.path.join(script_dir, "obligatory_screens", "results"))
+
+    # Add sentiment screens results if running sentiment screens
+    if run_sentiment:
+        dirs.append(os.path.join(script_dir, "market_sentiment_screens", "results"))
+
+    return dirs
+
+
+def find_csv_files(directories):
     """Find all CSV files in the specified directories."""
     csv_files = []
-    for directory in dirs_to_cleanup:
+    for directory in directories:
         if os.path.exists(directory):
             for root, _, files in os.walk(directory):
                 for file in files:
@@ -98,6 +116,12 @@ def parse_args():
     parser.add_argument('--ranking-screens', nargs='+',
                         default=DEFAULT_RANKING_SCREENS,
                         help='List of ranking screens to run (without .py extension)')
+
+    # Add flags to control which screen types to run
+    parser.add_argument('--skip-obligatory', action='store_true',
+                        help='Skip running obligatory screens')
+    parser.add_argument('--skip-sentiment', action='store_true',
+                        help='Skip running market sentiment screens')
 
     return parser.parse_args()
 
@@ -214,14 +238,15 @@ def main():
         status_tracker = PipelineStatus()
 
         # Convert screen names to full paths
-        obligatory_screens = get_full_paths(args.obligatory_screens, 'obligatory')
+        obligatory_screens = get_full_paths(args.obligatory_screens, 'obligatory') if not args.skip_obligatory else []
         ranking_screens = get_full_paths(args.ranking_screens, 'ranking')
-        market_sentiment_screens = get_full_paths(MARKET_SENTIMENT_SCREENS, 'sentiment')
+        market_sentiment_screens = get_full_paths(MARKET_SENTIMENT_SCREENS, 'sentiment') if not args.skip_sentiment else []
 
-        # Clean up old CSV files
+        # Clean up old CSV files based on which screens we're running
         status_tracker.update_step("cleaning_old_files")
         print("Finding and deleting old CSV files...")
-        csv_files = find_csv_files()
+        dirs_to_cleanup = get_dirs_to_cleanup(not args.skip_obligatory, not args.skip_sentiment)
+        csv_files = find_csv_files(dirs_to_cleanup)
         print(f"Found {len(csv_files)} CSV files to delete")
         for file_path in csv_files:
             print(f"Deleting: {os.path.basename(file_path)}")
@@ -235,22 +260,23 @@ def main():
         else:
             print("\nSkipping data fetch, using existing data...")
 
-        # Run obligatory screens
-        status_tracker.update_step("running_obligatory_screens")
-        print("\nRunning obligatory screen scripts...")
-        run_scripts_in_parallel(obligatory_screens, "obligatory screens", args.price_increase)
+        # Run obligatory screens if not skipped
+        if not args.skip_obligatory:
+            status_tracker.update_step("running_obligatory_screens")
+            print("\nRunning obligatory screen scripts...")
+            run_scripts_in_parallel(obligatory_screens, "obligatory screens", args.price_increase)
 
-        status_tracker.update_step("checking_obligatory_screens")
-        print("\nChecking which stocks passed the obligatory screens...")
-        run_script(obligatory_passed_stocks)
+            status_tracker.update_step("checking_obligatory_screens")
+            print("\nChecking which stocks passed the obligatory screens...")
+            run_script(obligatory_passed_stocks)
 
-        status_tracker.update_step("checking_banned_stocks")
-        print("\nChecking which files are banned, creating unbanned stocks list...")
-        run_script(banned_filter)
+            status_tracker.update_step("checking_banned_stocks")
+            print("\nChecking which files are banned, creating unbanned stocks list...")
+            run_script(banned_filter)
 
-        status_tracker.update_step("filtering_passed_stocks")
-        print("\nRunning the filter for passed and unbanned stocks...")
-        run_script(obligatory_data_filter)
+            status_tracker.update_step("filtering_passed_stocks")
+            print("\nRunning the filter for passed and unbanned stocks...")
+            run_script(obligatory_data_filter)
 
         status_tracker.update_step("running_ranking_screens")
         run_scripts_in_parallel(ranking_screens, "ranking screen scripts")
@@ -262,12 +288,14 @@ def main():
         else:  # ranking_method == 'screeners'
             run_script(top_n_stocks_nr_screeners, [str(args.top_n)])
 
-        status_tracker.update_step("running_sentiment_screens")
-        run_scripts_in_parallel(market_sentiment_screens, "market sentiment screen scripts")
+        # Run sentiment screens if not skipped
+        if not args.skip_sentiment:
+            status_tracker.update_step("running_sentiment_screens")
+            run_scripts_in_parallel(market_sentiment_screens, "market sentiment screen scripts")
 
-        status_tracker.update_step("running_history_handler")
-        print("\nRunning history handler script...")
-        run_script(history_handler)
+            status_tracker.update_step("running_history_handler")
+            print("\nRunning history handler script...")
+            run_script(history_handler)
 
         print("\nAll scripts completed.")
         status_tracker.complete_pipeline()
@@ -275,7 +303,6 @@ def main():
     except Exception as e:
         status_tracker.fail_pipeline(str(e))
         raise e
-
 
 if __name__ == "__main__":
     main()

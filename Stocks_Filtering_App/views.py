@@ -1,15 +1,71 @@
 from django.shortcuts import render
-
-# Create your views here.
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 import requests
-from django.shortcuts import render
-from django.http import HttpResponse
+import json
 
-def hello_view(request):
+FLASK_SERVICE_URL = 'http://localhost:5000'
+
+def handle_microservice_error(error):
+    """Helper function to handle microservice connection errors"""
+    return JsonResponse({
+        "status": "error",
+        "error": f"Could not connect to microservice: {str(error)}"
+    }, status=500)
+
+@require_http_methods(["GET"])
+def rankings_view(request, filename):
+    """View to get rankings from the Flask microservice"""
     try:
-        # Make request to Flask microservice
-        response = requests.get('http://localhost:5000/hello')
-        data = response.json()
-        return HttpResponse(data['message'])
+        response = requests.get(f'{FLASK_SERVICE_URL}/rankings/{filename}')
+        return JsonResponse(response.json(), status=response.status_code)
     except requests.RequestException as e:
-        return HttpResponse(f"Error: Could not connect to Flask service. {str(e)}")
+        return handle_microservice_error(e)
+
+@require_http_methods(["GET"])
+def pipeline_status_view(request):
+    """View to get the current pipeline status"""
+    try:
+        response = requests.get(f'{FLASK_SERVICE_URL}/pipeline/status')
+        return JsonResponse(response.json(), status=response.status_code)
+    except requests.RequestException as e:
+        return handle_microservice_error(e)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def screen_stocks_view(request):
+    """View to initiate stock screening"""
+    try:
+        data = json.loads(request.body)
+        response = requests.post(
+            f'{FLASK_SERVICE_URL}/run_screening',
+            json=data
+        )
+        return JsonResponse(response.json(), status=response.status_code)
+    except requests.RequestException as e:
+        return handle_microservice_error(e)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "status": "error",
+            "error": "Invalid JSON in request body"
+        }, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def ban_stocks_view(request):
+    """View to ban stocks"""
+    try:
+        data = json.loads(request.body)
+        response = requests.post(
+            f'{FLASK_SERVICE_URL}/ban',
+            json=data
+        )
+        return JsonResponse(response.json(), status=response.status_code)
+    except requests.RequestException as e:
+        return handle_microservice_error(e)
+    except json.JSONDecodeError:
+        return JsonResponse({
+            "status": "error",
+            "error": "Invalid JSON in request body"
+        }, status=400)

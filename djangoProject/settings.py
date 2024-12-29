@@ -40,6 +40,12 @@ INSTALLED_APPS = [
     'Stocks_Filtering_App.apps.StocksFilteringAppConfig',
 ]
 
+MICROSERVICE_SETTINGS = {
+    'FLASK_SERVICE_URL': 'http://localhost:5000',
+    'TIMEOUT': 30,  # seconds
+    'VERIFY_SSL': True,
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

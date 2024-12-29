@@ -25,7 +25,7 @@ class Command(BaseCommand):
 
     def run_flask(self):
         flask_dir = os.path.join(os.getcwd(), 'flask_microservice_stocks_filterer')
-        flask_app = os.path.join(flask_dir, 'orchestrating_server.py')
+        flask_app = os.path.join(flask_dir, 'api_endpoints.py')
 
         try:
             subprocess.run([sys.executable, flask_app], cwd=flask_dir)

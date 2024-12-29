@@ -2,5 +2,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.hello_view, name='hello'),
+    path('rankings/<str:filename>', views.rankings_view, name='rankings'),
+    path('pipeline/status', views.pipeline_status_view, name='pipeline-status'),
+    path('run_screening', views.screen_stocks_view, name='screen-stocks'),
+    path('ban', views.ban_stocks_view, name='ban-stocks'),
 ]

@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 import subprocess
 import shlex
 import sys
+import os
+import pandas as pd
+from datetime import datetime
 from typing import List, Optional
 from flask_microservice_stocks_filterer.stocks_filtering_application.pipeline_status import PipelineStatus
 
@@ -14,7 +17,9 @@ def run_stock_screening(
         fetch_data: bool = False,
         top_n: Optional[int] = None,
         obligatory_screens: Optional[List[str]] = None,
-        ranking_screens: Optional[List[str]] = None
+        ranking_screens: Optional[List[str]] = None,
+        skip_obligatory: bool = False,
+        skip_sentiment: bool = False
 ) -> dict:
     """
     Run the stock screening pipeline with the given parameters asynchronously.
@@ -52,6 +57,12 @@ def run_stock_screening(
 
     if ranking_screens:
         command.extend(["--ranking-screens"] + ranking_screens)
+
+    if skip_obligatory:
+        command.append("--skip-obligatory")
+
+    if skip_sentiment:
+        command.append("--skip-sentiment")
 
     # Start process without waiting for it to complete
     subprocess.Popen(
@@ -97,7 +108,54 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
         }
 
 
-@app.route('/stock_filtering_app/status', methods=['GET'])
+@app.route('/rankings/<filename>', methods=['GET'])
+def get_rankings(filename):
+    """
+    Get the contents of a ranking file
+
+    Args:
+        filename (str): Name of the ranking file (without .csv extension)
+
+    Returns:
+        JSON object containing the CSV data, creation date, and status or error message
+    """
+    # Ensure the filename ends with .csv
+    if not filename.endswith('.csv'):
+        filename = f"{filename}.csv"
+
+    file_path = os.path.join('./stocks_filtering_application', filename)
+
+    try:
+        # Check if file exists
+        if not os.path.exists(file_path):
+            return jsonify({
+                "status": "error",
+                "error": f"Ranking file {filename} not found"
+            }), 404
+
+        # Get file creation time
+        file_creation_timestamp = os.path.getctime(file_path)
+        creation_date = datetime.fromtimestamp(file_creation_timestamp).isoformat()
+
+        # Read CSV file
+        df = pd.read_csv(file_path)
+
+        # Convert DataFrame to list of dictionaries
+        rankings_data = df.fillna('').to_dict('records')
+
+        return jsonify({
+            "status": "success",
+            "data": rankings_data,
+            "created_at": creation_date
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": f"Error reading ranking file: {str(e)}"
+        }), 500
+
+@app.route('/pipeline/status', methods=['GET'])
 def get_pipeline_status():
     """
     Get the current pipeline status
@@ -124,7 +182,7 @@ def get_pipeline_status():
 
     return jsonify(status)
 
-@app.route('/stock_filtering_app/run_screening', methods=['POST'])
+@app.route('/run_screening', methods=['POST'])
 def screen_stocks():
     """
     API endpoint for stock screening. Checks if another pipeline is already running
@@ -137,7 +195,9 @@ def screen_stocks():
         "fetch_data": true,
         "top_n": 20,
         "obligatory_screens": ["screen1", "screen2"],
-        "ranking_screens": ["screen3", "screen4"]
+        "ranking_screens": ["screen3", "screen4"],
+        "skip_obligatory": false,
+        "skip_sentiment": false
     }
     """
     data = request.get_json()
@@ -154,7 +214,9 @@ def screen_stocks():
         fetch_data=data.get('fetch_data', False),
         top_n=data.get('top_n'),
         obligatory_screens=data.get('obligatory_screens'),
-        ranking_screens=data.get('ranking_screens')
+        ranking_screens=data.get('ranking_screens'),
+        skip_obligatory=data.get('skip_obligatory', False),
+        skip_sentiment=data.get('skip_sentiment', False)
     )
 
     # If there's an error due to running pipeline, return 409 Conflict
@@ -164,7 +226,7 @@ def screen_stocks():
     return jsonify(result)
 
 
-@app.route('/stock_filtering_app/ban', methods=['POST'])
+@app.route('/ban', methods=['POST'])
 def ban_stocks():
     """
     API endpoint for banning stocks
