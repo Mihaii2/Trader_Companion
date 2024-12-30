@@ -9,12 +9,19 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Static files settings
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MICROSERVICE_URL = os.getenv('FLASK_SERVICE_URL', 'http://localhost:5000')
+print(f"Using microservice URL: {MICROSERVICE_URL}")  # Temporary debug line
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -38,10 +45,11 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'Stocks_Filtering_App.apps.StocksFilteringAppConfig',
+    'corsheaders',
 ]
 
 MICROSERVICE_SETTINGS = {
-    'FLASK_SERVICE_URL': 'http://localhost:5000',
+    'FLASK_SERVICE_URL': MICROSERVICE_URL,
     'TIMEOUT': 30,  # seconds
     'VERIFY_SSL': True,
 }
@@ -54,7 +62,11 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "djangoProject.urls"
 

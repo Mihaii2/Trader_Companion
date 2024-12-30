@@ -63,7 +63,7 @@ def process_csv_files(directory, top_n):
     )
 
     # Write the top N symbols with the highest price increase to a new CSV file
-    output_filename = f'stocks_ranking_by_price_increase.csv'
+    output_filename = f'stocks_ranking_by_price.csv'
     with open(output_filename, 'w', newline='') as outfile:
         writer = csv.writer(outfile)
         

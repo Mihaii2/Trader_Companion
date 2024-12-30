@@ -1,5 +1,6 @@
 import React from 'react';
 import { StocksScreenerCommander } from '../components/stocks/StocksScreenerCommander';
+import { ThemeToggle } from "../components/theme-toggle";
 
 export const StocksRankingPage: React.FC = () => {
 
@@ -16,7 +17,7 @@ export const StocksRankingPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Stocks Screener</h1>
-      
+      <ThemeToggle />
       <div className="space-y-8">
         <StocksScreenerCommander/>
         

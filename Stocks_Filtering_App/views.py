@@ -4,8 +4,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import requests
 import json
+from django.conf import settings
 
-FLASK_SERVICE_URL = 'http://localhost:5000'
+FLASK_SERVICE_URL = settings.MICROSERVICE_SETTINGS['FLASK_SERVICE_URL']
 
 def handle_microservice_error(error):
     """Helper function to handle microservice connection errors"""

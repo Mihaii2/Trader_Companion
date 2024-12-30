@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - FLASK_SERVICE_URL=http://microservice:5000
+    depends_on:
+      - microservice
+
+  microservice:
+    build: ./flask_microservice_stocks_filterer
+    ports:
+      - "5000:5000"

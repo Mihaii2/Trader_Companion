@@ -6,13 +6,12 @@ import os
 import pandas as pd
 from datetime import datetime
 from typing import List, Optional
-from flask_microservice_stocks_filterer.stocks_filtering_application.pipeline_status import PipelineStatus
-
+from stocks_filtering_application.pipeline_status import PipelineStatus
 app = Flask(__name__)
 
 
 def run_stock_screening(
-        price_increase: float,
+        min_price_increase: float,
         ranking_method: Optional[str] = None,
         fetch_data: bool = False,
         top_n: Optional[int] = None,
@@ -33,15 +32,10 @@ def run_stock_screening(
         if current_status.get("status") == "running":
             return {
                 "status": "error",
-                "message": "Another screening process is currently running",
-                "current_pipeline": {
-                    "step": current_status.get("current_step"),
-                    "started": current_status.get("start_time"),
-                    "last_updated": current_status.get("last_updated")
-                }
+                "message": "Another screening process is currently running"
             }
 
-    command = ["python", "stock_screening_pipeline.py", str(price_increase)]
+    command = ["python", "stock_screening_pipeline.py", str(min_price_increase)]
 
     if ranking_method:
         command.extend(["--ranking-method", ranking_method])
@@ -75,7 +69,6 @@ def run_stock_screening(
     return {
         "status": "success",
         "message": "Screening process started",
-        "command": " ".join(command)
     }
 
 def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
@@ -190,7 +183,7 @@ def screen_stocks():
 
     Example POST body:
     {
-        "price_increase": 10.5,
+        "min_price_increase": 10.5,
         "ranking_method": "price",
         "fetch_data": true,
         "top_n": 20,
@@ -202,14 +195,14 @@ def screen_stocks():
     """
     data = request.get_json()
 
-    if not data or 'price_increase' not in data:
+    if not data or 'min_price_increase' not in data:
         return jsonify({
             "status": "error",
-            "error": "price_increase is required"
+            "message": "min_price_increase is required"
         }), 400
 
     result = run_stock_screening(
-        price_increase=data['price_increase'],
+        min_price_increase=data['min_price_increase'],
         ranking_method=data.get('ranking_method'),
         fetch_data=data.get('fetch_data', False),
         top_n=data.get('top_n'),
@@ -263,4 +256,4 @@ def ban_stocks():
 
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)
