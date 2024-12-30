@@ -1,7 +1,8 @@
+# docker-compose.yml
 version: '3.8'
 
 services:
-  web:
+  backend:
     build: .
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
@@ -11,7 +12,6 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-      - FLASK_SERVICE_URL=http://microservice:5000
     depends_on:
       - microservice
 
@@ -19,3 +19,16 @@ services:
     build: ./flask_microservice_stocks_filterer
     ports:
       - "5000:5000"
+
+  frontend:
+    build: ./react-frontend-app
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./react-frontend-app:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - backend
