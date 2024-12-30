@@ -1,3 +1,4 @@
+# Dockerfile.frontend
 FROM node:18-alpine
 
 WORKDIR /app
@@ -11,8 +12,8 @@ RUN npm install
 # Copy project files
 COPY . .
 
-# Expose port 5174
-EXPOSE 5174
+# Expose Vite's default port
+EXPOSE 5173
 
-# Start the Vite dev server
-CMD ["npm", "run", "dev", "--", "--host"]
+# Start Vite with host set to 0.0.0.0 to allow external connections
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

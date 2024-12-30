@@ -24,12 +24,10 @@ services:
   frontend:
     build: ./react-frontend-app
     ports:
-      - "5174:5174"
+      - "5173:5173"  # Vite's default port
     volumes:
       - ./react-frontend-app:/app
       - /app/node_modules
     environment:
       - VITE_API_URL=http://localhost:8000
     command: npm run dev -- --host 0.0.0.0
-    depends_on:
-      - backend
