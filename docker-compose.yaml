@@ -12,6 +12,7 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - FLASK_SERVICE_URL=http://microservice:5000
     depends_on:
       - microservice
 
