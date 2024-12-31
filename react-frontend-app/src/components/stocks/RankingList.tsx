@@ -1,38 +1,36 @@
+// components/stocks/RankingList.tsx
 import React from 'react';
-import { Stock } from '../../types/screenerCommander';
-import { StockItem } from './StockItem';
+import { useRankingList } from '../../hooks/useRankingList';
+import { RankingItemComponent } from './RankingItemComponent';
 
-interface RankingListProps {
-  stocks: Stock[];
-  onAddToPersonal: (ticker: string) => void;
-  onBanStock: (ticker: string, duration: number) => void;
-  lastUpdated?: Date;
-}
+export const RankingList: React.FC = () => {
+  const { rankings, loading, error } = useRankingList();
 
-export const RankingList: React.FC<RankingListProps> = ({
-  stocks,
-  onAddToPersonal,
-  onBanStock,
-  lastUpdated,
-}) => {
+  if (loading) return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <p className="text-gray-500">Loading rankings...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="bg-white rounded-lg shadow p-4">
+      <p className="text-red-500">Error: {error}</p>
+    </div>
+  );
+
   return (
     <div className="bg-white rounded-lg shadow">
-      {lastUpdated && (
+      {rankings?.created_at && (
         <div className="p-4 border-b">
           <p className="text-sm text-gray-500">
-            Last updated: {lastUpdated.toLocaleString()}
+            Last updated: {new Date(rankings.created_at).toLocaleString()}
           </p>
         </div>
       )}
       
       <div className="divide-y">
-        {stocks.map((stock) => (
-          <StockItem
-            key={stock.ticker}
-            stock={stock}
-            onAddToPersonal={onAddToPersonal}
-            onBanStock={onBanStock}
-          />
+        {rankings?.message?.map((item) => (
+          <RankingItemComponent key={item.Symbol} rankingData={item} />
         ))}
       </div>
     </div>

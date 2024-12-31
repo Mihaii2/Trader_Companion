@@ -8,9 +8,15 @@ import threading
 import argparse
 import uuid
 from pipeline_status import PipelineStatus
+from datetime import datetime
+import logging
 
 # Get the current script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Create logs directory if it doesn't exist
+logs_dir = os.path.join(script_dir, "logs")
+os.makedirs(logs_dir, exist_ok=True)
 
 # Define file paths
 price_fundamental_script = os.path.join(script_dir, "price_1y_fundamental_2y.py")
@@ -58,13 +64,30 @@ MARKET_SENTIMENT_SCREENS = [
     "52week_low_1d"
 ]
 
-# Directories to scan for CSV cleanup
-dirs_to_cleanup = [
-    os.path.join(script_dir, "obligatory_screens", "results"),
-    os.path.join(script_dir, "ranking_screens", "results"),
-    os.path.join(script_dir, "market_sentiment_screens", "results")
-]
+# Set up logging
+def setup_logging():
+    # Create logs directory if it doesn't exist
+    logs_dir = os.path.join(script_dir, "logs")
+    os.makedirs(logs_dir, exist_ok=True)
 
+    # Define log file path
+    log_file = os.path.join(logs_dir, "last_run.log")
+
+    # Remove old log file if it exists
+    if os.path.exists(log_file):
+        os.remove(log_file)
+
+    # Configure logging to write to both file and console
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+
+    return log_file
 
 def get_dirs_to_cleanup(run_obligatory, run_sentiment):
     """Get directories to clean up based on which screens are being run."""
@@ -153,16 +176,14 @@ def print_output(pipe, prefix):
             line = pipe.readline()
             if not line:
                 break
-            print(f"{prefix}: {line.decode().strip()}", flush=True)
+            logging.info(f"{prefix}: {line.decode().strip()}")
     except Exception as e:
-        print(f"Error reading output: {e}")
-
+        logging.error(f"Error reading output: {e}")
 
 def run_script(script_path, args=None, status_tracker=None):
     """Run a Python script with optional arguments and capture its output in real-time."""
     script_name = os.path.basename(script_path)
 
-    # Build command with optional arguments
     command = [sys.executable, '-u', script_path]
     if args:
         command.extend(args)
@@ -172,18 +193,19 @@ def run_script(script_path, args=None, status_tracker=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         bufsize=0,
-        universal_newlines=True  # Changed to True for string output
+        universal_newlines=True
     )
 
     def handle_output(pipe, prefix, is_error=False):
         """Handle output from a pipe with a prefix."""
         try:
             for line in pipe:
-                print(f"{prefix}: {line.strip()}", flush=True)
+                log_level = logging.ERROR if is_error else logging.INFO
+                logging.log(log_level, f"{prefix}: {line.strip()}")
                 if status_tracker:
                     status_tracker.handle_script_output(line, script_name)
         except Exception as e:
-            print(f"Error reading output: {e}")
+            logging.error(f"Error reading output: {e}")
 
     stdout_thread = threading.Thread(
         target=handle_output,
@@ -209,7 +231,6 @@ def run_script(script_path, args=None, status_tracker=None):
 
     return process.returncode
 
-
 def run_scripts_in_parallel(scripts, description, price_increase=None):
     """Run multiple scripts in parallel and show their output."""
     print(f"\nRunning {description}...")
@@ -232,10 +253,21 @@ def run_scripts_in_parallel(scripts, description, price_increase=None):
 
 def main():
     try:
+        # Set up logging at the start
+        log_file = setup_logging()
+        logging.info(f"Starting pipeline run. Logs will be saved to: {log_file}")
+
         args = parse_args()
+        logging.info(f"Pipeline arguments: {args}")
 
         # Create a unique ID for this pipeline run
         status_tracker = PipelineStatus()
+
+        # Add top_price_increases_1y to ranking screens if ranking method is price
+        ranking_screen_list = args.ranking_screens
+        if args.ranking_method == 'price' and 'top_price_increases_1y' not in ranking_screen_list:
+            ranking_screen_list.append('top_price_increases_1y')
+            logging.info("Added top_price_increases_1y to ranking screens due to price ranking method")
 
         # Convert screen names to full paths
         obligatory_screens = get_full_paths(args.obligatory_screens, 'obligatory') if not args.skip_obligatory else []
@@ -300,7 +332,10 @@ def main():
         print("\nAll scripts completed.")
         status_tracker.complete_pipeline()
 
+
+
     except Exception as e:
+        logging.error(f"Pipeline failed with error: {str(e)}")
         status_tracker.fail_pipeline(str(e))
         raise e
 

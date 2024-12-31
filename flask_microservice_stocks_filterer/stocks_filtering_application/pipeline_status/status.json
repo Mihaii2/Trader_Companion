@@ -1,0 +1,18 @@
+{
+  "start_time": 1735651622.4987705,
+  "current_step": "finding_top_stocks",
+  "steps_completed": [
+    "cleaning_old_files",
+    "running_obligatory_screens",
+    "checking_obligatory_screens",
+    "checking_banned_stocks",
+    "filtering_passed_stocks",
+    "running_ranking_screens",
+    "finding_top_stocks"
+  ],
+  "current_batch": null,
+  "total_batches": null,
+  "status": "completed",
+  "last_updated": 1735651703.7884068,
+  "end_time": 1735651703.7884068
+}

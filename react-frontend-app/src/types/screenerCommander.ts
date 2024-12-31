@@ -10,15 +10,3 @@ export interface ScreeningOptions {
   skip_obligatory: boolean;
   skip_sentiment: boolean;
 }
-
-export interface Stock {
-  ticker: string;
-  priceIncrease: number;
-  screenersCount: number;
-  lastUpdated: Date;
-}
-
-export interface BanOptions {
-  ticker: string;
-  duration: number; // in days
-}

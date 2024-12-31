@@ -57,7 +57,7 @@ def run_stock_screening(
 
     if skip_sentiment:
         command.append("--skip-sentiment")
-
+    print(command)
     # Start process without waiting for it to complete
     subprocess.Popen(
         command,
@@ -123,7 +123,7 @@ def get_rankings(filename):
         if not os.path.exists(file_path):
             return jsonify({
                 "status": "error",
-                "error": f"Ranking file {filename} not found"
+                "message": f"Ranking file {filename} not found"
             }), 404
 
         # Get file creation time
@@ -138,14 +138,14 @@ def get_rankings(filename):
 
         return jsonify({
             "status": "success",
-            "data": rankings_data,
+            "message": rankings_data,
             "created_at": creation_date
         })
 
     except Exception as e:
         return jsonify({
             "status": "error",
-            "error": f"Error reading ranking file: {str(e)}"
+            "message": f"Error reading ranking file: {str(e)}"
         }), 500
 
 @app.route('/pipeline/status', methods=['GET'])

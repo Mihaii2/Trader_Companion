@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ScreeningOptions } from '../types/screenerCommander';
-import { sendScreenerCommand } from '../services/stockScreener';
+import { sendScreenerCommand } from '../services/stockScreenerService';
 
 export const useStockScreener = () => {
   const [loading, setLoading] = useState(false);

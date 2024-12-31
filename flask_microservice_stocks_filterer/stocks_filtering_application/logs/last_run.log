@@ -1,0 +1,31 @@
+2024-12-31 15:27:02,492 - INFO - Starting pipeline run. Logs will be saved to: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\logs\last_run.log
+2024-12-31 15:27:02,497 - INFO - Pipeline arguments: Namespace(price_increase=200.0, ranking_method='price', fetch_data=False, top_n=30, obligatory_screens=['above_52week_low', 'trending_up'], ranking_screens=['annual_EPS_acceleration', 'quarterly_EPS_acceleration', 'top_price_increases_1y', 'price_spikes', 'rs_over_70'], skip_obligatory=False, skip_sentiment=True)
+2024-12-31 15:27:31,836 - INFO - [trending_up.py]: Trending up analysis complete. Saved 1286 symbols to ./obligatory_screens/results/trending_up_stocks.csv
+2024-12-31 15:27:54,920 - INFO - [above_52week_low.py]: Above 52 week low analysis complete. 3707 stocks meeting the criteria have been saved to ./obligatory_screens/results/above_52week_low.csv.
+2024-12-31 15:27:54,920 - INFO - [above_52week_low.py]: Skipped 0 rows due to missing or invalid data.
+2024-12-31 15:27:58,004 - INFO - [obligatory_screen_passer.py]: Processing 2 CSV files:
+2024-12-31 15:27:58,004 - INFO - [obligatory_screen_passer.py]: - above_52week_low.csv
+2024-12-31 15:27:58,004 - INFO - [obligatory_screen_passer.py]: - trending_up_stocks.csv
+2024-12-31 15:27:58,006 - INFO - [obligatory_screen_passer.py]: 
+2024-12-31 15:27:58,006 - INFO - [obligatory_screen_passer.py]: Found 882 stocks that passed all available screens
+2024-12-31 15:27:58,006 - INFO - [obligatory_screen_passer.py]: Results saved to obligatory_passed_stocks.csv
+2024-12-31 15:28:00,696 - INFO - [banned_filter.py]: Creating new empty stocks_not_banned.csv file...
+2024-12-31 15:28:00,702 - INFO - [banned_filter.py]: Checking 882 symbols for ban. 877 symbols are allowed.
+2024-12-31 15:28:00,703 - INFO - [banned_filter.py]: Removed 0 expired bans.
+2024-12-31 15:28:03,870 - INFO - [obligatory_screen_data_filter.py]: Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_annual_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2024-12-31 15:28:03,987 - INFO - [obligatory_screen_data_filter.py]: Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_quarterly_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2024-12-31 15:28:11,843 - INFO - [obligatory_screen_data_filter.py]: Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_price_data.csv' mode='w' encoding='cp1252'>
+2024-12-31 15:28:16,077 - INFO - [annual_EPS_acceleration.py]: 24 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
+2024-12-31 15:28:16,077 - INFO - [quarterly_EPS_acceleration.py]: 258 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
+2024-12-31 15:28:16,418 - ERROR - [top_price_increases_1y.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning:
+2024-12-31 15:28:16,418 - ERROR - [top_price_increases_1y.py ERROR]: 
+2024-12-31 15:28:16,419 - ERROR - [top_price_increases_1y.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2024-12-31 15:28:16,419 - ERROR - [top_price_increases_1y.py ERROR]: 
+2024-12-31 15:28:16,428 - INFO - [top_price_increases_1y.py]: Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
+2024-12-31 15:28:18,690 - ERROR - [rs_over_70.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\rs_over_70.py:27: DeprecationWarning:
+2024-12-31 15:28:18,690 - ERROR - [rs_over_70.py ERROR]: 
+2024-12-31 15:28:18,690 - ERROR - [rs_over_70.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2024-12-31 15:28:18,691 - ERROR - [rs_over_70.py ERROR]: 
+2024-12-31 15:28:18,696 - INFO - [rs_over_70.py]: Saved 57 stocks with 14-day RSI > 70 to './ranking_screens/results/rs_over_70.csv'
+2024-12-31 15:28:19,113 - INFO - [price_spikes.py]: Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
+2024-12-31 15:28:23,584 - INFO - [top_n_stocks_by_price_increase.py]: 'stocks_ranking_by_price.csv' has been created.

@@ -65,7 +65,7 @@ export const StocksScreenerCommander: React.FC = () => {
     <form onSubmit={handleSubmit} className="p-4 md:p-6">
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader>
-          <CardTitle>Stock Screener</CardTitle>
+          <CardTitle>Stock Screener Commander</CardTitle>
         </CardHeader>
         
         <CardContent className="space-y-8">
