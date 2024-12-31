@@ -52,11 +52,11 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
             Price Increase
           </div>
           <span>
-            {rankingData['Price Increase'] === null || rankingData['Price Increase'] === undefined 
+            {rankingData.Price_Increase_Percentage === null || rankingData.Price_Increase_Percentage === undefined 
               ? '-' 
-              : typeof rankingData['Price Increase'] === 'number'
-                ? rankingData['Price Increase'].toFixed(2)
-                : rankingData['Price Increase'].toString()
+              : typeof rankingData.Price_Increase_Percentage === 'number'
+                ? rankingData.Price_Increase_Percentage.toFixed(2)
+                : rankingData.Price_Increase_Percentage.toString()
             }
           </span>
         </div>

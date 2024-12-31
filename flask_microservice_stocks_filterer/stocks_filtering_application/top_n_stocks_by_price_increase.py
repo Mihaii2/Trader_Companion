@@ -68,7 +68,7 @@ def process_csv_files(directory, top_n):
         writer = csv.writer(outfile)
         
         # Write header
-        header = ['Symbol', 'Price Increase', 'Screeners'] + list(characteristics)
+        header = ['Symbol', 'Price_Increase_Percentage', 'Screeners'] + list(characteristics)
         writer.writerow(header)
         
         # Write data for the top N symbols

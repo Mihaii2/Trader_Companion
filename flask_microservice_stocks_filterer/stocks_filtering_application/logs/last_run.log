@@ -1,16 +1,16 @@
-2024-12-31 17:27:33,716 - INFO - Starting pipeline run. Logs will be saved to: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\logs\last_run.log
-2024-12-31 17:27:33,719 - INFO - Pipeline arguments: Namespace(price_increase=400.0, ranking_method='price', fetch_data=False, top_n=30, obligatory_screens=['above_52week_low', 'trending_up'], ranking_screens=['annual_EPS_acceleration', 'quarterly_EPS_acceleration', 'top_price_increases_1y', 'price_spikes', 'rs_over_70'], skip_obligatory=True, skip_sentiment=True)
-2024-12-31 17:27:37,303 - INFO - [quarterly_EPS_acceleration.py]: 258 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
-2024-12-31 17:27:37,360 - INFO - [annual_EPS_acceleration.py]: 24 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
-2024-12-31 17:27:37,523 - ERROR - [top_price_increases_1y.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning:
-2024-12-31 17:27:37,523 - ERROR - [top_price_increases_1y.py ERROR]: 
-2024-12-31 17:27:37,523 - ERROR - [top_price_increases_1y.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2024-12-31 17:27:37,523 - ERROR - [top_price_increases_1y.py ERROR]: 
-2024-12-31 17:27:37,533 - INFO - [top_price_increases_1y.py]: Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
-2024-12-31 17:27:39,497 - ERROR - [rs_over_70.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\rs_over_70.py:27: DeprecationWarning:
-2024-12-31 17:27:39,497 - ERROR - [rs_over_70.py ERROR]: 
-2024-12-31 17:27:39,497 - ERROR - [rs_over_70.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2024-12-31 17:27:39,497 - ERROR - [rs_over_70.py ERROR]: 
-2024-12-31 17:27:39,507 - INFO - [rs_over_70.py]: Saved 57 stocks with 14-day RSI > 70 to './ranking_screens/results/rs_over_70.csv'
-2024-12-31 17:27:40,981 - INFO - [price_spikes.py]: Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
-2024-12-31 17:27:45,149 - INFO - [top_n_stocks_by_price_increase.py]: 'stocks_ranking_by_price.csv' has been created.
+2024-12-31 20:04:53,740 - INFO - Starting pipeline run. Logs will be saved to: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\logs\last_run.log
+2024-12-31 20:04:53,742 - INFO - Pipeline arguments: Namespace(price_increase=400.0, ranking_method='price', fetch_data=False, top_n=30, obligatory_screens=['above_52week_low', 'trending_up'], ranking_screens=['annual_EPS_acceleration', 'quarterly_EPS_acceleration', 'top_price_increases_1y', 'price_spikes', 'rs_over_70'], skip_obligatory=True, skip_sentiment=True)
+2024-12-31 20:04:57,220 - INFO - [quarterly_EPS_acceleration.py]: 258 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
+2024-12-31 20:04:57,269 - INFO - [annual_EPS_acceleration.py]: 24 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
+2024-12-31 20:04:57,471 - ERROR - [top_price_increases_1y.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning:
+2024-12-31 20:04:57,471 - ERROR - [top_price_increases_1y.py ERROR]: 
+2024-12-31 20:04:57,471 - ERROR - [top_price_increases_1y.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2024-12-31 20:04:57,471 - ERROR - [top_price_increases_1y.py ERROR]: 
+2024-12-31 20:04:57,479 - INFO - [top_price_increases_1y.py]: Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
+2024-12-31 20:05:00,339 - ERROR - [rs_over_70.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\rs_over_70.py:27: DeprecationWarning:
+2024-12-31 20:05:00,339 - ERROR - [rs_over_70.py ERROR]: 
+2024-12-31 20:05:00,340 - ERROR - [rs_over_70.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2024-12-31 20:05:00,340 - ERROR - [rs_over_70.py ERROR]: 
+2024-12-31 20:05:00,346 - INFO - [rs_over_70.py]: Saved 57 stocks with 14-day RSI > 70 to './ranking_screens/results/rs_over_70.csv'
+2024-12-31 20:05:00,894 - INFO - [price_spikes.py]: Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
+2024-12-31 20:05:03,585 - INFO - [top_n_stocks_by_price_increase.py]: 'stocks_ranking_by_price.csv' has been created.

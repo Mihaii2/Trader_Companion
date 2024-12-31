@@ -14,3 +14,5 @@ export interface RankingListResponse {
   message: RankingItem[] | string;  // Array for success, string for error
   created_at?: string;  // Optional since it's only present in success response
 }
+
+export type RankingType = 'price' | 'screeners';

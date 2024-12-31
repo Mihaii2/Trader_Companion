@@ -1,5 +1,5 @@
 {
-  "start_time": 1735658853.7200449,
+  "start_time": 1735668293.7427366,
   "current_step": "finding_top_stocks",
   "steps_completed": [
     "cleaning_old_files",
@@ -9,6 +9,6 @@
   "current_batch": null,
   "total_batches": null,
   "status": "completed",
-  "last_updated": 1735658865.3307328,
-  "end_time": 1735658865.3307328
+  "last_updated": 1735668303.7766535,
+  "end_time": 1735668303.7766535
 }
