@@ -8,7 +8,8 @@ export interface StocksScreenerCommanderResponse {
 export interface RankingListSuccessResponse {
   status: 'success';
   message: RankingItem[];
-  created_at: string;
+  stock_data_created_at: string;
+  rankings_created_at: string;
 }
 
 // For the error response

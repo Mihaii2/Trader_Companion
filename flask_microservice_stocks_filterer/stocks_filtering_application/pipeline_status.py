@@ -4,17 +4,21 @@ import time
 import re
 from typing import Optional, Dict, Any
 
-
 class PipelineStatus:
     """Handles saving and loading pipeline status information"""
 
     STATUS_FILE = "status.json"
     STATUS_DIR = "pipeline_status"
 
-    def __init__(self):
-        # Create status directory if it doesn't exist
-        self.status_path = os.path.join(".", self.STATUS_DIR, self.STATUS_FILE)
-        os.makedirs(os.path.dirname(self.status_path), exist_ok=True)
+    def __init__(self, pid: int) -> None:
+        # Find or initialize status file path
+        status_path = self._find_status_file()
+        if not status_path:
+            # Create status directory if it doesn't exist
+            status_path = os.path.join(".", self.STATUS_DIR, self.STATUS_FILE)
+            os.makedirs(os.path.dirname(status_path), exist_ok=True)
+
+        self.status_path = status_path
 
         # Initialize status file
         self._save_status({
@@ -24,8 +28,50 @@ class PipelineStatus:
             "current_batch": None,
             "total_batches": None,
             "status": "running",
-            "last_updated": time.time()
+            "last_updated": time.time(),
+            "process_pid": pid
         })
+
+    @classmethod
+    def start_pipeline(cls, pid: int) -> None:
+        """
+        Initialize the pipeline status as running with a new start time.
+        """
+        status_path = cls._find_status_file()
+        if not status_path:
+            # Create status directory if it doesn't exist
+            status_path = os.path.join(".", cls.STATUS_DIR, cls.STATUS_FILE)
+            os.makedirs(os.path.dirname(status_path), exist_ok=True)
+
+        initial_status = {
+            "start_time": time.time(),
+            "current_step": "initializing",
+            "steps_completed": [],
+            "current_batch": None,
+            "total_batches": None,
+            "status": "running",
+            "last_updated": time.time(),
+            "process_pid": pid
+        }
+
+        with open(status_path, 'w') as f:
+            json.dump(initial_status, f, indent=2)
+
+    @classmethod
+    def set_process_pid(cls, pid: int) -> None:
+        """Set the process ID for the running pipeline"""
+        status_path = cls._find_status_file()
+        if not status_path:
+            return None
+
+        with open(status_path, 'r') as f:
+            current_status = json.load(f)
+
+        current_status["process_pid"] = pid
+        current_status["last_updated"] = time.time()
+
+        with open(status_path, 'w') as f:
+            json.dump(current_status, f, indent=2)
 
     def update_step(self, step: str) -> None:
         """Update the current step of the pipeline"""
@@ -81,13 +127,23 @@ class PipelineStatus:
         })
         self._save_status(current_status)
 
-    def complete_pipeline(self) -> None:
+    @classmethod
+    def complete_pipeline(cls) -> None:
         """Mark the pipeline as completed"""
-        current_status = self._load_status()
+        status_path = cls._find_status_file()
+        if not status_path:
+            return None
+
+        with open(status_path, 'r') as f:
+            current_status = json.load(f)
+
         current_status["status"] = "completed"
         current_status["end_time"] = time.time()
         current_status["last_updated"] = time.time()
-        self._save_status(current_status)
+        current_status["process_pid"] = None  # Clear PID on completion
+
+        with open(status_path, 'w') as f:
+            json.dump(current_status, f, indent=2)
 
     def fail_pipeline(self, error: str) -> None:
         """Mark the pipeline as failed"""
@@ -129,7 +185,7 @@ class PipelineStatus:
 
     @classmethod
     def get_status(cls) -> Optional[Dict[str, Any]]:
-        """Get the current pipeline status by searching in subdirectories"""
+        """Get the current pipeline status"""
         status_path = cls._find_status_file()
         if not status_path:
             return None

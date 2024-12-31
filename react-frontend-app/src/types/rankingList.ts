@@ -12,7 +12,8 @@ export interface RankingItem {
 export interface RankingListResponse {
   status: 'success' | 'error';
   message: RankingItem[] | string;  // Array for success, string for error
-  created_at?: string;  // Optional since it's only present in success response
+  stock_data_created_at?: string;  // Optional since it's only present in success response
+  rankings_created_at?: string;  // Optional since it's only present in success response
 }
 
 export type RankingType = 'price' | 'screeners';

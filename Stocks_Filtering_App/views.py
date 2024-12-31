@@ -70,3 +70,13 @@ def ban_stocks_view(request):
             "status": "error",
             "error": "Invalid JSON in request body"
         }, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def stop_screening_view(request):
+    """View to stop stock screening"""
+    try:
+        response = requests.post(f'{FLASK_SERVICE_URL}/pipeline/stop')
+        return JsonResponse(response.json(), status=response.status_code)
+    except requests.RequestException as e:
+        return handle_microservice_error(e)

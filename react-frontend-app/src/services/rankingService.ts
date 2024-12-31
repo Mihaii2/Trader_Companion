@@ -14,7 +14,7 @@ export const rankingService = {
       const response = await axios.get(
         `${API_CONFIG.baseURL}/stock_filtering_app/rankings/${endpoint}`
       );
-      
+
       if (response.data.status === 'error') {
         throw new Error(response.data.message);
       }

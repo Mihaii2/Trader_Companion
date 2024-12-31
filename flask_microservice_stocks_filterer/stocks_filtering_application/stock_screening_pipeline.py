@@ -252,6 +252,7 @@ def run_scripts_in_parallel(scripts, description, price_increase=None):
 
 
 def main():
+    status_tracker = None
     try:
         # Set up logging at the start
         log_file = setup_logging()
@@ -260,8 +261,8 @@ def main():
         args = parse_args()
         logging.info(f"Pipeline arguments: {args}")
 
-        # Create a unique ID for this pipeline run
-        status_tracker = PipelineStatus()
+        # Start the pipeline with this process PID
+        status_tracker = PipelineStatus(os.getpid())
 
         # Add top_price_increases_1y to ranking screens if ranking method is price
         ranking_screen_list = args.ranking_screens
@@ -331,13 +332,16 @@ def main():
 
         print("\nAll scripts completed.")
         status_tracker.complete_pipeline()
-
-
-
     except Exception as e:
         logging.error(f"Pipeline failed with error: {str(e)}")
-        status_tracker.fail_pipeline(str(e))
+        if status_tracker:
+            status_tracker.fail_pipeline(str(e))
         raise e
+    finally:
+        # Ensure pipeline status is marked as complete even if an error occurs
+        if status_tracker:
+            status_tracker.complete_pipeline()
+
 
 if __name__ == "__main__":
     main()

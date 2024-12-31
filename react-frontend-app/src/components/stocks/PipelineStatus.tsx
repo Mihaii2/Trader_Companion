@@ -68,9 +68,7 @@ export const PipelineStatus: React.FC<PipelineStatusProps> = ({
                     </span>
                 )}
                 <span>Started: {formatTime(status.start_time)}</span>
-                {status.end_time && (
-                    <span>Ended: {formatTime(status.end_time)}</span>
-                )}
+                <span>Last Updated: {formatTime(status.last_updated)}</span>
             </div>
 
             {/* Steps row */}

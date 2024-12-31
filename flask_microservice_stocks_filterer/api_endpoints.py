@@ -1,14 +1,16 @@
+import time
 from flask import Flask, request, jsonify
 import subprocess
 import shlex
 import sys
+import subprocess
 import os
+import signal
 import pandas as pd
 from datetime import datetime
 from typing import List, Optional
 from stocks_filtering_application.pipeline_status import PipelineStatus
 app = Flask(__name__)
-
 
 def run_stock_screening(
         min_price_increase: float,
@@ -57,14 +59,17 @@ def run_stock_screening(
 
     if skip_sentiment:
         command.append("--skip-sentiment")
-    print(command)
-    # Start process without waiting for it to complete
-    subprocess.Popen(
+
+    proc = subprocess.Popen(
         command,
         cwd="./stocks_filtering_application",
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
+    # Start a new PipelineStatus object with the process PID
+    PipelineStatus.start_pipeline(proc.pid)
+
+    print("Server pid:" + str(os.getpid()))
 
     return {
         "status": "success",
@@ -100,20 +105,6 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
             "command": " ".join(command)
         }
 
-
-from flask import Flask, request, jsonify
-import subprocess
-import shlex
-import sys
-import os
-import pandas as pd
-from datetime import datetime
-from typing import List, Optional
-from stocks_filtering_application.pipeline_status import PipelineStatus
-app = Flask(__name__)
-
-# [Previous code remains unchanged until get_rankings function]
-
 @app.route('/rankings/<filename>', methods=['GET'])
 def get_rankings(filename):
     """
@@ -130,7 +121,8 @@ def get_rankings(filename):
         filename = f"{filename}.csv"
 
     file_path = os.path.join('./stocks_filtering_application', filename)
-    stock_data_path = os.path.join('./stocks_filtering_application', 'stock_api_data', 'nasdaq_stocks_1_year_price_data.csv')
+    stock_data_path = os.path.join('./stocks_filtering_application', 'stock_api_data',
+                                   'nasdaq_stocks_1_year_price_data.csv')
 
     try:
         # Check if ranking file exists
@@ -147,9 +139,12 @@ def get_rankings(filename):
                 "message": "Stock price data file not found"
             }), 404
 
-        # Get stock data file last modification time
-        file_modification_timestamp = os.path.getmtime(stock_data_path)
-        creation_date = datetime.fromtimestamp(file_modification_timestamp).isoformat()
+        # Get modification times for both files
+        price_data_timestamp = os.path.getmtime(stock_data_path)
+        rankings_timestamp = os.path.getmtime(file_path)
+
+        price_data_date = datetime.fromtimestamp(price_data_timestamp).isoformat()
+        rankings_date = datetime.fromtimestamp(rankings_timestamp).isoformat()
 
         # Read CSV file
         df = pd.read_csv(file_path)
@@ -160,7 +155,8 @@ def get_rankings(filename):
         return jsonify({
             "status": "success",
             "message": rankings_data,
-            "created_at": creation_date
+            "stock_data_created_at": price_data_date,
+            "rankings_created_at": rankings_date
         })
 
     except Exception as e:
@@ -182,9 +178,8 @@ def get_pipeline_status():
         - total_batches: Total number of batches (if fetching data)
         - status: Overall status (running/completed/failed)
         - start_time: When the pipeline started
-        - end_time: When the pipeline ended (if completed/failed)
         - last_updated: Last time the status was updated
-        - errors: List of errors if any occurred during execution
+        - process_pid: PID of the running process
     """
     status = PipelineStatus.get_status()
 
@@ -275,6 +270,59 @@ def ban_stocks():
     result = add_banned_stocks(ticker_duration_pairs)
     return jsonify(result)
 
+
+@app.route('/pipeline/stop', methods=['POST'])
+def stop_pipeline():
+    """
+    Stop the currently running pipeline process.
+    Returns success even if no process is running.
+    """
+    status = PipelineStatus.get_status()
+
+    if status is None:
+        return jsonify({
+            "status": "success",
+            "message": "No pipeline status found"
+        })
+
+    pid = status.get("process_pid")
+
+    try:
+        if pid is not None:
+            # Try to terminate the process gracefully first
+            try:
+                # SIGTERM is more portable than SIGKILL
+                # Ensure the PID is not of the current process
+                if pid != os.getpid():
+                    os.kill(pid, signal.SIGTERM)
+                # Give it a moment to terminate gracefully
+                time.sleep(1)
+            except ProcessLookupError:
+                pass  # Process not found or already terminated
+
+            # If process still exists, force kill it
+            try:
+                # On Windows, this will call TerminateProcess
+                # On Unix, this will send SIGKILL
+                import psutil
+                # Ensure the PID is not of the current process
+                if psutil.pid_exists(pid) and pid != os.getpid():
+                    process = psutil.Process(pid)
+                    process.kill()
+            except (ProcessLookupError, psutil.NoSuchProcess, psutil.AccessDenied):
+                pass  # Process already terminated or can't access
+
+    except Exception as e:
+        # Log other errors but continue to mark pipeline as completed
+        print(f"Error stopping process: {str(e)}")
+
+    # Update status to completed regardless of whether a process was running
+    PipelineStatus.complete_pipeline()
+
+    return jsonify({
+        "status": "success",
+        "message": "Pipeline stopped successfully"
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
