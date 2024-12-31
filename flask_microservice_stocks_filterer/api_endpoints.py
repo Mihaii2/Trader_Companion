@@ -101,6 +101,19 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
         }
 
 
+from flask import Flask, request, jsonify
+import subprocess
+import shlex
+import sys
+import os
+import pandas as pd
+from datetime import datetime
+from typing import List, Optional
+from stocks_filtering_application.pipeline_status import PipelineStatus
+app = Flask(__name__)
+
+# [Previous code remains unchanged until get_rankings function]
+
 @app.route('/rankings/<filename>', methods=['GET'])
 def get_rankings(filename):
     """
@@ -117,18 +130,26 @@ def get_rankings(filename):
         filename = f"{filename}.csv"
 
     file_path = os.path.join('./stocks_filtering_application', filename)
+    stock_data_path = os.path.join('./stocks_filtering_application', 'stock_api_data', 'nasdaq_stocks_1_year_price_data.csv')
 
     try:
-        # Check if file exists
+        # Check if ranking file exists
         if not os.path.exists(file_path):
             return jsonify({
                 "status": "error",
                 "message": f"Ranking file {filename} not found"
             }), 404
 
-        # Get file creation time
-        file_creation_timestamp = os.path.getctime(file_path)
-        creation_date = datetime.fromtimestamp(file_creation_timestamp).isoformat()
+        # Check if stock data file exists
+        if not os.path.exists(stock_data_path):
+            return jsonify({
+                "status": "error",
+                "message": "Stock price data file not found"
+            }), 404
+
+        # Get stock data file last modification time
+        file_modification_timestamp = os.path.getmtime(stock_data_path)
+        creation_date = datetime.fromtimestamp(file_modification_timestamp).isoformat()
 
         # Read CSV file
         df = pd.read_csv(file_path)
@@ -145,7 +166,7 @@ def get_rankings(filename):
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": f"Error reading ranking file: {str(e)}"
+            "message": f"Error reading files: {str(e)}"
         }), 500
 
 @app.route('/pipeline/status', methods=['GET'])

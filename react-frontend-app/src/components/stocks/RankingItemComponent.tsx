@@ -7,6 +7,7 @@ interface RankingListItemProps {
 
 export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingData }) => {
   const [showBanModal, setShowBanModal] = useState(false);
+  const [banDuration, setBanDuration] = useState(30); // Default 30 days
 
   const handleAddToPersonal = async () => {
     try {
@@ -18,10 +19,19 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
   const handleBanStock = async (duration?: number) => {
     try {
-      console.log(`Banning ${rankingData.Symbol} for ${duration} days`);
+      const daysToban = duration || banDuration;
+      console.log(`Banning ${rankingData.Symbol} for ${daysToban} days`);
       setShowBanModal(false);
+      setBanDuration(30); // Reset to default after ban
     } catch (error) {
       console.error('Error banning stock:', error);
+    }
+  };
+
+  const handleBanDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(e.target.value);
+    if (!isNaN(value) && value > 0) {
+      setBanDuration(value);
     }
   };
 
@@ -63,7 +73,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
         {/* Remaining Screener Fields Section */}
         <div className="flex-1 flex">
-          {screenerFields.map(([key, value], ) => (
+          {screenerFields.map(([key, value]) => (
             <div key={key} className="flex-1 px-2 py-1 text-center border-r last:border-r-0 group relative">
               <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
                 {key}
@@ -100,30 +110,57 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
       {/* Ban Modal */}
       {showBanModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-lg w-64">
-            <h3 className="text-lg font-medium mb-4">Ban {rankingData.Symbol}</h3>
-            <div className="space-y-2">
+          <div className="bg-white p-4 rounded-lg w-80">
+            {/* Custom duration input */}
+            <div className="mb-4">
+              <label className="block text-sm mb-2">
+                Ban {rankingData.Symbol} for {banDuration} days
+              </label>
+              <input
+                type="number"
+                value={banDuration}
+                onChange={handleBanDurationChange}
+                min="1"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            {/* Quick select buttons */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
               <button
-                onClick={() => handleBanStock(1)}
-                className="w-full bg-gray-100 hover:bg-gray-200 p-2 rounded"
-              >
-                1 Day
-              </button>
-              <button
-                onClick={() => handleBanStock(7)}
-                className="w-full bg-gray-100 hover:bg-gray-200 p-2 rounded"
-              >
-                7 Days
-              </button>
-              <button
-                onClick={() => handleBanStock(30)}
-                className="w-full bg-gray-100 hover:bg-gray-200 p-2 rounded"
+                onClick={() => setBanDuration(30)}
+                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
               >
                 30 Days
               </button>
               <button
-                onClick={() => setShowBanModal(false)}
-                className="w-full bg-red-500 hover:bg-red-600 text-white p-2 rounded mt-4"
+                onClick={() => setBanDuration(90)}
+                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
+              >
+                90 Days
+              </button>
+              <button
+                onClick={() => setBanDuration(180)}
+                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
+              >
+                180 Days
+              </button>
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handleBanStock()}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white p-2 rounded text-sm"
+              >
+                Ban Stock
+              </button>
+              <button
+                onClick={() => {
+                  setShowBanModal(false);
+                  setBanDuration(30); // Reset to default when closing
+                }}
+                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 p-2 rounded text-sm"
               >
                 Cancel
               </button>

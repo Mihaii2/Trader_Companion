@@ -23,7 +23,7 @@ export const RankingList: React.FC = () => {
       {rankings?.created_at && (
         <div className="p-4 border-b">
           <p className="text-sm text-gray-500">
-            Last updated: {new Date(rankings.created_at).toLocaleString()}
+            Stock Data Last Update: {new Date(rankings.created_at).toLocaleString()}
           </p>
         </div>
       )}
