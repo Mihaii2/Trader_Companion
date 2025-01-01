@@ -1,13 +1,15 @@
 {
-  "start_time": 1735691732.863154,
-  "current_step": "fetching_stock_data",
+  "start_time": 1735733094.577087,
+  "current_step": "finding_top_stocks",
   "steps_completed": [
     "cleaning_old_files",
-    "fetching_stock_data"
+    "running_ranking_screens",
+    "finding_top_stocks"
   ],
-  "current_batch": 33,
-  "total_batches": 211,
-  "status": "running",
-  "last_updated": 1735693830.9359822,
-  "process_pid": 11584
+  "current_batch": null,
+  "total_batches": null,
+  "status": "completed",
+  "last_updated": 1735733102.7856543,
+  "process_pid": null,
+  "end_time": 1735733102.7856543
 }

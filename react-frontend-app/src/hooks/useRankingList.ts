@@ -1,6 +1,6 @@
 // hooks/useRankingList.ts
 import { useState, useEffect, useCallback } from 'react';
-import { RankingListSuccessResponse } from '../types/backendResponses';
+import { RankingListSuccessResponse } from '../types/rankingList';
 import { rankingService } from '../services/rankingService';
 import { RankingType } from '../types/rankingList';
 

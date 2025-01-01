@@ -9,11 +9,21 @@ export interface RankingItem {
   [key: string]: string | number;  // This allows for dynamic screener fields
 }
 
-export interface RankingListResponse {
-  status: 'success' | 'error';
-  message: RankingItem[] | string;  // Array for success, string for error
-  stock_data_created_at?: string;  // Optional since it's only present in success response
-  rankings_created_at?: string;  // Optional since it's only present in success response
+export type RankingType = 'price' | 'screeners';
+
+// For the success response
+export interface RankingListSuccessResponse {
+  status: 'success';
+  message: RankingItem[];
+  stock_data_created_at: string;
+  rankings_created_at: string;
 }
 
-export type RankingType = 'price' | 'screeners';
+// For the error response
+export interface RankingListErrorResponse {
+  status: 'error';
+  message: string;
+}
+
+// Combined type for all possible responses
+export type RankingListResponse = RankingListSuccessResponse | RankingListErrorResponse;
