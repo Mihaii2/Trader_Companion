@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'Stocks_Filtering_App.apps.StocksFilteringAppConfig',
-    'corsheaders',
+    "Stocks_Filtering_App.apps.StocksFilteringAppConfig",
+    "corsheaders",
+    "personal_ranking_list_app",
 ]
 
 MICROSERVICE_SETTINGS = {
@@ -97,9 +98,14 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
+    },
+    'personal_ranking': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'personal_ranking.sqlite3',
     }
 }
 
+DATABASE_ROUTERS = ['personal_ranking_list_app.router.PersonalRankingRouter']
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

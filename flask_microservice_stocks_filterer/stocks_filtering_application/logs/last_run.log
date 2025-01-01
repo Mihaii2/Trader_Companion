@@ -1,46 +1,46 @@
-2025-01-01 14:04:54,573 - INFO - Starting pipeline run. Logs will be saved to: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\logs\last_run.log
-2025-01-01 14:04:54,574 - INFO - Pipeline arguments: Namespace(price_increase=400.0, ranking_method='screeners', fetch_data=False, top_n=100, obligatory_screens=['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_volume_100k', 'minimum_price_increase'], ranking_screens=['annual_EPS_acceleration', 'annual_margin_acceleration', 'annual_sales_acceleration', 'quarterly_EPS_acceleration', 'quarterly_eps_breakout', 'quarterly_margin_acceleration', 'quarterly_sales_acceleration', 'rs_over_70', 'rsi_trending_up', 'volume_acceleration', 'price_spikes', 'top_price_increases_1y'], skip_obligatory=True, skip_sentiment=True)
-2025-01-01 14:04:54,579 - INFO - Finding and deleting old CSV files...
-2025-01-01 14:04:54,579 - INFO - Found 12 CSV files to delete
-2025-01-01 14:04:54,579 - INFO - Deleting: annual_EPS_acceleration_stocks.csv
-2025-01-01 14:04:54,580 - INFO - Deleting: annual_margin_acceleration_stocks.csv
-2025-01-01 14:04:54,581 - INFO - Deleting: annual_sales_acceleration_stocks.csv
-2025-01-01 14:04:54,582 - INFO - Deleting: eps_breakout_stocks.csv
-2025-01-01 14:04:54,582 - INFO - Deleting: price_spikes.csv
-2025-01-01 14:04:54,583 - INFO - Deleting: quarterly_EPS_acceleration_stocks.csv
-2025-01-01 14:04:54,584 - INFO - Deleting: quarterly_margin_acceleration_stocks.csv
-2025-01-01 14:04:54,584 - INFO - Deleting: quarterly_sales_acceleration_stocks.csv
-2025-01-01 14:04:54,585 - INFO - Deleting: rsi_trending_up_stocks.csv
-2025-01-01 14:04:54,586 - INFO - Deleting: rs_over_70.csv
-2025-01-01 14:04:54,586 - INFO - Deleting: top_price_increase_1y.csv
-2025-01-01 14:04:54,587 - INFO - Deleting: volume_acceleration_stocks.csv
-2025-01-01 14:04:54,588 - INFO - 
+2025-01-01 14:55:49,917 - INFO - Starting pipeline run. Logs will be saved to: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\logs\last_run.log
+2025-01-01 14:55:49,918 - INFO - Pipeline arguments: Namespace(price_increase=400.0, ranking_method='price', fetch_data=False, top_n=80, obligatory_screens=['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_volume_100k', 'minimum_price_increase'], ranking_screens=['annual_EPS_acceleration', 'annual_margin_acceleration', 'annual_sales_acceleration', 'quarterly_EPS_acceleration', 'quarterly_eps_breakout', 'quarterly_margin_acceleration', 'quarterly_sales_acceleration', 'rs_over_70', 'rsi_trending_up', 'volume_acceleration', 'price_spikes', 'top_price_increases_1y'], skip_obligatory=True, skip_sentiment=True)
+2025-01-01 14:55:49,923 - INFO - Finding and deleting old CSV files...
+2025-01-01 14:55:49,924 - INFO - Found 12 CSV files to delete
+2025-01-01 14:55:49,924 - INFO - Deleting: annual_EPS_acceleration_stocks.csv
+2025-01-01 14:55:49,924 - INFO - Deleting: annual_margin_acceleration_stocks.csv
+2025-01-01 14:55:49,925 - INFO - Deleting: annual_sales_acceleration_stocks.csv
+2025-01-01 14:55:49,926 - INFO - Deleting: eps_breakout_stocks.csv
+2025-01-01 14:55:49,926 - INFO - Deleting: price_spikes.csv
+2025-01-01 14:55:49,927 - INFO - Deleting: quarterly_EPS_acceleration_stocks.csv
+2025-01-01 14:55:49,928 - INFO - Deleting: quarterly_margin_acceleration_stocks.csv
+2025-01-01 14:55:49,928 - INFO - Deleting: quarterly_sales_acceleration_stocks.csv
+2025-01-01 14:55:49,929 - INFO - Deleting: rsi_trending_up_stocks.csv
+2025-01-01 14:55:49,930 - INFO - Deleting: rs_over_70.csv
+2025-01-01 14:55:49,930 - INFO - Deleting: top_price_increase_1y.csv
+2025-01-01 14:55:49,931 - INFO - Deleting: volume_acceleration_stocks.csv
+2025-01-01 14:55:49,932 - INFO - 
 Skipping data fetch, using existing data...
-2025-01-01 14:04:54,589 - INFO - 
+2025-01-01 14:55:49,933 - INFO - 
 Running ranking screen scripts...
-2025-01-01 14:04:59,492 - INFO - [quarterly_EPS_acceleration.py]: 7 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
-2025-01-01 14:04:59,507 - INFO - [annual_EPS_acceleration.py]: 2 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
-2025-01-01 14:04:59,507 - INFO - [quarterly_margin_acceleration.py]: 5 stocks with quarterly Net profit margin acceleration >= 20% saved to ./ranking_screens/results/quarterly_margin_acceleration_stocks.csv
-2025-01-01 14:04:59,554 - INFO - [annual_sales_acceleration.py]: 1 stocks with annual Revenue acceleration >= 10% saved to ./ranking_screens/results/annual_sales_acceleration_stocks.csv
-2025-01-01 14:04:59,601 - INFO - [annual_margin_acceleration.py]: 2 stocks with annual Net profit margin acceleration >= 20% saved to ./ranking_screens/results/annual_margin_acceleration_stocks.csv
-2025-01-01 14:04:59,601 - ERROR - [top_price_increases_1y.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning:
-2025-01-01 14:04:59,601 - ERROR - [top_price_increases_1y.py ERROR]: 
-2025-01-01 14:04:59,601 - ERROR - [top_price_increases_1y.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-01-01 14:04:59,601 - ERROR - [top_price_increases_1y.py ERROR]: 
-2025-01-01 14:04:59,617 - INFO - [top_price_increases_1y.py]: Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
-2025-01-01 14:04:59,617 - INFO - [quarterly_eps_breakout.py]: 3 stocks with EPS breakout >= 50% over trend saved to ./ranking_screens/results/eps_breakout_stocks.csv
-2025-01-01 14:04:59,617 - INFO - [quarterly_sales_acceleration.py]: 14 stocks with quarterly Revenue acceleration >= 10% saved to ./ranking_screens/results/quarterly_sales_acceleration_stocks.csv
-2025-01-01 14:04:59,617 - INFO - [quarterly_sales_acceleration.py]: Average number of data points per stock: 4.00
-2025-01-01 14:04:59,758 - INFO - [rsi_trending_up.py]: Saved 15 stocks whose RSI has been trending up for at least 1 month to './ranking_screens/results/rsi_trending_up_stocks.csv'
-2025-01-01 14:04:59,831 - ERROR - [rs_over_70.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\rs_over_70.py:27: DeprecationWarning:
-2025-01-01 14:04:59,831 - ERROR - [rs_over_70.py ERROR]: 
-2025-01-01 14:04:59,831 - ERROR - [rs_over_70.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-01-01 14:04:59,831 - ERROR - [rs_over_70.py ERROR]: 
-2025-01-01 14:04:59,842 - INFO - [rs_over_70.py]: Saved 6 stocks with 14-day RSI > 70 to './ranking_screens/results/rs_over_70.csv'
-2025-01-01 14:04:59,884 - INFO - [volume_acceleration.py]: Volume Acceleration Analysis complete. 28 Results saved to ./ranking_screens/results/volume_acceleration_stocks.csv
-2025-01-01 14:04:59,884 - INFO - [price_spikes.py]: Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
-2025-01-01 14:05:00,227 - INFO - 
-Searching for the top 100 stocks...
-2025-01-01 14:05:02,613 - INFO - [top_n_stocks_by_nr_screeners.py]: 'stocks_ranking_by_screeners.csv' has been created.
-2025-01-01 14:05:02,785 - INFO - 
+2025-01-01 14:55:54,746 - INFO - [annual_sales_acceleration.py]: 1 stocks with annual Revenue acceleration >= 10% saved to ./ranking_screens/results/annual_sales_acceleration_stocks.csv
+2025-01-01 14:55:54,784 - INFO - [quarterly_eps_breakout.py]: 10 stocks with EPS breakout >= 50% over trend saved to ./ranking_screens/results/eps_breakout_stocks.csv
+2025-01-01 14:55:54,832 - INFO - [quarterly_margin_acceleration.py]: 26 stocks with quarterly Net profit margin acceleration >= 20% saved to ./ranking_screens/results/quarterly_margin_acceleration_stocks.csv
+2025-01-01 14:55:54,850 - INFO - [annual_EPS_acceleration.py]: 4 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
+2025-01-01 14:55:54,856 - INFO - [quarterly_EPS_acceleration.py]: 28 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
+2025-01-01 14:55:54,860 - ERROR - [top_price_increases_1y.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning:
+2025-01-01 14:55:54,860 - ERROR - [top_price_increases_1y.py ERROR]: 
+2025-01-01 14:55:54,860 - ERROR - [top_price_increases_1y.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-01-01 14:55:54,860 - ERROR - [top_price_increases_1y.py ERROR]: 
+2025-01-01 14:55:54,865 - INFO - [top_price_increases_1y.py]: Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
+2025-01-01 14:55:54,883 - INFO - [annual_margin_acceleration.py]: 6 stocks with annual Net profit margin acceleration >= 20% saved to ./ranking_screens/results/annual_margin_acceleration_stocks.csv
+2025-01-01 14:55:55,015 - INFO - [quarterly_sales_acceleration.py]: 28 stocks with quarterly Revenue acceleration >= 10% saved to ./ranking_screens/results/quarterly_sales_acceleration_stocks.csv
+2025-01-01 14:55:55,016 - INFO - [quarterly_sales_acceleration.py]: Average number of data points per stock: 3.79
+2025-01-01 14:55:55,289 - ERROR - [rs_over_70.py ERROR]: C:\Users\mihai\PycharmProjects\djangoProject\flask_microservice_stocks_filterer\stocks_filtering_application\ranking_screens\rs_over_70.py:27: DeprecationWarning:
+2025-01-01 14:55:55,290 - ERROR - [rs_over_70.py ERROR]: 
+2025-01-01 14:55:55,290 - ERROR - [rs_over_70.py ERROR]: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-01-01 14:55:55,290 - ERROR - [rs_over_70.py ERROR]: 
+2025-01-01 14:55:55,296 - INFO - [rs_over_70.py]: Saved 7 stocks with 14-day RSI > 70 to './ranking_screens/results/rs_over_70.csv'
+2025-01-01 14:55:55,382 - INFO - [rsi_trending_up.py]: Saved 25 stocks whose RSI has been trending up for at least 1 month to './ranking_screens/results/rsi_trending_up_stocks.csv'
+2025-01-01 14:55:55,397 - INFO - [price_spikes.py]: Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
+2025-01-01 14:55:55,621 - INFO - [volume_acceleration.py]: Volume Acceleration Analysis complete. 49 Results saved to ./ranking_screens/results/volume_acceleration_stocks.csv
+2025-01-01 14:55:55,817 - INFO - 
+Searching for the top 80 stocks...
+2025-01-01 14:55:58,232 - INFO - [top_n_stocks_by_price_increase.py]: 'stocks_ranking_by_price.csv' has been created.
+2025-01-01 14:55:58,406 - INFO - 
 All scripts completed.

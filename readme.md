@@ -1,6 +1,6 @@
 # Stock Filtering Application
 
-A Django-based web application with a Flask microservice for filtering and analyzing stocks.
+A Django-based backend-1 application with a Flask microservice for filtering and analyzing stocks.
 
 ## Project Structure
 
@@ -34,6 +34,7 @@ This will:
 - Build the Flask microservice container
 - Start both services
 - The Django app will be available at http://localhost:8000
+- The front end will be available at http://localhost:5173
 
 3. To run in detached mode (background):
 ```bash
@@ -70,16 +71,16 @@ docker-compose down
 
 2. Database migrations:
 ```bash
-docker-compose exec web python manage.py migrate
+docker-compose exec backend-1 python manage.py migrate
 ```
 
 3. To access container shells:
 ```bash
 # Django container
-docker-compose exec web bash
+docker-compose exec backend-1 bash
 
 # Flask container
-docker-compose exec microservice bash
+docker-compose exec microservice-1 bash
 ```
 
 ## Additional Commands
@@ -90,30 +91,21 @@ docker-compose exec microservice bash
 docker-compose logs
 
 # Specific service
-docker-compose logs web
-docker-compose logs microservice
+docker-compose logs backend-1
+docker-compose logs microservice-1
 ```
 
 - Rebuild specific service:
 ```bash
-docker-compose build web
-docker-compose build microservice
+docker-compose build backend-1
+docker-compose build microservice-1
 ```
 
 - Restart specific service:
 ```bash
-docker-compose restart web
-docker-compose restart microservice
+docker-compose restart backend-1
+docker-compose restart microservice-1
 ```
-
-## Environment Variables
-
-The application uses the following environment variables:
-- `FLASK_SERVICE_URL`: URL for the Flask microservice
-  - In Docker: `http://microservice:5000`
-  - Local development: `http://localhost:5000`
-- `DEBUG`: Debug mode (1 or 0)
-- `DJANGO_ALLOWED_HOSTS`: Allowed hosts for Django
 
 ## Contributing
 

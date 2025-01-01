@@ -1,10 +1,12 @@
 import './App.css'
-import { StocksRankingPage } from './pages/StocksRankingPage'
+// import { StocksRankingPage } from './StocksFilteringPage/StocksFilteringPage'
+import { PersonalRankingPage } from './StockRankingPage/PersonalRankingPage'
 
 function App() {
 
   return (
-      <StocksRankingPage />
+      // <StocksRankingPage />
+      <PersonalRankingPage />
   )
 }
 
