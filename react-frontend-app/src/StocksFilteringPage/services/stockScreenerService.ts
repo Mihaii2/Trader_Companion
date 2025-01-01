@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ScreeningOptions } from '../types/screenerCommander';
-import { API_CONFIG } from '../config';
+import { API_CONFIG } from '../../config';
 
 export const sendScreenerCommand = async (options: ScreeningOptions) => {
   try {

@@ -1,7 +1,7 @@
 import React from 'react';
-import { StocksScreenerCommander } from '../components/stocks/StocksScreenerCommander';
-import { RankingList } from '@/components/stocks/RankingList';
-import { PipelineStatus } from '@/components/stocks/PipelineStatus';
+import { StocksScreenerCommander } from './components/StocksScreenerCommander';
+import { RankingList } from '@/StocksFilteringPage/components/RankingList';
+import { PipelineStatus } from '@/StocksFilteringPage/components/PipelineStatus';
 
 export const StocksRankingPage: React.FC = () => {
   return (

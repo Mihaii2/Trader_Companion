@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { usePipelineStatus } from '../../hooks/usePipelineStatus';
+import { usePipelineStatus } from '../hooks/usePipelineStatus';
 import { XCircle, CheckCircle2, AlertCircle, Timer } from 'lucide-react';
 import { API_CONFIG } from '../../config';
 import { Card, CardContent } from "@/components/ui/card";

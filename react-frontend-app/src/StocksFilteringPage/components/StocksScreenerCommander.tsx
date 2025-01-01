@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ScreeningOptions } from '../../types/screenerCommander';
-import { useStockScreener } from '../../hooks/useStockScreener';
+import { ScreeningOptions } from '../types/screenerCommander';
+import { useStockScreener } from '../hooks/useStockScreener';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ThemeToggle } from '../ThemeToggle';
+import { ThemeToggle } from '../../components/ThemeToggle';
 
 const OBLIGATORY_SCREEN_OPTIONS = [
   { id: 'above_52week_low', label: 'Above 52 Week Low' },
@@ -147,6 +147,7 @@ export const StocksScreenerCommander: React.FC = () => {
                 <Input
                   type="number"
                   value={options.min_price_increase}
+                  disabled={options.skip_obligatory}
                   onChange={(e) => setOptions(prev => ({
                     ...prev,
                     min_price_increase: parseFloat(e.target.value)

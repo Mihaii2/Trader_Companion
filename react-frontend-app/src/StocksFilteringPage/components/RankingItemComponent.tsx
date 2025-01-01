@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { RankingItem } from '../../types/rankingList';
-import { useBanStock } from '../../hooks/useBanStock';
+import { RankingItem } from '../types/rankingList';
+import { useBanStock } from '../hooks/useBanStock';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RankingListItemProps {
@@ -41,7 +41,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({
   };
 
   const screenerFields = Object.entries(rankingData)
-    .filter(([key]) => !['Symbol', 'Screeners', 'Price Increase'].includes(key));
+    .filter(([key]) => !['Symbol', 'Screeners', 'Price_Increase_Percentage'].includes(key));
 
   return (
     <div className="w-full">

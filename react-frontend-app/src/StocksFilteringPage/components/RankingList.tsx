@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useRankingList } from '../../hooks/useRankingList';
+import { useRankingList } from '../hooks/useRankingList';
 import { RankingItemComponent } from './RankingItemComponent';
-import { RankingType } from '../../types/rankingList';
+import { RankingType } from '../types/rankingList';
 
 export const RankingList: React.FC = () => {
   const [rankingType, setRankingType] = useState<RankingType>('price');
