@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "Stocks_Filtering_App.apps.StocksFilteringAppConfig",
     "corsheaders",
     "personal_ranking_list_app",
+    'rest_framework',
 ]
 
 MICROSERVICE_SETTINGS = {
