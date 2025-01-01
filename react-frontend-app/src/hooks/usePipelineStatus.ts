@@ -1,3 +1,5 @@
+// hooks/usePipelineStatus.ts
+
 import { useState, useEffect } from 'react';
 import { PipelineStatus } from '../types/pipelineStatus';
 import { getPipelineStatus } from '../services/pipelineService';

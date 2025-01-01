@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { RankingItem } from '../../types/rankingList';
+import { useBanStock } from '../../hooks/useBanStock';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RankingListItemProps {
   rankingData: RankingItem;
 }
 
-export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingData }) => {
+export const RankingItemComponent: React.FC<RankingListItemProps> = ({ 
+  rankingData
+}) => {
   const [showBanModal, setShowBanModal] = useState(false);
-  const [banDuration, setBanDuration] = useState(30); // Default 30 days
+  const [banDuration, setBanDuration] = useState(1);
+  const { banStocks, isLoading, error } = useBanStock();
 
   const handleAddToPersonal = async () => {
     try {
@@ -19,10 +24,10 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
   const handleBanStock = async (duration?: number) => {
     try {
-      const daysToban = duration || banDuration;
-      console.log(`Banning ${rankingData.Symbol} for ${daysToban} days`);
+      const monthsToBan = duration || banDuration;
+      await banStocks([{ ticker: rankingData.Symbol, duration: monthsToBan }]);
       setShowBanModal(false);
-      setBanDuration(30); // Reset to default after ban
+      setBanDuration(1);
     } catch (error) {
       console.error('Error banning stock:', error);
     }
@@ -40,7 +45,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
   return (
     <div className="w-full">
-      <div className="flex items-center border rounded bg-white text-sm">
+      <div className="flex items-center border rounded bg-background text-sm">
         {/* Symbol Section */}
         <div className="flex-none w-24 px-2 py-1 border-r">
           <span className="font-medium">{rankingData.Symbol}</span>
@@ -48,7 +53,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
         {/* Price Increase Column */}
         <div className="flex-none w-20 px-2 py-1 text-center border-r group relative">
-          <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
+          <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
             Price Increase
           </div>
           <span>
@@ -63,7 +68,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
         {/* Screeners Count */}
         <div className="flex-none w-16 px-2 py-1 text-center border-r group relative">
-          <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
+          <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
             Screeners
           </div>
           <span>
@@ -75,7 +80,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
         <div className="flex-1 flex">
           {screenerFields.map(([key, value]) => (
             <div key={key} className="flex-1 px-2 py-1 text-center border-r last:border-r-0 group relative">
-              <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
+              <div className="invisible group-hover:visible absolute -top-6 left-1/2 transform -translate-x-1/2 bg-popover text-popover-foreground px-1.5 py-0.5 rounded text-xs whitespace-nowrap z-10">
                 {key}
               </div>
               <span>
@@ -94,13 +99,13 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
         <div className="flex-none w-28 px-2 py-1 border-l flex justify-end space-x-1">
           <button
             onClick={handleAddToPersonal}
-            className="bg-green-500 hover:bg-green-600 text-white px-2 py-0.5 rounded text-xs"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-2 py-0.5 rounded text-xs"
           >
             Add
           </button>
           <button
             onClick={() => setShowBanModal(true)}
-            className="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded text-xs"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground px-2 py-0.5 rounded text-xs"
           >
             Ban
           </button>
@@ -109,58 +114,56 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({ rankingDa
 
       {/* Ban Modal */}
       {showBanModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-lg w-80">
-            {/* Custom duration input */}
+        <div className="fixed inset-0 bg-background/80 flex items-center justify-center z-50">
+          <div className="bg-card text-foreground p-4 rounded-lg w-80">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="mb-4">
-              <label className="block text-sm mb-2">
-                Ban {rankingData.Symbol} for {banDuration} days
+              <label className="block text-sm mb-2 text-foreground">
+                Ban {rankingData.Symbol} for {banDuration} {banDuration === 1 ? 'month' : 'months'}
               </label>
               <input
                 type="number"
                 value={banDuration}
                 onChange={handleBanDurationChange}
                 min="1"
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-2 border rounded bg-background text-foreground focus:ring-2 focus:ring-ring focus:border-ring"
+                disabled={isLoading}
               />
             </div>
 
-            {/* Quick select buttons */}
             <div className="grid grid-cols-3 gap-2 mb-4">
-              <button
-                onClick={() => setBanDuration(30)}
-                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
-              >
-                30 Days
-              </button>
-              <button
-                onClick={() => setBanDuration(90)}
-                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
-              >
-                90 Days
-              </button>
-              <button
-                onClick={() => setBanDuration(180)}
-                className="bg-gray-100 hover:bg-gray-200 p-2 rounded text-sm"
-              >
-                180 Days
-              </button>
+              {[1, 3, 6].map((months) => (
+                <button
+                  key={months}
+                  onClick={() => setBanDuration(months)}
+                  className="bg-muted hover:bg-muted/90 p-2 rounded text-sm text-foreground disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  {months} {months === 1 ? 'Month' : 'Months'}
+                </button>
+              ))}
             </div>
 
-            {/* Action buttons */}
             <div className="flex space-x-2">
               <button
                 onClick={() => handleBanStock()}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white p-2 rounded text-sm"
+                className="flex-1 bg-destructive hover:bg-destructive/90 text-destructive-foreground p-2 rounded text-sm disabled:opacity-50"
+                disabled={isLoading}
               >
-                Ban Stock
+                {isLoading ? 'Banning...' : 'Ban Stock'}
               </button>
               <button
                 onClick={() => {
                   setShowBanModal(false);
-                  setBanDuration(30); // Reset to default when closing
+                  setBanDuration(1);
                 }}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 p-2 rounded text-sm"
+                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground p-2 rounded text-sm disabled:opacity-50"
+                disabled={isLoading}
               >
                 Cancel
               </button>

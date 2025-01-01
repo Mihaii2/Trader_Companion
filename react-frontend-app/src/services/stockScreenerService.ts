@@ -4,7 +4,6 @@ import { API_CONFIG } from '../config';
 
 export const sendScreenerCommand = async (options: ScreeningOptions) => {
   try {
-    console.log(options);
     const response = await axios.post(
       `${API_CONFIG.baseURL}/stock_filtering_app/run_screening`,
       options,  // axios automatically handles JSON stringification

@@ -166,19 +166,7 @@ def delete_file(file_path):
         if os.path.exists(file_path):
             os.remove(file_path)
     except Exception as e:
-        print(f"Error deleting {file_path}: {e}")
-
-
-def print_output(pipe, prefix):
-    """Print output from a pipe with a prefix."""
-    try:
-        while True:
-            line = pipe.readline()
-            if not line:
-                break
-            logging.info(f"{prefix}: {line.decode().strip()}")
-    except Exception as e:
-        logging.error(f"Error reading output: {e}")
+        logging.error(f"Error deleting {file_path}: {e}")
 
 def run_script(script_path, args=None, status_tracker=None):
     """Run a Python script with optional arguments and capture its output in real-time."""
@@ -233,7 +221,7 @@ def run_script(script_path, args=None, status_tracker=None):
 
 def run_scripts_in_parallel(scripts, description, price_increase=None):
     """Run multiple scripts in parallel and show their output."""
-    print(f"\nRunning {description}...")
+    logging.info(f"\nRunning {description}...")
     with ThreadPoolExecutor() as executor:
         futures = []
         for script in scripts:
@@ -248,7 +236,7 @@ def run_scripts_in_parallel(scripts, description, price_increase=None):
             try:
                 future.result()
             except Exception as e:
-                print(f"Error running script: {e}")
+                logging.error(f"Error running script: {e}")
 
 
 def main():
@@ -277,45 +265,45 @@ def main():
 
         # Clean up old CSV files based on which screens we're running
         status_tracker.update_step("cleaning_old_files")
-        print("Finding and deleting old CSV files...")
+        logging.info("Finding and deleting old CSV files...")
         dirs_to_cleanup = get_dirs_to_cleanup(not args.skip_obligatory, not args.skip_sentiment)
         csv_files = find_csv_files(dirs_to_cleanup)
-        print(f"Found {len(csv_files)} CSV files to delete")
+        logging.info(f"Found {len(csv_files)} CSV files to delete")
         for file_path in csv_files:
-            print(f"Deleting: {os.path.basename(file_path)}")
+            logging.info(f"Deleting: {os.path.basename(file_path)}")
             delete_file(file_path)
 
         # Fetch stock data if requested
         if args.fetch_data:
             status_tracker.update_step("fetching_stock_data")
-            print("\nFetching stock data from the API...")
+            logging.info("\nFetching stock data from the API...")
             run_script(price_fundamental_script, status_tracker=status_tracker)
         else:
-            print("\nSkipping data fetch, using existing data...")
+            logging.info("\nSkipping data fetch, using existing data...")
 
         # Run obligatory screens if not skipped
         if not args.skip_obligatory:
             status_tracker.update_step("running_obligatory_screens")
-            print("\nRunning obligatory screen scripts...")
+            logging.info("\nRunning obligatory screen scripts...")
             run_scripts_in_parallel(obligatory_screens, "obligatory screens", args.price_increase)
 
             status_tracker.update_step("checking_obligatory_screens")
-            print("\nChecking which stocks passed the obligatory screens...")
+            logging.info("\nChecking which stocks passed the obligatory screens...")
             run_script(obligatory_passed_stocks)
 
             status_tracker.update_step("checking_banned_stocks")
-            print("\nChecking which files are banned, creating unbanned stocks list...")
+            logging.info("\nChecking which files are banned, creating unbanned stocks list...")
             run_script(banned_filter)
 
             status_tracker.update_step("filtering_passed_stocks")
-            print("\nRunning the filter for passed and unbanned stocks...")
+            logging.info("\nRunning the filter for passed and unbanned stocks...")
             run_script(obligatory_data_filter)
 
         status_tracker.update_step("running_ranking_screens")
         run_scripts_in_parallel(ranking_screens, "ranking screen scripts")
 
         status_tracker.update_step("finding_top_stocks")
-        print(f"\nSearching for the top {args.top_n} stocks...")
+        logging.info(f"\nSearching for the top {args.top_n} stocks...")
         if args.ranking_method == 'price':
             run_script(top_n_stocks_price_increase, [str(args.top_n)])
         else:  # ranking_method == 'screeners'
@@ -327,10 +315,10 @@ def main():
             run_scripts_in_parallel(market_sentiment_screens, "market sentiment screen scripts")
 
             status_tracker.update_step("running_history_handler")
-            print("\nRunning history handler script...")
+            logging.info("\nRunning history handler script...")
             run_script(history_handler)
 
-        print("\nAll scripts completed.")
+        logging.info("\nAll scripts completed.")
         status_tracker.complete_pipeline()
     except Exception as e:
         logging.error(f"Pipeline failed with error: {str(e)}")

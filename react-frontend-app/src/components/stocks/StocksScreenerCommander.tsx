@@ -15,14 +15,23 @@ const OBLIGATORY_SCREEN_OPTIONS = [
   { id: 'above_52week_low', label: 'Above 52 Week Low' },
   { id: 'trending_up', label: 'Trending Up' },
   { id: 'close_to_52week_high', label: 'Close to 52 Week High' },
+  { id: 'minimum_volume_100k', label: 'Minimum Volume 100K' },
+  { id: 'minimum_price_increase', label: 'Minimum Price Increase' },
 ];
 
 const RANKING_SCREEN_OPTIONS = [
   { id: 'annual_EPS_acceleration', label: 'Annual EPS Acceleration' },
+  { id: 'annual_margin_acceleration', label: 'Annual Margin Acceleration' },
+  { id: 'annual_sales_acceleration', label: 'Annual Sales Acceleration' },
   { id: 'quarterly_EPS_acceleration', label: 'Quarterly EPS Acceleration' },
-  { id: 'top_price_increases_1y', label: 'Top Price Increases (1Y)' },
+  { id: 'quarterly_eps_breakout', label: 'Quarterly EPS Breakout' },
+  { id: 'quarterly_margin_acceleration', label: 'Quarterly Margin Acceleration' },
+  { id: 'quarterly_sales_acceleration', label: 'Quarterly Sales Acceleration' },
+  { id: 'rs_over_70', label: 'RS Over 70' },
+  { id: 'rsi_trending_up', label: 'RSI Trending Up' },
+  { id: 'volume_acceleration', label: 'Volume Acceleration' },
   { id: 'price_spikes', label: 'Price Spikes' },
-  { id: 'rs_over_70', label: 'RS Over 70' }
+  { id: 'top_price_increases_1y', label: 'Top Price Increases (1Y)' }
 ];
 
 export const StocksScreenerCommander: React.FC = () => {
@@ -31,10 +40,10 @@ export const StocksScreenerCommander: React.FC = () => {
   const [options, setOptions] = useState<ScreeningOptions>({
     min_price_increase: 400,
     ranking_method: 'price',
-    fetch_data: false,
-    top_n: 30,
-    obligatory_screens: ['above_52week_low', 'trending_up'],
-    ranking_screens: ['annual_EPS_acceleration', 'quarterly_EPS_acceleration', 'top_price_increases_1y', 'price_spikes', 'rs_over_70'],
+    fetch_data: true,
+    top_n: 100,
+    obligatory_screens: ['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_volume_100k', 'minimum_price_increase'],
+    ranking_screens: ['annual_EPS_acceleration', 'annual_margin_acceleration', 'annual_sales_acceleration', 'quarterly_EPS_acceleration', 'quarterly_eps_breakout', 'quarterly_margin_acceleration', 'quarterly_sales_acceleration', 'rs_over_70', 'rsi_trending_up', 'volume_acceleration', 'price_spikes', 'top_price_increases_1y'],
     skip_obligatory: false,
     skip_sentiment: false
   });

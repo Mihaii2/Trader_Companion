@@ -12,28 +12,28 @@ export const RankingList: React.FC = () => {
   };
 
   if (loading) return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <p className="text-gray-500">Loading rankings...</p>
+    <div className="bg-background rounded-lg shadow-sm p-4">
+      <p className="text-muted-foreground">Loading rankings...</p>
     </div>
   );
 
   if (error) return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <p className="text-red-500">Error: {error}</p>
+    <div className="bg-background rounded-lg shadow-sm p-4">
+      <p className="text-destructive">Error: {error}</p>
     </div>
   );
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-4 border-b flex justify-between items-start">
+    <div className="bg-background rounded-lg shadow-sm">
+      <div className="p-4 border-b border-border flex justify-between items-start">
         <button
           onClick={toggleRankingType}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
         >
           Rank by: {rankingType === 'price' ? 'Price' : 'Screener Count'}
         </button>
         
-        <div className="flex flex-col space-y-1 text-sm text-gray-500 text-right">
+        <div className="flex flex-col space-y-1 text-sm text-muted-foreground text-right">
           {rankings?.rankings_created_at && (
             <p>Current Ranking List Last Update: {new Date(rankings.rankings_created_at).toLocaleString()}</p>
           )}
@@ -43,7 +43,7 @@ export const RankingList: React.FC = () => {
         </div>
       </div>
       
-      <div className="divide-y">
+      <div className="divide-y divide-border">
         {rankings?.message?.map((item) => (
           <RankingItemComponent key={item.Symbol} rankingData={item} />
         ))}

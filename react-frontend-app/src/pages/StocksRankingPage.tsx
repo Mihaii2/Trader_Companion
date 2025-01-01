@@ -9,7 +9,7 @@ export const StocksRankingPage: React.FC = () => {
       <div className="space-y-8">
         <StocksScreenerCommander/>
       </div>
-      <PipelineStatus pollingInterval={1000} />
+      <PipelineStatus pollingInterval={1500} />
       <RankingList />
     </div>
   );

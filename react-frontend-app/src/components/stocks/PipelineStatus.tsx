@@ -1,90 +1,124 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { usePipelineStatus } from '../../hooks/usePipelineStatus';
+import { XCircle, CheckCircle2, AlertCircle, Timer } from 'lucide-react';
+import { API_CONFIG } from '../../config';
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Alert,
+  AlertDescription,
+} from "@/components/ui/alert";
 
 interface PipelineStatusProps {
     pollingInterval?: number;
 }
 
 export const PipelineStatus: React.FC<PipelineStatusProps> = ({ 
-    pollingInterval = 1000 // Poll every second by default
+    pollingInterval = 1000
 }) => {
     const { status, error, isLoading } = usePipelineStatus({ pollingInterval });
+    const [isStoppingPipeline, setIsStoppingPipeline] = useState(false);
+    const [stopError, setStopError] = useState<string | null>(null);
+
+    const stopPipeline = async () => {
+        try {
+            setIsStoppingPipeline(true);
+            setStopError(null);
+            const response = await fetch(`${API_CONFIG.baseURL}/stock_filtering_app/pipeline/stop`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to stop pipeline');
+            }
+        } catch (err) {
+            setStopError(err instanceof Error ? err.message : 'Failed to stop pipeline');
+        } finally {
+            setIsStoppingPipeline(false);
+        }
+    };
 
     if (isLoading) {
-        return (
-            <div className="p-2 rounded-lg bg-gray-100">
-                <p className="text-sm text-gray-600">Loading pipeline status...</p>
-            </div>
-        );
+        return <Alert><AlertDescription className="flex items-center"><Timer className="mr-2 h-4 w-4" />Loading pipeline status...</AlertDescription></Alert>;
     }
 
     if (error) {
-        return (
-            <div className="p-2 rounded-lg bg-red-100">
-                <p className="text-sm text-red-600">Error: {error.message}</p>
-            </div>
-        );
+        return <Alert variant="destructive"><AlertDescription className="flex items-center"><AlertCircle className="mr-2 h-4 w-4" />{error.message}</AlertDescription></Alert>;
     }
 
-    if (!status) {
-        return null;
-    }
+    if (!status) return null;
 
-    const getStatusColor = (status: string) => {
+    const getStatusBadgeVariant = (status: string): "default" | "destructive" | "secondary" | "outline" => {
         switch (status) {
             case 'completed':
-                return 'bg-green-100 text-green-800';
+                return 'secondary';
             case 'running':
-                return 'bg-blue-100 text-blue-800';
+                return 'default';
             case 'failed':
-                return 'bg-red-100 text-red-800';
+                return 'destructive';
             default:
-                return 'bg-gray-100 text-gray-800';
+                return 'outline';
         }
     };
 
     const formatTime = (timestamp: number) => {
-        return new Date(timestamp * 1000).toLocaleTimeString();  // Only showing time for compactness
+        return new Date(timestamp * 1000).toLocaleTimeString();
     };
 
     return (
-        <div className="p-3 rounded-lg bg-white shadow-sm border">
-            {/* Header row with status */}
-            <div className="flex items-center justify-between mb-2">
-                <h2 className="text-sm font-medium">Pipeline Status</h2>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status.status)}`}>
-                    {status.status.toUpperCase()}
-                </span>
-            </div>
+        <Card className="w-full">
+            <CardContent className="pt-4">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <h2 className="text-sm font-semibold">Pipeline Status</h2>
+                        <Badge variant={getStatusBadgeVariant(status.status)}>
+                            {status.status.toUpperCase()}
+                        </Badge>
+                    </div>
+                    {status.status === 'running' && (
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={stopPipeline}
+                            disabled={isStoppingPipeline}
+                            className="h-7"
+                        >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            {isStoppingPipeline ? 'Stopping...' : 'Stop'}
+                        </Button>
+                    )}
+                </div>
 
-            {/* Info row */}
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600 mb-2">
-                <span>
-                    Step: <span className="font-medium">{status.current_step}</span>
-                </span>
-                {status.current_batch && (
-                    <span>
-                        Batch: {status.current_batch}/{status.total_batches}
-                    </span>
+                {stopError && (
+                    <Alert variant="destructive" className="mb-2 py-1">
+                        <AlertDescription className="text-xs">{stopError}</AlertDescription>
+                    </Alert>
                 )}
-                <span>Started: {formatTime(status.start_time)}</span>
-                <span>Last Updated: {formatTime(status.last_updated)}</span>
-            </div>
 
-            {/* Steps row */}
-            <div className="flex flex-wrap gap-1 text-xs">
-                {status.steps_completed.map((step) => (
-                    <span 
-                        key={step} 
-                        className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-700"
-                    >
-                        <svg className="w-3 h-3 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                        {step}
-                    </span>
-                ))}
-            </div>
-        </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-muted-foreground mb-2">
+                    <span>Step: <span className="font-medium">{status.current_step}</span></span>
+                    {status.current_batch && (
+                        <span>Batch: {status.current_batch}/{status.total_batches}</span>
+                    )}
+                    <span>Started: {formatTime(status.start_time)}</span>
+                    <span>Updated: {formatTime(status.last_updated)}</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                    {status.steps_completed.map((step) => (
+                        <Badge 
+                            key={step} 
+                            variant="outline"
+                            className="text-xs flex items-center gap-1"
+                        >
+                            <CheckCircle2 className="h-3 w-3 text-green-500" />
+                            {step}
+                        </Badge>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
     );
 };

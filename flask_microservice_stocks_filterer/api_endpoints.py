@@ -7,6 +7,7 @@ import subprocess
 import os
 import signal
 import pandas as pd
+import psutil
 from datetime import datetime
 from typing import List, Optional
 from stocks_filtering_application.pipeline_status import PipelineStatus
@@ -66,10 +67,6 @@ def run_stock_screening(
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
-    # Start a new PipelineStatus object with the process PID
-    PipelineStatus.start_pipeline(proc.pid)
-
-    print("Server pid:" + str(os.getpid()))
 
     return {
         "status": "success",
@@ -304,7 +301,6 @@ def stop_pipeline():
             try:
                 # On Windows, this will call TerminateProcess
                 # On Unix, this will send SIGKILL
-                import psutil
                 # Ensure the PID is not of the current process
                 if psutil.pid_exists(pid) and pid != os.getpid():
                     process = psutil.Process(pid)
