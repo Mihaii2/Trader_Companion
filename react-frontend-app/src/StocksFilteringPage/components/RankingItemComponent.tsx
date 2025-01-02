@@ -14,14 +14,6 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({
   const [banDuration, setBanDuration] = useState(1);
   const { banStocks, isLoading, error } = useBanStock();
 
-  const handleAddToPersonal = async () => {
-    try {
-      console.log(`Adding ${rankingData.Symbol} to personal list`);
-    } catch (error) {
-      console.error('Error adding to personal list:', error);
-    }
-  };
-
   const handleBanStock = async (duration?: number) => {
     try {
       const monthsToBan = duration || banDuration;
@@ -96,13 +88,7 @@ export const RankingItemComponent: React.FC<RankingListItemProps> = ({
         </div>
 
         {/* Actions Section */}
-        <div className="flex-none w-28 px-2 py-1 border-l flex justify-end space-x-1">
-          <button
-            onClick={handleAddToPersonal}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-2 py-0.5 rounded text-xs"
-          >
-            Add
-          </button>
+        <div className="flex-none w-16 px-2 py-1 border-l flex justify-end">
           <button
             onClick={() => setShowBanModal(true)}
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground px-2 py-0.5 rounded text-xs"

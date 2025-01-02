@@ -1,10 +1,14 @@
-// components/RankingBoxComponent.tsx
 import React, { useState } from 'react';
 import type { RankingBox } from '../types';
 import { useStockOperations } from '../hooks/useStockPickOperations';
 import { stockPicksApi } from '../services/stockPick';
 import { Alert } from '@/components/ui/alert';
 import { RankingItem } from './RankingItem';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { X, Plus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Props {
   box: RankingBox;
@@ -21,12 +25,7 @@ export const RankingBoxComponent: React.FC<Props> = ({
   const [newStock, setNewStock] = useState({ symbol: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    error,
-    handleStockUpdate,
-    handleRemoveStock,
-    sortStocksByScore
-  } = useStockOperations({
+  const { error, handleStockUpdate, handleRemoveStock, sortStocksByScore } = useStockOperations({
     onUpdateBox
   });
 
@@ -41,13 +40,7 @@ export const RankingBoxComponent: React.FC<Props> = ({
         ranking_box: box.id,
         total_score: 0
       });
-
-      const updatedBox = {
-        ...box,
-        stock_picks: [...box.stock_picks, response.data]
-      };
-
-      onUpdateBox(box.id, updatedBox);
+      onUpdateBox(box.id, { ...box, stock_picks: [...box.stock_picks, response.data] });
       setNewStock({ symbol: '' });
       setShowAddForm(false);
     } catch (err) {
@@ -57,77 +50,80 @@ export const RankingBoxComponent: React.FC<Props> = ({
     }
   };
 
-  const sortedStocks = sortStocksByScore(box.stock_picks);
-
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">{box.title}</h3>
-        <button
+    <Card className="bg-card border-none shadow-sm rounded-sm">
+      <CardHeader className="p-2 flex-row justify-between items-center space-y-0">
+      <Badge variant="default" className="text-base font-semibold">{box.title}</Badge>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8 text-muted-foreground hover:text-destructive" 
           onClick={() => onRemoveBox(box.id)}
-          className="text-red-500 hover:text-red-700"
         >
-          Remove Box
-        </button>
-      </div>
+          <X className="h-4 w-4" />
+        </Button>
+      </CardHeader>
 
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          {error}
-        </Alert>
-      )}
+      <CardContent className="p-2 space-y-2">
+        {error && (
+          <Alert variant="destructive" className="py-1 text-xs">
+            {error}
+          </Alert>
+        )}
 
-      <div className="mb-4">
         {!showAddForm ? (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full h-8 text-xs rounded-sm"
             onClick={() => setShowAddForm(true)}
-            className="w-full py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
           >
-            Add Stock
-          </button>
+            <Plus className="h-3 w-3 mr-1" /> Add Stock
+          </Button>
         ) : (
-          <form onSubmit={handleAddStock} className="space-y-2">
-            <input
+          <form onSubmit={handleAddStock} className="flex gap-1">
+            <Input
               type="text"
               value={newStock.symbol}
               onChange={(e) => setNewStock({ symbol: e.target.value })}
-              placeholder="Enter stock symbol"
-              className="w-full p-2 border rounded"
+              placeholder="Stock symbol"
+              className="h-8 text-xs rounded-sm"
               disabled={isSubmitting}
             />
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={isSubmitting || !newStock.symbol.trim()}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-              >
-                {isSubmitting ? 'Adding...' : 'Add'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddForm(false);
-                  setNewStock({ symbol: '' });
-                }}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            </div>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubmitting || !newStock.symbol.trim()}
+              className="h-8 text-xs"
+            >
+              {isSubmitting ? '...' : 'Add'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowAddForm(false);
+                setNewStock({ symbol: '' });
+              }}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
           </form>
         )}
-      </div>
 
-      <div className="space-y-4">
-        {sortedStocks.map((stock) => (
-          <RankingItem
-            key={stock.id}
-            stock={stock}
-            onUpdate={(updatedStock) => handleStockUpdate(box.id, updatedStock, box)}
-            onRemove={() => handleRemoveStock(box.id, stock.id, box)}
-          />
-        ))}
-      </div>
-    </div>
+        <div className="space-y-1">
+          {sortStocksByScore(box.stock_picks).map((stock) => (
+            <RankingItem
+              key={stock.id}
+              stock={stock}
+              onUpdate={(updatedStock) => handleStockUpdate(box.id, updatedStock, box)}
+              onRemove={() => handleRemoveStock(box.id, stock.id, box)}
+            />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 };

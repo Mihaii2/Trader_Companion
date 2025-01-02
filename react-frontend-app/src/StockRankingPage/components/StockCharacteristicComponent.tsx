@@ -1,7 +1,8 @@
-// components/StockCharacteristicComponent.tsx
 import React from 'react';
 import type { StockCharacteristic } from '../types';
 import { X } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   characteristic: StockCharacteristic;
@@ -13,28 +14,32 @@ export const StockCharacteristicComponent: React.FC<Props> = ({
   onRemove,
 }) => {
   return (
-    <div className="mb-2">
-      <div className="flex justify-between items-center">
-        <div className="flex-1">
-          <div className="flex justify-between">
-            <span className="font-medium">{characteristic.name}</span>
-            <span className="text-gray-600">Score: {characteristic.score}</span>
-          </div>
-          {characteristic.description && (
-            <p className="text-gray-600 text-sm mt-1">{characteristic.description}</p>
-          )}
+    <Card className="px-1.5 py-0.5 hover:bg-muted/50 transition-colors rounded-sm">
+      <div className="flex flex-wrap items-center gap-1">
+        <div className="flex items-center gap-1 min-w-0">
+          <span className="font-medium whitespace-nowrap text-sm">{characteristic.name}</span>
+          <Badge variant="secondary" className="shrink-0 text-xs px-1.5 py-0 rounded-sm">
+            Score: {characteristic.score}
+          </Badge>
         </div>
+        {characteristic.description && (
+          <span className="text-xs text-muted-foreground flex-1">
+            {characteristic.description}
+          </span>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
-          className="ml-4 p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100"
+          className="h-4 w-4 rounded-sm hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors shrink-0 ml-auto"
           aria-label={`Remove ${characteristic.name} characteristic`}
         >
-          <X size={16} />
+          <X size={10} />
         </button>
       </div>
-    </div>
+    </Card>
   );
 };
+
+export default StockCharacteristicComponent;

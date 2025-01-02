@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
-import { ThemeToggle } from '../../components/ThemeToggle';
 
 const OBLIGATORY_SCREEN_OPTIONS = [
   { id: 'above_52week_low', label: 'Above 52 Week Low' },
@@ -76,9 +75,6 @@ export const StocksScreenerCommander: React.FC = () => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Stock Screener Commander</CardTitle>
-          <div onClick={(e) => e.stopPropagation()}>
-            <ThemeToggle />
-          </div>
         </CardHeader>
         
         <form onSubmit={handleSubmit}>
