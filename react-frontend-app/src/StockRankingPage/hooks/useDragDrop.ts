@@ -1,8 +1,11 @@
+// hooks/useDragDrop.ts
 import { useState } from 'react';
 import { RankingBox } from '../types';
 
-export const useDragDrop = (initialBoxes: RankingBox[]) => {
-  const [rankingBoxes, setRankingBoxes] = useState(initialBoxes);
+export const useDragDrop = (
+  rankingBoxes: RankingBox[],
+  onReorder: (newOrder: RankingBox[]) => void
+) => {
   const [draggedBox, setDraggedBox] = useState<RankingBox | null>(null);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, box: RankingBox) => {
@@ -37,25 +40,14 @@ export const useDragDrop = (initialBoxes: RankingBox[]) => {
     newBoxes.splice(draggedIdx, 1);
     newBoxes.splice(targetIdx, 0, draggedBox);
 
-    setRankingBoxes(newBoxes);
-  };
-
-  const handleRemoveBox = (id: number) => {
-    setRankingBoxes(prev => prev.filter(box => box.id !== id));
-  };
-
-  const addNewBox = (newBox: RankingBox) => {
-    setRankingBoxes(prevBoxes => [...prevBoxes, newBox]);
+    onReorder(newBoxes);
   };
 
   return {
-    rankingBoxes,
     handleDragStart,
     handleDragEnd,
     handleDragOver,
     handleDragLeave,
-    handleDrop,
-    handleRemoveBox,
-    addNewBox
+    handleDrop
   };
-}
+};

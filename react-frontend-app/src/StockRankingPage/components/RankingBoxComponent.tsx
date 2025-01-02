@@ -1,7 +1,7 @@
 // src/components/RankingBox.tsx
 import React, { useState } from 'react';
 import { RankingItem } from './RankingItem';
-import { RankingBox, StockPick } from '../types';
+import { RankingBox } from '../types';
 
 interface Props {
   box: RankingBox;
@@ -49,8 +49,8 @@ export const RankingBoxComponent: React.FC<Props> = ({
       </div>
 
       <div className="space-y-4">
-        {box.stocks
-          .sort((a, b) => b.totalScore - a.totalScore)
+        {box.stock_picks
+          .sort((a, b) => b.total_score - a.total_score)
           .map((stock) => (
             <RankingItem
               key={stock.id}

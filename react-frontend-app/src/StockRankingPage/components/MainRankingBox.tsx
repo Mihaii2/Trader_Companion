@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const MainRankingList: React.FC<Props> = ({ allStocks }) => {
-  const sortedStocks = [...allStocks].sort((a, b) => b.totalScore - a.totalScore);
+  const sortedStocks = [...allStocks].sort((a, b) => b.total_score - a.total_score);
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md p-6 mb-8">

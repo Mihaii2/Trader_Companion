@@ -3,26 +3,22 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from personal_ranking_list_app.models import RankingBox, StockPick, StockCharacteristic, UserPageState
-from personal_ranking_list_app.serializers import RankingBoxDetailSerializer, RankingBoxListSerializer, \
-    SimpleStockPickSerializer, StockPickSerializer, StockCharacteristicSerializer, UserPageStateSerializer
+
+from personal_ranking_list_app.models import UserPageState, StockCharacteristic, StockPick, RankingBox
+from personal_ranking_list_app.serializers import UserPageStateSerializer, StockCharacteristicSerializer, \
+    StockPickSerializer, RankingBoxSerializer
 
 
 class RankingBoxViewSet(viewsets.ModelViewSet):
     queryset = RankingBox.objects.all()
-
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return RankingBoxDetailSerializer
-        return RankingBoxListSerializer
+    serializer_class = RankingBoxSerializer
 
     @action(detail=True, methods=['get'])
     def stock_picks(self, request, pk=None):
         ranking_box = self.get_object()
         stock_picks = ranking_box.stock_picks.all()
-        serializer = SimpleStockPickSerializer(stock_picks, many=True)
+        serializer = StockPickSerializer(stock_picks, many=True)
         return Response(serializer.data)
-
 
 class StockPickViewSet(viewsets.ModelViewSet):
     queryset = StockPick.objects.all()
@@ -36,13 +32,11 @@ class StockPickViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        # Ensure ranking_box is provided in the request data
         if 'ranking_box' not in request.data:
             return Response(
                 {"ranking_box": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -52,7 +46,6 @@ class StockPickViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
             headers=headers
         )
-
 
 class StockCharacteristicViewSet(viewsets.ModelViewSet):
     queryset = StockCharacteristic.objects.all()
@@ -66,13 +59,11 @@ class StockCharacteristicViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        # Ensure stock_pick is provided in the request data
         if 'stock_pick' not in request.data:
             return Response(
                 {"stock_pick": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -83,13 +74,11 @@ class StockCharacteristicViewSet(viewsets.ModelViewSet):
             headers=headers
         )
 
-
 class UserPageStateViewSet(viewsets.ModelViewSet):
     queryset = UserPageState.objects.all()
     serializer_class = UserPageStateSerializer
 
     def get_object(self):
-        # Get or create the UserPageState instance
         obj, created = UserPageState.objects.get_or_create(
             pk=1,
             defaults={

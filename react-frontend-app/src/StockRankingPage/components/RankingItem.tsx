@@ -15,13 +15,15 @@ export const RankingItem: React.FC<Props> = ({
   const [newCharacteristic, setNewCharacteristic] = useState({
     name: '',
     description: '',
-    score: 0
+    score: 0,
+    stock_pick: stock.id  // Added to match backend schema
   });
 
   const handleAddCharacteristic = () => {
     const characteristic: StockCharacteristic = {
       id: Math.max(0, ...stock.characteristics.map(c => c.id)) + 1,
-      ...newCharacteristic
+      ...newCharacteristic,
+      stock_pick: stock.id  // Ensure stock_pick is set
     };
 
     // Create new stock state with the added characteristic
@@ -29,14 +31,19 @@ export const RankingItem: React.FC<Props> = ({
       const updatedStock = {
         ...prevStock,
         characteristics: [...prevStock.characteristics, characteristic],
-        // Recalculate total score as the sum of all characteristic scores
-        totalScore: prevStock.characteristics.reduce((sum, char) => sum + char.score, 0) + characteristic.score
+        // Recalculate total_score as the sum of all characteristic scores
+        total_score: prevStock.characteristics.reduce((sum, char) => sum + char.score, 0) + characteristic.score
       };
       return updatedStock;
     });
 
     // Reset form
-    setNewCharacteristic({ name: '', description: '', score: 0 });
+    setNewCharacteristic({ 
+      name: '', 
+      description: '', 
+      score: 0,
+      stock_pick: stock.id 
+    });
     setShowAddForm(false);
   };
 
@@ -48,7 +55,7 @@ export const RankingItem: React.FC<Props> = ({
       >
         <div className="flex items-center gap-4">
           <span className="font-semibold">{stock.symbol}</span>
-          <span className="text-gray-600">Score: {stock.totalScore}</span>
+          <span className="text-gray-600">Score: {stock.total_score}</span>
           <div className="flex gap-2">
             {stock.characteristics.map((char) => (
               <span
@@ -134,7 +141,12 @@ export const RankingItem: React.FC<Props> = ({
                   <button
                     onClick={() => {
                       setShowAddForm(false);
-                      setNewCharacteristic({ name: '', description: '', score: 0 });
+                      setNewCharacteristic({ 
+                        name: '', 
+                        description: '', 
+                        score: 0,
+                        stock_pick: stock.id 
+                      });
                     }}
                     className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
                   >
