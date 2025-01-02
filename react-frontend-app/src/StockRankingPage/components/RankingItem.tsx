@@ -40,12 +40,13 @@ export const RankingItem: React.FC<Props> = ({
       });
 
       // Update local state
+      const updatedCharacteristics = [...initialStock.characteristics, response.data];
       const updatedStock = {
         ...initialStock,
-        characteristics: [...initialStock.characteristics, response.data],
-        total_score: initialStock.characteristics.reduce(
+        characteristics: updatedCharacteristics,
+        total_score: updatedCharacteristics.reduce(
           (sum, char) => sum + char.score, 0
-        ) + response.data.score
+        )
       };
 
       onUpdate(updatedStock);

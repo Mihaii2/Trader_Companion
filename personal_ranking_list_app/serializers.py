@@ -6,6 +6,8 @@ from .models import RankingBox, StockPick, StockCharacteristic, UserPageState
 
 
 class StockCharacteristicSerializer(serializers.ModelSerializer):
+    score = serializers.FloatField()  # Explicitly define as FloatField
+
     class Meta:
         model = StockCharacteristic
         fields = ['id', 'stock_pick', 'name', 'description', 'score', 'created_at']
@@ -14,6 +16,7 @@ class StockCharacteristicSerializer(serializers.ModelSerializer):
 class StockPickSerializer(serializers.ModelSerializer):
     characteristics = StockCharacteristicSerializer(many=True, read_only=True)
     ranking_box = serializers.PrimaryKeyRelatedField(queryset=RankingBox.objects.all())
+    total_score = serializers.FloatField()  # Explicitly define as FloatField
 
     class Meta:
         model = StockPick

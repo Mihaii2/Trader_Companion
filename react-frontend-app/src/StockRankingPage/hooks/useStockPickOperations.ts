@@ -28,7 +28,10 @@ export const useStockOperations = ({ onUpdateBox }: UseStockOperationsProps = {}
 
   const handleStockUpdate = useCallback(async (boxId: number, updatedStock: StockPick, box: RankingBox) => {
     try {
-      // You might want to add an API call here if you need to persist the update
+      // First, make the API call to persist the changes
+      await stockPicksApi.updateStockPick(updatedStock.id, updatedStock);
+      
+      // Then update the local state
       const updatedBox = updateStockInBox(box, updatedStock);
       onUpdateBox?.(boxId, updatedBox);
     } catch (err) {

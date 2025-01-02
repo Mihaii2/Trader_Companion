@@ -1,4 +1,4 @@
-// services/api.ts
+// services/stockPick.ts
 import axios from 'axios';
 import { StockPick } from '../types';
 import { API_CONFIG } from '@/config';
