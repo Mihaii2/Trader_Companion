@@ -1,50 +1,94 @@
+// components/RankingItem.tsx
 import React, { useState } from 'react';
-import type { StockPick, StockCharacteristic } from '../types';
+import type { StockPick } from '../types';
 import { StockCharacteristicComponent } from './StockCharacteristicComponent';
+import { stockCharacteristicsApi } from '../services/stockCharacteristics';
+import { Alert } from '@/components/ui/alert';
 
 interface Props {
   stock: StockPick;
+  onUpdate: (updatedStock: StockPick) => void;
+  onRemove: () => void;
 }
 
 export const RankingItem: React.FC<Props> = ({
-  stock: initialStock
+  stock: initialStock,
+  onUpdate,
+  onRemove
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [stock, setStock] = useState<StockPick>(initialStock);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [newCharacteristic, setNewCharacteristic] = useState({
     name: '',
     description: '',
     score: 0,
-    stock_pick: stock.id  // Added to match backend schema
+    stock_pick: initialStock.id
   });
 
-  const handleAddCharacteristic = () => {
-    const characteristic: StockCharacteristic = {
-      id: Math.max(0, ...stock.characteristics.map(c => c.id)) + 1,
-      ...newCharacteristic,
-      stock_pick: stock.id  // Ensure stock_pick is set
-    };
+  const handleAddCharacteristic = async () => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
 
-    // Create new stock state with the added characteristic
-    setStock(prevStock => {
+      const response = await stockCharacteristicsApi.createCharacteristic({
+        stock_pick: initialStock.id,
+        name: newCharacteristic.name.trim(),
+        description: newCharacteristic.description.trim(),
+        score: newCharacteristic.score
+      });
+
+      // Update local state
       const updatedStock = {
-        ...prevStock,
-        characteristics: [...prevStock.characteristics, characteristic],
-        // Recalculate total_score as the sum of all characteristic scores
-        total_score: prevStock.characteristics.reduce((sum, char) => sum + char.score, 0) + characteristic.score
+        ...initialStock,
+        characteristics: [...initialStock.characteristics, response.data],
+        total_score: initialStock.characteristics.reduce(
+          (sum, char) => sum + char.score, 0
+        ) + response.data.score
       };
-      return updatedStock;
-    });
 
-    // Reset form
-    setNewCharacteristic({ 
-      name: '', 
-      description: '', 
-      score: 0,
-      stock_pick: stock.id 
-    });
-    setShowAddForm(false);
+      onUpdate(updatedStock);
+
+      // Reset form
+      setNewCharacteristic({
+        name: '',
+        description: '',
+        score: 0,
+        stock_pick: initialStock.id
+      });
+      setShowAddForm(false);
+
+    } catch (err) {
+      setError('Failed to add characteristic');
+      console.error('Error adding characteristic:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRemoveCharacteristic = async (characteristicId: number) => {
+    try {
+      await stockCharacteristicsApi.deleteCharacteristic(characteristicId);
+
+      // Update local state
+      const updatedCharacteristics = initialStock.characteristics.filter(
+        char => char.id !== characteristicId
+      );
+
+      const updatedStock = {
+        ...initialStock,
+        characteristics: updatedCharacteristics,
+        total_score: updatedCharacteristics.reduce(
+          (sum, char) => sum + char.score, 0
+        )
+      };
+
+      onUpdate(updatedStock);
+    } catch (err) {
+      setError('Failed to remove characteristic');
+      console.error('Error removing characteristic:', err);
+    }
   };
 
   return (
@@ -54,10 +98,10 @@ export const RankingItem: React.FC<Props> = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-4">
-          <span className="font-semibold">{stock.symbol}</span>
-          <span className="text-gray-600">Score: {stock.total_score}</span>
+          <span className="font-semibold">{initialStock.symbol}</span>
+          <span className="text-gray-600">Score: {initialStock.total_score}</span>
           <div className="flex gap-2">
-            {stock.characteristics.map((char) => (
+            {initialStock.characteristics.map((char) => (
               <span
                 key={char.id}
                 className="px-2 py-1 bg-gray-100 rounded text-sm"
@@ -71,7 +115,7 @@ export const RankingItem: React.FC<Props> = ({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            console.log('Removing stock', stock.symbol);
+            onRemove();
           }}
           className="text-red-500 hover:text-red-700"
         >
@@ -93,6 +137,12 @@ export const RankingItem: React.FC<Props> = ({
             )}
           </div>
 
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              {error}
+            </Alert>
+          )}
+
           {showAddForm && (
             <div className="mb-4 p-4 bg-gray-50 rounded">
               <div className="space-y-3">
@@ -106,6 +156,7 @@ export const RankingItem: React.FC<Props> = ({
                       name: e.target.value
                     }))}
                     className="w-full p-2 border rounded"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -117,6 +168,7 @@ export const RankingItem: React.FC<Props> = ({
                       description: e.target.value
                     }))}
                     className="w-full p-2 border rounded"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -129,26 +181,29 @@ export const RankingItem: React.FC<Props> = ({
                       score: Number(e.target.value)
                     }))}
                     className="w-full p-2 border rounded"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleAddCharacteristic}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                    disabled={isSubmitting || !newCharacteristic.name.trim()}
+                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
                   >
-                    Save
+                    {isSubmitting ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     onClick={() => {
                       setShowAddForm(false);
-                      setNewCharacteristic({ 
-                        name: '', 
-                        description: '', 
+                      setNewCharacteristic({
+                        name: '',
+                        description: '',
                         score: 0,
-                        stock_pick: stock.id 
+                        stock_pick: initialStock.id
                       });
                     }}
-                    className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                    disabled={isSubmitting}
+                    className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -157,10 +212,11 @@ export const RankingItem: React.FC<Props> = ({
             </div>
           )}
 
-          {stock.characteristics.map((char) => (
+          {initialStock.characteristics.map((char) => (
             <StockCharacteristicComponent
               key={char.id}
               characteristic={char}
+              onRemove={() => handleRemoveCharacteristic(char.id)}
             />
           ))}
         </div>
@@ -168,5 +224,3 @@ export const RankingItem: React.FC<Props> = ({
     </div>
   );
 };
-
-export default RankingItem;
