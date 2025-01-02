@@ -80,9 +80,9 @@ export const PersonalRankingPage: React.FC = () => {
         />
 
         <div 
-          className="grid gap-1"
+          className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-1"
           style={{
-            gridTemplateColumns: `repeat(${pageState.column_count}, minmax(0, 1fr))`
+            columnCount: pageState.column_count
           }}
         >
           {rankingBoxes.map(box => (
@@ -94,7 +94,7 @@ export const PersonalRankingPage: React.FC = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={e => handleDrop(e, box)}
-              className="transition-transform duration-200 cursor-move hover:scale-[1.01] active:scale-[0.99]"
+              className="break-inside-avoid mb-1 transition-transform duration-200 cursor-move hover:scale-[1.01] active:scale-[0.99]"
             >
               <RankingBoxComponent
                 box={box}

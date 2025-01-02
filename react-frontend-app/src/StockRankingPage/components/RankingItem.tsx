@@ -86,9 +86,10 @@ export const RankingItem: React.FC<Props> = ({
         >
           <div className="flex items-center gap-1">
             <Badge variant="default" className="font-semibold">{initialStock.symbol}</Badge>
+            <Badge variant="secondary">Score: {initialStock.total_score}</Badge>
             <div className="flex gap-1 flex-wrap">
               {initialStock.characteristics.map((char) => (
-                <Badge key={char.id} variant="secondary">
+                <Badge key={char.id} variant="outline">
                   {char.name}
                 </Badge>
               ))}
