@@ -1,3 +1,4 @@
+// components/RankingItem.tsx
 import React, { useState } from 'react';
 import type { StockPick } from '../types';
 import { StockCharacteristicComponent } from './StockCharacteristicComponent';
@@ -206,10 +207,20 @@ export const RankingItem: React.FC<Props> = ({
             <div>
               {initialStock.characteristics.map((char) => (
                 <StockCharacteristicComponent
-                  key={char.id}
-                  characteristic={char}
-                  onRemove={() => handleRemoveCharacteristic(char.id)}
-                />
+                key={char.id}
+                characteristic={char}
+                onRemove={() => handleRemoveCharacteristic(char.id)}
+                onUpdate={(updated) => {
+                  const updatedCharacteristics = initialStock.characteristics.map(c => 
+                    c.id === updated.id ? updated : c
+                  );
+                  onUpdate({
+                    ...initialStock,
+                    characteristics: updatedCharacteristics,
+                    total_score: updatedCharacteristics.reduce((sum, char) => sum + char.score, 0)
+                  });
+                }}
+              />
               ))}
             </div>
           </div>

@@ -1,4 +1,4 @@
-// services/api.ts
+// services/stockCharacteristics.ts
 import axios from 'axios';
 import { StockCharacteristic } from '../types';
 import { API_CONFIG } from '@/config';

@@ -1,3 +1,4 @@
+// PersonalRankingPage.tsx
 import React from 'react';
 import { ConfigurationBox } from './components/ConfigurationBox';
 import { MainRankingList } from './components/MainRankingBox';
@@ -27,13 +28,7 @@ export const PersonalRankingPage: React.FC = () => {
     handleRemoveStock 
   } = useStockOperations({ onUpdateBox: handleUpdateStock });
 
-  const { 
-    handleDragStart, 
-    handleDragEnd, 
-    handleDragOver, 
-    handleDragLeave, 
-    handleDrop 
-  } = useDragDrop(rankingBoxes, handleReorderBoxes);
+  const { getDragProps } = useDragDrop(rankingBoxes, handleReorderBoxes);
 
   const allStocks = rankingBoxes.flatMap(box => 
     box.stock_picks.map(stock => ({ 
@@ -52,7 +47,7 @@ export const PersonalRankingPage: React.FC = () => {
 
   if (rankingBoxError || stockError) {
     return (
-      <Alert variant="destructive" className="m-1 rounded-sm">
+      <Alert variant="destructive" className="m-1">
         <AlertDescription>{rankingBoxError || stockError}</AlertDescription>
       </Alert>
     );
@@ -88,13 +83,7 @@ export const PersonalRankingPage: React.FC = () => {
           {rankingBoxes.map(box => (
             <div
               key={box.id}
-              draggable
-              onDragStart={e => handleDragStart(e, box)}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={e => handleDrop(e, box)}
-              className="break-inside-avoid mb-1 transition-transform duration-200 cursor-move hover:scale-[1.01] active:scale-[0.99]"
+              {...getDragProps(box)}
             >
               <RankingBoxComponent
                 box={box}

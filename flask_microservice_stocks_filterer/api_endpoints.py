@@ -133,7 +133,7 @@ def get_rankings(filename):
         if not os.path.exists(stock_data_path):
             return jsonify({
                 "status": "error",
-                "message": "Stock price data file not found"
+                "message": "Stock price data file not found. Run the Pipeline with Fetching enabled first."
             }), 404
 
         # Get modification times for both files

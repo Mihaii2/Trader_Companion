@@ -23,7 +23,7 @@ price_fundamental_script = os.path.join(script_dir, "price_1y_fundamental_2y.py"
 obligatory_passed_stocks = os.path.join(script_dir, "obligatory_screens", "obligatory_screen_passer.py")
 obligatory_data_filter = os.path.join(script_dir, "ranking_screens", "passed_stocks_input_data",
                                       "obligatory_screen_data_filter.py")
-banned_filter = os.path.join(script_dir, "banned_Stocks", "banned_filter.py")
+banned_filter = os.path.join(script_dir, "banned_stocks", "banned_filter.py")
 top_n_stocks_price_increase = os.path.join(script_dir, "top_n_stocks_by_price_increase.py")
 top_n_stocks_nr_screeners = os.path.join(script_dir, "top_n_stocks_by_nr_screeners.py")
 history_handler = os.path.join(script_dir, "market_sentiment_screens", "history_handler.py")

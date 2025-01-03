@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import type { RankingBox } from '../types';
 import { useStockOperations } from '../hooks/useStockPickOperations';
 import { stockPicksApi } from '../services/stockPick';
+import { rankingBoxesApi } from '../services/rankingBoxes';
 import { Alert } from '@/components/ui/alert';
 import { RankingItem } from './RankingItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Check } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Props {
@@ -24,6 +25,9 @@ export const RankingBoxComponent: React.FC<Props> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newStock, setNewStock] = useState({ symbol: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(box.title);
+  const [titleError, setTitleError] = useState<string | null>(null);
 
   const { error, handleStockUpdate, handleRemoveStock, sortStocksByScore } = useStockOperations({
     onUpdateBox
@@ -50,67 +54,134 @@ export const RankingBoxComponent: React.FC<Props> = ({
     }
   };
 
+  const handleTitleEdit = async () => {
+    const trimmedTitle = editedTitle.trim();
+    if (!trimmedTitle) {
+      setTitleError('Title cannot be empty');
+      return;
+    }
+    if (trimmedTitle === box.title) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setTitleError(null);
+      const response = await rankingBoxesApi.updateRankingBox(box.id, trimmedTitle);
+      onUpdateBox(box.id, { ...box, title: response.data.title });
+      setIsEditingTitle(false);
+    } catch (err) {
+      console.error('Error updating title:', err);
+      setTitleError('Failed to update title');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleTitleEdit();
+    } else if (e.key === 'Escape') {
+      setEditedTitle(box.title);
+      setIsEditingTitle(false);
+      setTitleError(null);
+    }
+  };
+
   return (
-    <Card className="bg-card border-none shadow-sm rounded-sm">
+    <Card className="bg-card border-2 border-primary ring-1 ring-primary/50 shadow-md hover:ring-primary transition-colors rounded-sm">
       <CardHeader className="p-2 flex-row justify-between items-center space-y-0">
-      <Badge variant="default" className="text-base font-semibold">{box.title}</Badge>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-8 w-8 text-muted-foreground hover:text-destructive" 
-          onClick={() => onRemoveBox(box.id)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2 w-full">
+          {isEditingTitle ? (
+            <div className="flex items-center gap-1">
+              <Input
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                onBlur={handleTitleEdit}
+                className="h-8 text-sm font-semibold"
+                autoFocus
+                disabled={isSubmitting}
+              />
+              <Button
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={handleTitleEdit}
+                disabled={isSubmitting}
+              >
+                <Check className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Badge
+              variant="default"
+              className="text-base font-semibold cursor-pointer hover:bg-primary/90"
+              onClick={() => setIsEditingTitle(true)}
+            >
+              {box.title}
+            </Badge>
+          )}
+          
+          {!showAddForm ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs rounded-sm ml-auto"
+              onClick={() => setShowAddForm(true)}
+            >
+              <Plus className="h-3 w-3 mr-1" /> Add Stock
+            </Button>
+          ) : (
+            <form onSubmit={handleAddStock} className="flex gap-1 ml-auto">
+              <Input
+                type="text"
+                value={newStock.symbol}
+                onChange={(e) => setNewStock({ symbol: e.target.value })}
+                placeholder="Stock symbol"
+                className="h-8 text-xs rounded-sm"
+                disabled={isSubmitting}
+              />
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSubmitting || !newStock.symbol.trim()}
+                className="h-8 text-xs"
+              >
+                {isSubmitting ? '...' : 'Add'}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowAddForm(false);
+                  setNewStock({ symbol: '' });
+                }}
+                className="h-8 text-xs"
+              >
+                Cancel
+              </Button>
+            </form>
+          )}
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-8 w-8 text-muted-foreground hover:text-destructive" 
+            onClick={() => onRemoveBox(box.id)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="p-2 space-y-2">
-        {error && (
+        {(error || titleError) && (
           <Alert variant="destructive" className="py-1 text-xs">
-            {error}
+            {error || titleError}
           </Alert>
-        )}
-
-        {!showAddForm ? (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full h-8 text-xs rounded-sm"
-            onClick={() => setShowAddForm(true)}
-          >
-            <Plus className="h-3 w-3 mr-1" /> Add Stock
-          </Button>
-        ) : (
-          <form onSubmit={handleAddStock} className="flex gap-1">
-            <Input
-              type="text"
-              value={newStock.symbol}
-              onChange={(e) => setNewStock({ symbol: e.target.value })}
-              placeholder="Stock symbol"
-              className="h-8 text-xs rounded-sm"
-              disabled={isSubmitting}
-            />
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSubmitting || !newStock.symbol.trim()}
-              className="h-8 text-xs"
-            >
-              {isSubmitting ? '...' : 'Add'}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setShowAddForm(false);
-                setNewStock({ symbol: '' });
-              }}
-              className="h-8 text-xs"
-            >
-              Cancel
-            </Button>
-          </form>
         )}
 
         <div className="space-y-1">
