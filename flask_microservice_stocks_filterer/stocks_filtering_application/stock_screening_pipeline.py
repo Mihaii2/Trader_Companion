@@ -7,6 +7,7 @@ import ctypes
 import threading
 import argparse
 import uuid
+import platform
 from pipeline_status import PipelineStatus
 from datetime import datetime
 import logging
@@ -63,6 +64,25 @@ MARKET_SENTIMENT_SCREENS = [
     "52week_high_1d",
     "52week_low_1d"
 ]
+
+def put_computer_to_sleep():
+    """Put the computer to sleep based on the operating system."""
+    system = platform.system().lower()
+
+    try:
+        if system == 'windows':
+            ctypes.windll.PowrProf.SetSuspendState(0, 1, 0)
+        elif system == 'darwin':  # macOS
+            os.system('pmset sleepnow')
+        elif system == 'linux':
+            os.system('systemctl suspend')
+        else:
+            logging.error(f"Sleep not supported on {system}")
+            return False
+        return True
+    except Exception as e:
+        logging.error(f"Failed to put computer to sleep: {e}")
+        return False
 
 # Set up logging
 def setup_logging():
@@ -131,6 +151,8 @@ def parse_args():
                         help='Run price fundamental script to fetch new data')
     parser.add_argument('--top-n', type=int, default=100,
                         help='Number of top stocks to select in the ranking')
+    parser.add_argument('--sleep-after', action='store_true',
+                        help='Put the computer to sleep after completion')
 
     # Add arguments for screens
     parser.add_argument('--obligatory-screens', nargs='+',
@@ -329,6 +351,17 @@ def main():
         # Ensure pipeline status is marked as complete even if an error occurs
         if status_tracker:
             status_tracker.complete_pipeline()
+
+    # Put computer to sleep after all cleanup is done
+    logging.info("Checking if computer should be put to sleep...")
+    logging.info("Args: " + str(args))
+    if args.sleep_after:
+        logging.info("Putting computer to sleep in 5 seconds...")
+        time.sleep(5)  # Give time for logs to be written
+        if put_computer_to_sleep():
+            logging.info("Sleep command sent successfully")
+        else:
+            logging.error("Failed to put computer to sleep")
 
 
 if __name__ == "__main__":

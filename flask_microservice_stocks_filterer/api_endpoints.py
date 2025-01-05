@@ -21,7 +21,8 @@ def run_stock_screening(
         obligatory_screens: Optional[List[str]] = None,
         ranking_screens: Optional[List[str]] = None,
         skip_obligatory: bool = False,
-        skip_sentiment: bool = False
+        skip_sentiment: bool = False,
+        sleep_after: bool = False
 ) -> dict:
     """
     Run the stock screening pipeline with the given parameters asynchronously.
@@ -60,6 +61,13 @@ def run_stock_screening(
 
     if skip_sentiment:
         command.append("--skip-sentiment")
+
+    if sleep_after:
+        command.append("--sleep-after")
+
+    # Save the command in the current folder in a file
+    with open("command.txt", "w") as f:
+        f.write(" ".join(command))
 
     proc = subprocess.Popen(
         command,
@@ -203,10 +211,13 @@ def screen_stocks():
         "obligatory_screens": ["screen1", "screen2"],
         "ranking_screens": ["screen3", "screen4"],
         "skip_obligatory": false,
-        "skip_sentiment": false
+        "skip_sentiment": false,
+        "sleep_after": false
     }
     """
     data = request.get_json()
+
+    print(data)
 
     if not data or 'min_price_increase' not in data:
         return jsonify({
@@ -222,7 +233,8 @@ def screen_stocks():
         obligatory_screens=data.get('obligatory_screens'),
         ranking_screens=data.get('ranking_screens'),
         skip_obligatory=data.get('skip_obligatory', False),
-        skip_sentiment=data.get('skip_sentiment', False)
+        skip_sentiment=data.get('skip_sentiment', False),
+        sleep_after=data.get('sleep_after', False)
     )
 
     # If there's an error due to running pipeline, return 409 Conflict

@@ -5,6 +5,17 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { stockCharacteristicsApi } from '../services/stockCharacteristics';
 
 interface Props {
@@ -103,6 +114,8 @@ export const StockCharacteristicComponent: React.FC<Props> = ({
               placeholder="Score"
               className="h-7 w-20"
               disabled={isSubmitting}
+              min={-100}
+              step={1}
             />
           </div>
           <Textarea
@@ -152,16 +165,39 @@ export const StockCharacteristicComponent: React.FC<Props> = ({
             {characteristic.description}
           </span>
         )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-          className="h-4 w-4 rounded-sm hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors shrink-0 ml-auto"
-          aria-label={`Remove ${characteristic.name} characteristic`}
-        >
-          <X size={10} />
-        </button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="h-4 w-4 rounded-sm hover:bg-destructive/10 hover:text-destructive flex items-center justify-center transition-colors shrink-0 ml-auto"
+              aria-label={`Remove ${characteristic.name} characteristic`}
+            >
+              <X size={10} />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Characteristic</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{characteristic.name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={(e) => e.stopPropagation()}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
+                className="bg-destructive hover:bg-destructive/90"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Card>
   );

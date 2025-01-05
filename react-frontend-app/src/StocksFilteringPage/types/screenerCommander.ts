@@ -9,4 +9,5 @@ export interface ScreeningOptions {
   ranking_screens: string[];
   skip_obligatory: boolean;
   skip_sentiment: boolean;
+  sleep_after: boolean;
 }

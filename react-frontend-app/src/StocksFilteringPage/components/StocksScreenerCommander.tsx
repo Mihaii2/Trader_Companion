@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Loader2, Moon } from "lucide-react";
 
 const OBLIGATORY_SCREEN_OPTIONS = [
   { id: 'above_52week_low', label: 'Above 52 Week Low' },
@@ -44,7 +44,8 @@ export const StocksScreenerCommander: React.FC = () => {
     obligatory_screens: ['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_volume_100k', 'minimum_price_increase'],
     ranking_screens: ['annual_EPS_acceleration', 'annual_margin_acceleration', 'annual_sales_acceleration', 'quarterly_EPS_acceleration', 'quarterly_eps_breakout', 'quarterly_margin_acceleration', 'quarterly_sales_acceleration', 'rs_over_70', 'rsi_trending_up', 'volume_acceleration', 'price_spikes', 'top_price_increases_1y'],
     skip_obligatory: false,
-    skip_sentiment: false
+    skip_sentiment: false,
+    sleep_after: false
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,12 +77,12 @@ export const StocksScreenerCommander: React.FC = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Stock Screener Commander</CardTitle>
         </CardHeader>
-        
+
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-8">
             {/* Global Settings */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={!options.skip_obligatory}
@@ -114,6 +115,20 @@ export const StocksScreenerCommander: React.FC = () => {
                   />
                   <Label>Fetch Latest Stock Data</Label>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={options.sleep_after}
+                    onCheckedChange={(checked) => setOptions(prev => ({
+                      ...prev,
+                      sleep_after: checked
+                    }))}
+                  />
+                  <div className="flex items-center space-x-1">
+                    <Moon className="h-4 w-4" />
+                    <Label>Sleep After Completion</Label>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -122,14 +137,14 @@ export const StocksScreenerCommander: React.FC = () => {
               <div className="space-y-2">
                 <Label>Ranking Criteria</Label>
                 <Select
-                  value={options.ranking_method}
-                  onValueChange={(value) => setOptions(prev => ({
-                    ...prev,
-                    ranking_method: value as ScreeningOptions['ranking_method']
-                  }))}
+                    value={options.ranking_method}
+                    onValueChange={(value) => setOptions(prev => ({
+                      ...prev,
+                      ranking_method: value as ScreeningOptions['ranking_method']
+                    }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select ranking method" />
+                    <SelectValue placeholder="Select ranking method"/>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="price">Price Increase</SelectItem>
@@ -141,25 +156,25 @@ export const StocksScreenerCommander: React.FC = () => {
               <div className="space-y-2">
                 <Label>Minimum Price Increase (%)</Label>
                 <Input
-                  type="number"
-                  value={options.min_price_increase}
-                  disabled={options.skip_obligatory}
-                  onChange={(e) => setOptions(prev => ({
-                    ...prev,
-                    min_price_increase: parseFloat(e.target.value)
-                  }))}
+                    type="number"
+                    value={options.min_price_increase}
+                    disabled={options.skip_obligatory}
+                    onChange={(e) => setOptions(prev => ({
+                      ...prev,
+                      min_price_increase: parseFloat(e.target.value)
+                    }))}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label>Top N Results</Label>
                 <Input
-                  type="number"
-                  value={options.top_n}
-                  onChange={(e) => setOptions(prev => ({
-                    ...prev,
-                    top_n: parseInt(e.target.value)
-                  }))}
+                    type="number"
+                    value={options.top_n}
+                    onChange={(e) => setOptions(prev => ({
+                      ...prev,
+                      top_n: parseInt(e.target.value)
+                    }))}
                 />
               </div>
             </div>
@@ -170,14 +185,14 @@ export const StocksScreenerCommander: React.FC = () => {
                 <h3 className="text-lg font-semibold">Obligatory Screens</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {OBLIGATORY_SCREEN_OPTIONS.map(screen => (
-                    <div key={screen.id} className="flex items-center space-x-2">
-                      <Switch
-                        disabled={options.skip_obligatory}
-                        checked={options.obligatory_screens.includes(screen.id)}
-                        onCheckedChange={() => handleObligatoryScreenChange(screen.id)}
-                      />
-                      <Label>{screen.label}</Label>
-                    </div>
+                      <div key={screen.id} className="flex items-center space-x-2">
+                        <Switch
+                            disabled={options.skip_obligatory}
+                            checked={options.obligatory_screens.includes(screen.id)}
+                            onCheckedChange={() => handleObligatoryScreenChange(screen.id)}
+                        />
+                        <Label>{screen.label}</Label>
+                      </div>
                   ))}
                 </div>
               </div>
@@ -186,13 +201,13 @@ export const StocksScreenerCommander: React.FC = () => {
                 <h3 className="text-lg font-semibold">Ranking Screens</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {RANKING_SCREEN_OPTIONS.map(screen => (
-                    <div key={screen.id} className="flex items-center space-x-2">
-                      <Switch
-                        checked={options.ranking_screens.includes(screen.id)}
-                        onCheckedChange={() => handleRankingScreenChange(screen.id)}
-                      />
-                      <Label>{screen.label}</Label>
-                    </div>
+                      <div key={screen.id} className="flex items-center space-x-2">
+                        <Switch
+                            checked={options.ranking_screens.includes(screen.id)}
+                            onCheckedChange={() => handleRankingScreenChange(screen.id)}
+                        />
+                        <Label>{screen.label}</Label>
+                      </div>
                   ))}
                 </div>
               </div>
@@ -200,38 +215,39 @@ export const StocksScreenerCommander: React.FC = () => {
           </CardContent>
 
           <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full"
-              variant="default"
-              disabled={loading}
+            <Button
+                type="submit"
+                className="w-full"
+                variant="default"
+                disabled={loading}
             >
               {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Screening...
-                </>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin"/>
+                    Screening...
+                  </>
               ) : (
-                'Start Screening'
+                  'Start Screening'
               )}
             </Button>
 
             {response && (
-              <Alert>
-                <AlertDescription>{response}</AlertDescription>
-              </Alert>
+                <Alert>
+                  <AlertDescription>{response}</AlertDescription>
+                </Alert>
             )}
-            
+
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
             )}
           </CardFooter>
         </form>
       </Card>
-    </div>
-  );
+  </div>
+)
+  ;
 };
 
 export default StocksScreenerCommander;

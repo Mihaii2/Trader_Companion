@@ -1,4 +1,3 @@
-// components/RankingItem.tsx
 import React, { useState } from 'react';
 import type { StockPick } from '../types';
 import { StockCharacteristicComponent } from './StockCharacteristicComponent';
@@ -10,6 +9,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Props {
   stock: StockPick;
@@ -29,7 +39,7 @@ export const RankingItem: React.FC<Props> = ({
   const [newCharacteristic, setNewCharacteristic] = useState({
     name: '',
     description: '',
-    score: 0,
+    score: '' as number | '',
     stock_pick: initialStock.id
   });
 
@@ -41,7 +51,7 @@ export const RankingItem: React.FC<Props> = ({
         stock_pick: initialStock.id,
         name: newCharacteristic.name.trim(),
         description: newCharacteristic.description.trim(),
-        score: newCharacteristic.score
+        score: Number(newCharacteristic.score) || 0
       });
       
       const updatedCharacteristics = [...initialStock.characteristics, response.data];
@@ -51,7 +61,7 @@ export const RankingItem: React.FC<Props> = ({
         total_score: updatedCharacteristics.reduce((sum, char) => sum + char.score, 0)
       });
       
-      setNewCharacteristic({ name: '', description: '', score: 0, stock_pick: initialStock.id });
+      setNewCharacteristic({ name: '', description: '', score: '', stock_pick: initialStock.id });
       setShowAddForm(false);
     } catch (err) {
       setError('Failed to add characteristic');
@@ -99,17 +109,40 @@ export const RankingItem: React.FC<Props> = ({
           
           <div className="flex items-center gap-1">
             {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="p-1"
-              onClick={(e) => {
-                e.stopPropagation();
-                onRemove();
-              }}
-            >
-              <X className="h-3 w-3 text-destructive" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="p-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <X className="h-3 w-3 text-destructive" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove {initialStock.symbol}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to remove this stock from your ranking? This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove();
+                    }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Remove
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
 
@@ -157,7 +190,7 @@ export const RankingItem: React.FC<Props> = ({
                     value={newCharacteristic.score}
                     onChange={(e) => setNewCharacteristic(prev => ({
                       ...prev,
-                      score: Number(e.target.value)
+                      score: e.target.value === '' ? '' : Number(e.target.value)
                     }))}
                     disabled={isSubmitting}
                     className="h-7 w-20"
@@ -191,7 +224,7 @@ export const RankingItem: React.FC<Props> = ({
                       setNewCharacteristic({
                         name: '',
                         description: '',
-                        score: 0,
+                        score: '',
                         stock_pick: initialStock.id
                       });
                     }}
@@ -207,20 +240,20 @@ export const RankingItem: React.FC<Props> = ({
             <div>
               {initialStock.characteristics.map((char) => (
                 <StockCharacteristicComponent
-                key={char.id}
-                characteristic={char}
-                onRemove={() => handleRemoveCharacteristic(char.id)}
-                onUpdate={(updated) => {
-                  const updatedCharacteristics = initialStock.characteristics.map(c => 
-                    c.id === updated.id ? updated : c
-                  );
-                  onUpdate({
-                    ...initialStock,
-                    characteristics: updatedCharacteristics,
-                    total_score: updatedCharacteristics.reduce((sum, char) => sum + char.score, 0)
-                  });
-                }}
-              />
+                  key={char.id}
+                  characteristic={char}
+                  onRemove={() => handleRemoveCharacteristic(char.id)}
+                  onUpdate={(updated) => {
+                    const updatedCharacteristics = initialStock.characteristics.map(c => 
+                      c.id === updated.id ? updated : c
+                    );
+                    onUpdate({
+                      ...initialStock,
+                      characteristics: updatedCharacteristics,
+                      total_score: updatedCharacteristics.reduce((sum, char) => sum + char.score, 0)
+                    });
+                  }}
+                />
               ))}
             </div>
           </div>
