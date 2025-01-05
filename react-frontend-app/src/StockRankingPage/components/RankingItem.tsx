@@ -89,8 +89,8 @@ export const RankingItem: React.FC<Props> = ({
   };
 
   return (
-    <Card className="mb-1 rounded-sm">
-      <CardContent className="p-1 rounded-sm">
+    <Card className="rounded-sm">
+      <CardContent className="p-0 pl-1 rounded-sm">
         <div
           className="flex justify-between items-center cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
