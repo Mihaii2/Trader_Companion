@@ -55,9 +55,13 @@ def process_csv_files(directory, top_n):
         print("No valid data found. Check your CSV files and directory path.")
         return
 
+    # Create a list of all symbols that have either characteristics or price increases
+    all_symbols = set(data.keys()) | set(price_increases.keys())
+    # Prepare data for writing (sort by price increase)
+
     # Prepare data for writing (sort by price increase)
     sorted_data = sorted(
-        [(symbol, char_dict) for symbol, char_dict in data.items() if symbol in price_increases],
+        [(symbol, data.get(symbol, {})) for symbol in all_symbols],
         key=lambda item: price_increases.get(item[0], 0),
         reverse=True
     )
