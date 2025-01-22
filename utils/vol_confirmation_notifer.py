@@ -50,7 +50,7 @@ def is_market_open(dt: datetime = None) -> bool:
     return market_open <= current_time <= market_close
 
 
-def check_volume_confirmation(ticker: str, lookback_days: int = 5, volume_multiplier: float = 1.5) -> tuple[
+def check_volume_confirmation(ticker: str, lookback_days: int = 14, volume_multiplier: float = 1.5) -> tuple[
     bool, float, list[float]]:
     print(f"\nChecking volume confirmation for {ticker}...")
 
@@ -64,13 +64,19 @@ def check_volume_confirmation(ticker: str, lookback_days: int = 5, volume_multip
     print(f"Downloading data for {ticker}...")
     ticker_obj = yf.Ticker(ticker)
 
-    # Get 5-minute data for the past 7 days (maximum available for intraday data)
-    end_date = market_now
-    start_date = end_date - timedelta(days=7)
-
     try:
-        # Get 5-minute data
-        df = ticker_obj.history(start=start_date, end=end_date, interval='5m')
+        # Get data in two 7-day chunks
+        dfs = []
+        for i in range(0, lookback_days, 7):
+            chunk_end = market_now - timedelta(days=i)
+            chunk_start = max(chunk_end - timedelta(days=7), market_now - timedelta(days=lookback_days))
+            print(
+                f"Downloading chunk {i // 7 + 1}: {chunk_start.strftime('%Y-%m-%d')} to {chunk_end.strftime('%Y-%m-%d')}")
+            chunk_df = ticker_obj.history(start=chunk_start, end=chunk_end, interval='5m')
+            dfs.append(chunk_df)
+
+        # Combine the chunks
+        df = pd.concat(dfs)
 
         if df.empty:
             print(f"✗ No data available for {ticker}")
@@ -98,7 +104,7 @@ def check_volume_confirmation(ticker: str, lookback_days: int = 5, volume_multip
         trading_days = 0
         days_back = 1
 
-        while trading_days < lookback_days and days_back < 7:  # Limited to 7 days for intraday data
+        while trading_days < lookback_days and days_back < 14:  # Now looking back up to 14 days
             prev_date = current_date - timedelta(days=days_back)
 
             # Skip weekends
