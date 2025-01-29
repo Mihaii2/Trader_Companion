@@ -1,5 +1,5 @@
 {
-  "start_time": 1737501619.81627,
+  "start_time": 1738056572.9679947,
   "current_step": "running_history_handler",
   "steps_completed": [
     "cleaning_old_files",
@@ -16,7 +16,7 @@
   "current_batch": 211,
   "total_batches": 211,
   "status": "completed",
-  "last_updated": 1737515047.9158003,
+  "last_updated": 1738071530.4823425,
   "process_pid": null,
-  "end_time": 1737515047.9158003
+  "end_time": 1738071530.4823425
 }
