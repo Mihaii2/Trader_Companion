@@ -1,6 +1,5 @@
-Symbol,Price_Increase_Percentage,Screeners,Volume-Acceleration(%),Qrt-margin-Increase(%),NumberOfSpikes,Qrt-Revenue-Increase(%),MonthsRSITrendingUp,RSI,Qrt-EPS-Increase-(%)
-MYNZ,4316.666666666667,2,,,2,,,,30.35714285714286
-TECX,4262.142857142858,2,242.65,,1,,,,
-CVNA,542.7305389221556,2,,75.26200710384501,,,,,244.736691448648
-LTBR,542.5339366515836,3,141.87,,1,,1,,
-CMRX,462.66666666666663,3,428.42,,1,inf,,,
+Symbol,Price_Increase_Percentage,Screeners,Qrt-Revenue-Increase(%),Qrt-margin-Increase(%),RSI,MonthsRSITrendingUp,NumberOfSpikes,Volume-Acceleration(%),Qrt-EPS-Increase-(%)
+TARA,555.0,0,,,,,,,
+LTBR,542.5339366515836,3,,,,1,1,141.17,
+CVNA,511.67084568041935,2,,75.26200710384501,,,,,244.736691448648
+CMRX,462.66666666666663,3,inf,,,,1,415.75,
