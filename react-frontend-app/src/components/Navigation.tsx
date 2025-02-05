@@ -1,40 +1,46 @@
-import React from 'react';
+// components/Navigation.tsx
+import { Link, useLocation } from 'react-router-dom';
 import { ThemeToggle } from './ThemeToggle';
 
-interface NavigationProps {
-  currentPage: string;
-  onPageChange: (page: string) => void;
-}
+export function Navigation() {
+  const location = useLocation();
+  const currentPage = location.pathname.slice(1) || 'stocks_screeners';
 
-export const Navigation: React.FC<NavigationProps> = ({ 
-  currentPage, 
-  onPageChange 
-}) => {
   return (
     <nav className="w-full bg-background border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex space-x-8">
-            <button
-              onClick={() => onPageChange('stocks')}
+            <Link
+              to="/stocks_screeners"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
-                ${currentPage === 'stocks' 
+                ${currentPage === 'stocks_screeners' 
                   ? 'border-b-2 border-primary text-primary' 
                   : 'text-muted-foreground'
                 }`}
             >
-              Stocks Ranking
-            </button>
-            <button
-              onClick={() => onPageChange('personal')}
+              Stocks Screeners
+            </Link>
+            <Link
+              to="/personal_ranking"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
-                ${currentPage === 'personal' 
+                ${currentPage === 'personal_ranking' 
                   ? 'border-b-2 border-primary text-primary' 
                   : 'text-muted-foreground'
                 }`}
             >
               Personal Ranking
-            </button>
+            </Link>
+            <Link
+              to="/trade_history"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'trade_history' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Trade History
+            </Link>
           </div>
           <div>
             <ThemeToggle />
@@ -43,6 +49,5 @@ export const Navigation: React.FC<NavigationProps> = ({
       </div>
     </nav>
   );
-};
+}
 
-export default Navigation;
