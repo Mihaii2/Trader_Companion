@@ -1,55 +1,26 @@
-// components/TradeComponent.tsx
+// src/components/TradeComponent.tsx
 import React, { useState } from 'react';
 import { Trade } from '../types/Trade';
 
-interface AddTradeComponentProps {
-  onAdd: (trade: Trade) => void;
+interface TradeComponentProps {
+  trade: Trade;  // Required since this is for existing trades
+  onUpdate: (trade: Trade) => void;
+  onDelete: (id: number) => void;
 }
 
-export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) => {
-  const initialTrade: Trade = {
-    ID: 0,
-    Ticker: '',
-    Status: '',
-    Entry_Date: new Date().toISOString().split('T')[0],
-    Exit_Date: null,
-    Entry_Price: 0,
-    Exit_Price: null,
-    Pattern: '',
-    Days_In_Pattern_Before_Entry: 0,
-    Price_Tightness_1_Week_Before: 0,
-    Exit_Reason: '',
-    Market_Condition: '',
-    Category: '',
-    Earnings_Quality: 0,
-    Fundamentals_Quality: false,
-    Has_Earnings_Acceleration: false,
-    Has_Catalyst: false,
-    Earnings_Last_Q_20_Pct: false,
-    IPO_Last_10_Years: false,
-    Nr_Bases: 0,
-    Volume_Confirmation: false,
-    Is_BioTech: false,
-    Earnings_Surprises: false,
-    Expanding_Margins: false,
-    EPS_breakout: false,
-    Strong_annual_EPS: false,
-    Signs_Acceleration_Will_Continue: false,
-    Sudden_Growth_Change: false,
-    Strong_Quarterly_And_Yearly_Sales: false,
-    Positive_Analysts_Revisions: false,
-    Ownership_Pct_Change_Past_Earnings: false,
-    Quarters_With_75pct_Surprise: false,
-    Over_10_pct_Avg_Surprise: false,
-  };
-
-  const [newTrade, setNewTrade] = useState<Trade>(initialTrade);
+export const TradeComponent: React.FC<TradeComponentProps> = ({ 
+  trade, 
+  onUpdate, 
+  onDelete 
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTrade, setEditedTrade] = useState<Trade>(trade);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
-    setNewTrade(prev => ({
+    setEditedTrade(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked :
               type === 'number' ? (value === '' ? null : Number(value)) : 
@@ -59,16 +30,63 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(newTrade);
-    setNewTrade(initialTrade);
+    onUpdate(editedTrade);
+    setIsEditing(false);
   };
+
+  const handleCancel = () => {
+    setEditedTrade(trade);
+    setIsEditing(false);
+  };
+
+  const renderValue = (value: Trade[keyof Trade]) => {
+    if (typeof value === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    if (value === null) return '-';
+    return value;
+  };
+
+  if (!isEditing) {
+    return (
+      <div className="bg-background p-6 rounded-lg shadow-md border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(trade).map(([key, value]) => (
+            <div key={key} className="mb-2">
+              <span className="text-sm font-medium text-foreground">
+                {key.replace(/_/g, ' ')}:
+              </span>
+              <span className="ml-2 text-sm text-muted-foreground">
+                {renderValue(value)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-end space-x-2 mt-4">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 border rounded-md hover:bg-gray-100"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => onDelete(trade.ID)}
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="bg-background p-6 rounded-lg shadow-md border">
-      <h2 className="text-xl font-bold mb-6">Add New Trade</h2>
+      <h2 className="text-xl font-bold mb-6">Edit Trade</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(newTrade).map(([key, value]) => {
+        {Object.entries(editedTrade).map(([key, value]) => {
           if (typeof value === 'boolean') {
             return (
               <div key={key} className="flex items-center">
@@ -108,6 +126,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   step={key.includes('Price') ? '0.01' : '1'}
+                  disabled={key === 'ID'}
                 />
               )}
             </div>
@@ -115,12 +134,21 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
         })}
       </div>
 
-      <button
-        type="submit"
-        className="w-full mt-6 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
-      >
-        Add Trade
-      </button>
+      <div className="flex justify-end space-x-2 mt-4">
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="px-4 py-2 border rounded-md hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Save
+        </button>
+      </div>
     </form>
   );
 };

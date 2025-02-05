@@ -21,7 +21,7 @@ export const TradeHistoryPage: React.FC = () => {
     }
   };
 
-  const handleAddTrade = async (newTrade: Omit<Trade, 'ID'>) => {
+  const handleAddTrade = async (newTrade: Trade) => {
     try {
       await tradeAPI.addTrade(newTrade);
       loadTrades();

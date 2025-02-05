@@ -1,7 +1,7 @@
-// components/TradesList.tsx
+// src/components/TradesList.tsx
 import React, { useState, useMemo } from 'react';
 import { Trade } from '../types/Trade';
-import { AddTradeComponent } from './AddTradeComponent';
+import { TradeComponent } from './TradeComponent';  // Updated import
 
 interface TradesListProps {
   trades: Trade[];
@@ -54,7 +54,7 @@ export const TradesList: React.FC<TradesListProps> = ({ trades, onUpdate, onDele
 
       <div className="space-y-4">
         {sortedTrades.slice(0, displayCount).map(trade => (
-          <AddTradeComponent
+          <TradeComponent  // Updated component
             key={trade.ID}
             trade={trade}
             onUpdate={onUpdate}

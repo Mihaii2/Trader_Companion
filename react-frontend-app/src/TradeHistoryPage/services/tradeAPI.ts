@@ -10,10 +10,7 @@ const api = axios.create({
 export const tradeAPI = {
   getTrades: (limit?: number) => 
     api.get<Trade[]>('/trades/', {
-      params: {
-        limit,
-        ordering: '-Entry_Date' // Django syntax for descending order
-      }
+      params: { limit }
     }),
   
   addTrade: (trade: Trade) => 

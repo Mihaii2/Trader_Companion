@@ -16,11 +16,11 @@ export interface Trade {
   Category: string;
   Earnings_Quality: number;
   Fundamentals_Quality: boolean;
+  Nr_Bases: number;
   Has_Earnings_Acceleration: boolean;
   Has_Catalyst: boolean;
   Earnings_Last_Q_20_Pct: boolean;
   IPO_Last_10_Years: boolean;
-  Nr_Bases: number;
   Volume_Confirmation: boolean;
   Is_BioTech: boolean;
   Earnings_Surprises: boolean;
