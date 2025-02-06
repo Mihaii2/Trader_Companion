@@ -257,6 +257,8 @@ def main():
     parser.add_argument('notifications', type=int,
                         help='Number of notifications to send for each volume confirmation')
     parser.add_argument('interval', type=int, help='Minutes between repeat notifications')
+    parser.add_argument('--delay', type=int, default=0,
+                        help='Initial delay in minutes before starting monitoring')
     parser.add_argument('--api-key', default='o.wGKIxLjXYGEBNyVEX3WPT8EqTyyJ3vds',
                         help='Pushbullet API key')
 
@@ -268,6 +270,12 @@ def main():
     print(f"Starting monitoring for {len(tickers)} tickers: {', '.join(sorted(tickers))}")
     print(f"Will send {args.notifications} notifications for each volume confirmation")
     print(f"Waiting {args.interval} minutes between repeat notifications")
+
+    if args.delay > 0:
+        start_time = datetime.now() + timedelta(minutes=args.delay)
+        print(f"\nDelaying start until: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Waiting {args.delay} minutes...")
+        time.sleep(args.delay * 60)
 
     monitor_tickers(tickers, args.notifications, args.interval, args.api_key)
 

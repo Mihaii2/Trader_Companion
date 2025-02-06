@@ -14,7 +14,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     Entry_Date: new Date().toISOString().split('T')[0],
     Exit_Date: null,
     Entry_Price: 0,
-    Exit_Price: null,
+    Exit_Price: 0,
     Pattern: '',
     Days_In_Pattern_Before_Entry: 0,
     Price_Tightness_1_Week_Before: 0,
