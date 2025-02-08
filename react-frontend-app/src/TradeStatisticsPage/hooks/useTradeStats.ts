@@ -2,12 +2,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Trade, MonthlyStats, YearlyStats, ExtendedFilters } from '../types';
 import { tradeAPI } from '../services/tradeAPI';
-import { addMonths, format, parseISO, isAfter } from 'date-fns';
+import { addMonths, format, parseISO, isAfter, differenceInDays } from 'date-fns';
+
+// Type guard to check if a trade is exited with valid exit price and exit date
+const isExitedTrade = (trade: Trade): trade is Trade & { Exit_Price: number, Exit_Date: string } => {
+  return trade.Status === 'Exited' && trade.Exit_Price !== null && trade.Exit_Date !== null;
+};
 
 export const useTradeStats = (filters: ExtendedFilters) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  // Initialize with all months from the last year
   const [selectedMonths, setSelectedMonths] = useState<Set<string>>(() => {
     const initialMonths = new Set<string>();
     const now = new Date();
@@ -33,27 +37,29 @@ export const useTradeStats = (filters: ExtendedFilters) => {
   }, []);
 
   const filteredTrades = useMemo(() => {
-    return trades.filter(trade => {
-      return Object.entries(filters).every(([key, value]) => {
-        if (value === undefined) return true;
-  
-        switch (key) {
-          case 'minEarningsQuality':
-            return trade.Earnings_Quality >= value;
-          case 'minFundamentalsQuality':
-            return Number(trade.Fundamentals_Quality) >= value;
-          case 'maxPriceTightness':
-            return trade.Price_Tightness_1_Week_Before <= value;
-          case 'minNrBases':
-            return trade.Nr_Bases >= value;
-          default:
-            if (typeof trade[key as keyof Trade] === 'boolean') {
-              return trade[key as keyof Trade] === (value === 'true');
-            }
-            return trade[key as keyof Trade] === value;
-        }
+    return trades
+      .filter(isExitedTrade)
+      .filter(trade => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (value === undefined) return true;
+    
+          switch (key) {
+            case 'minEarningsQuality':
+              return trade.Earnings_Quality >= value;
+            case 'minFundamentalsQuality':
+              return Number(trade.Fundamentals_Quality) >= value;
+            case 'maxPriceTightness':
+              return trade.Price_Tightness_1_Week_Before <= value;
+            case 'minNrBases':
+              return trade.Nr_Bases >= value;
+            default:
+              if (typeof trade[key as keyof Trade] === 'boolean') {
+                return trade[key as keyof Trade] === (value === 'true');
+              }
+              return trade[key as keyof Trade] === value;
+          }
+        });
       });
-    });
   }, [trades, filters]);
 
   const monthlyStats = useMemo((): MonthlyStats[] => {
@@ -64,20 +70,27 @@ export const useTradeStats = (filters: ExtendedFilters) => {
 
     return months.map(month => {
       const monthTrades = filteredTrades.filter(trade => 
-        format(parseISO(trade.Entry_Date), 'MMM yy') === month
+        format(parseISO(trade.Exit_Date), 'MMM yy') === month
       );
 
-      const gains = monthTrades.filter(t => (t.Exit_Price || 0) > t.Entry_Price);
-      const losses = monthTrades.filter(t => (t.Exit_Price || 0) < t.Entry_Price);
+      const gains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
+      const losses = monthTrades.filter(t => t.Exit_Price < t.Entry_Price);
 
       const avgGain = gains.length ? 
-        gains.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
+        gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
 
       const avgLoss = losses.length ? 
-        losses.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
+        losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
 
       const monthDate = parseISO(`01 ${month}`);
       const isInTrailingYear = isAfter(monthDate, lastYear);
+
+      // Calculate days held using the difference between Exit_Date and Entry_Date
+      const avgDaysGains = gains.length ? 
+        gains.reduce((acc, t) => acc + differenceInDays(parseISO(t.Exit_Date), parseISO(t.Entry_Date)), 0) / gains.length : 0;
+
+      const avgDaysLoss = losses.length ? 
+        losses.reduce((acc, t) => acc + differenceInDays(parseISO(t.Exit_Date), parseISO(t.Entry_Date)), 0) / losses.length : 0;
 
       return {
         tradingMonth: month,
@@ -85,10 +98,10 @@ export const useTradeStats = (filters: ExtendedFilters) => {
         averageLoss: avgLoss,
         winningPercentage: monthTrades.length ? (gains.length / monthTrades.length) * 100 : 0,
         totalTrades: monthTrades.length,
-        largestGain: Math.max(...gains.map(t => ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100), 0),
-        largestLoss: Math.min(...losses.map(t => ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100), 0),
-        avgDaysGains: gains.length ? gains.reduce((acc, t) => acc + (t.Days_In_Pattern_Before_Entry || 0), 0) / gains.length : 0,
-        avgDaysLoss: losses.length ? losses.reduce((acc, t) => acc + (t.Days_In_Pattern_Before_Entry || 0), 0) / losses.length : 0,
+        largestGain: Math.max(...gains.map(t => (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100), 0),
+        largestLoss: Math.min(...losses.map(t => (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100), 0),
+        avgDaysGains,
+        avgDaysLoss,
         isInTrailingYear,
         useInYearly: selectedMonths.has(month)
       };
@@ -97,18 +110,18 @@ export const useTradeStats = (filters: ExtendedFilters) => {
 
   const yearlyStats = useMemo((): YearlyStats => {
     const selectedTrades = filteredTrades.filter(trade => {
-      const month = format(parseISO(trade.Entry_Date), 'MMM yy');
+      const month = format(parseISO(trade.Exit_Date), 'MMM yy');
       return selectedMonths.has(month);
     });
 
-    const gains = selectedTrades.filter(t => (t.Exit_Price || 0) > t.Entry_Price);
-    const losses = selectedTrades.filter(t => (t.Exit_Price || 0) < t.Entry_Price);
+    const gains = selectedTrades.filter(t => t.Exit_Price > t.Entry_Price);
+    const losses = selectedTrades.filter(t => t.Exit_Price < t.Entry_Price);
 
     const avgGain = gains.length ? 
-      gains.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
+      gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
 
     const avgLoss = losses.length ? 
-      losses.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
+      losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
 
     return {
       winningPercentage: selectedTrades.length ? (gains.length / selectedTrades.length) * 100 : 0,

@@ -28,7 +28,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
   columnWidths = {}
 }) => {
   const [editedTrades, setEditedTrades] = useState<{ [key: number]: Trade }>({});
-  const [displayCount, setDisplayCount] = useState<number>(10);
+  const [displayCount, setDisplayCount] = useState<number>(20);
 
   const defaultColumnWidths: { [key: string]: string } = {
     Ticker: 'w-11',
@@ -76,9 +76,10 @@ export const TradesTable: React.FC<TradesTableProps> = ({
 
   const sortedTrades = useMemo(() => {
     return [...trades].sort((a, b) => {
-      const dateA = new Date(a.Entry_Date);
-      const dateB = new Date(b.Entry_Date);
-      return dateB.getTime() - dateA.getTime();
+      // Handle cases where Exit_Date might be undefined or invalid
+      const dateA = a.Exit_Date ? new Date(a.Exit_Date).getTime() : 0;
+      const dateB = b.Exit_Date ? new Date(b.Exit_Date).getTime() : 0;
+      return dateB - dateA;
     });
   }, [trades]);
 
@@ -173,7 +174,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
       </Card>
 
       <div className="rounded-md border">
-        <div className="max-h-96 overflow-auto">
+        <div>
           <Table>
             <TableHeader className="sticky top-0 bg-muted">
               <TableRow className="border-b">
