@@ -41,6 +41,16 @@ export function Navigation() {
             >
               Trade History
             </Link>
+            <Link
+              to="/trading_stats"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'trading_stats' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Trading Stats
+            </Link>
           </div>
           <div>
             <ThemeToggle />
@@ -50,4 +60,3 @@ export function Navigation() {
     </nav>
   );
 }
-
