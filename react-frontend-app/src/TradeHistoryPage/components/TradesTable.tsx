@@ -185,7 +185,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
                     {field.replace(/_/g, ' ')}
                   </TableHead>
                 ))}
-                <TableHead className="w-32 py-0.5 px-0.5 text-xs">Actions</TableHead>
+                <TableHead className="w-32 py-0.5 px-0.5 text-xs text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

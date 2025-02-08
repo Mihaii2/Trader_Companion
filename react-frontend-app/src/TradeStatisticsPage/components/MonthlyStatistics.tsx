@@ -1,5 +1,13 @@
 // components/MonthlyStatistics.tsx
 import React from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Checkbox } from '@/components/ui/checkbox';
 import { MonthlyStats } from '../types';
 
@@ -14,46 +22,47 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
 }) => {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-gray-800 text-white">
-            <th className="p-2 text-left">Use In Yearly</th>
-            <th className="p-2 text-left">Trading Month</th>
-            <th className="p-2 text-right">Average GAIN</th>
-            <th className="p-2 text-right">Average LOSS</th>
-            <th className="p-2 text-right">WINNING %</th>
-            <th className="p-2 text-right">TOTAL TRADES</th>
-            <th className="p-2 text-right">LG GAIN</th>
-            <th className="p-2 text-right">LG LOSS</th>
-            <th className="p-2 text-right">Avg Days Gains</th>
-            <th className="p-2 text-right">Avg Days Loss</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/50">
+            <TableHead className="w-12 text-center">Use In Yearly</TableHead>
+            <TableHead className="text-center">Trading Month</TableHead>
+            <TableHead className="text-center">Average GAIN</TableHead>
+            <TableHead className="text-center">Average LOSS</TableHead>
+            <TableHead className="text-center">WINNING %</TableHead>
+            <TableHead className="text-center">TOTAL TRADES</TableHead>
+            <TableHead className="text-center">LG GAIN</TableHead>
+            <TableHead className="text-center">LG LOSS</TableHead>
+            <TableHead className="text-center">Avg Days Gains</TableHead>
+            <TableHead className="text-center">Avg Days Loss</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {monthlyStats.map((month) => (
-            <tr 
+            <TableRow 
               key={month.tradingMonth}
-              className={`border-b ${month.isInTrailingYear ? 'bg-blue-50' : ''}`}
+              className={month.isInTrailingYear ? 'bg-muted/50' : ''}
             >
-              <td className="p-2">
+              <TableCell className="py-0">
                 <Checkbox
                   checked={month.useInYearly}
                   onCheckedChange={() => onToggleMonth(month.tradingMonth)}
+                  className="mt-1"
                 />
-              </td>
-              <td className="p-2">{month.tradingMonth}</td>
-              <td className="p-2 text-right">{month.averageGain.toFixed(2)}%</td>
-              <td className="p-2 text-right">{month.averageLoss.toFixed(2)}%</td>
-              <td className="p-2 text-right">{month.winningPercentage.toFixed(2)}%</td>
-              <td className="p-2 text-right">{month.totalTrades}</td>
-              <td className="p-2 text-right">{month.largestGain.toFixed(2)}%</td>
-              <td className="p-2 text-right">{month.largestLoss.toFixed(2)}%</td>
-              <td className="p-2 text-right">{month.avgDaysGains.toFixed(1)}</td>
-              <td className="p-2 text-right">{month.avgDaysLoss.toFixed(1)}</td>
-            </tr>
+              </TableCell>
+              <TableCell className="py-1">{month.tradingMonth}</TableCell>
+              <TableCell className="text-center py-1">{month.averageGain.toFixed(2)}%</TableCell>
+              <TableCell className="text-center py-1">{month.averageLoss.toFixed(2)}%</TableCell>
+              <TableCell className="text-center py-1">{month.winningPercentage.toFixed(2)}%</TableCell>
+              <TableCell className="text-center py-1">{month.totalTrades}</TableCell>
+              <TableCell className="text-center py-1">{month.largestGain.toFixed(2)}%</TableCell>
+              <TableCell className="text-center py-1">{month.largestLoss.toFixed(2)}%</TableCell>
+              <TableCell className="text-center py-1">{month.avgDaysGains.toFixed(1)}</TableCell>
+              <TableCell className="text-center py-1">{month.avgDaysLoss.toFixed(1)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 };
