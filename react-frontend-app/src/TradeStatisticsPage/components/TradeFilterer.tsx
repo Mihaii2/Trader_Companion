@@ -18,7 +18,6 @@ interface TradeFiltererProps {
   }) => void;
 }
 
-// Define fields that should be minimum value filters
 const MIN_VALUE_FIELDS = {
   minEarningsQuality: 'Earnings_Quality',
   minFundamentalsQuality: 'Fundamentals_Quality',
@@ -26,7 +25,6 @@ const MIN_VALUE_FIELDS = {
   minNrBases: 'Nr_Bases'
 } as const;
 
-// Define dropdown filter fields - including all relevant string and boolean fields
 const DROPDOWN_FIELDS = [
   'Pattern',
   'Status',
@@ -51,7 +49,6 @@ const DROPDOWN_FIELDS = [
   'Quarters_With_75pct_Surprise',
   'Over_10_pct_Avg_Surprise'
 ] as const;
-
 
 const formatLabel = (fieldName: string): string => {
   return fieldName
@@ -91,53 +88,70 @@ export const TradeFilterer: React.FC<TradeFiltererProps> = ({ filters, onFilterC
     return <div className="text-white">Loading filters...</div>;
   }
 
+  const FilterField = ({ 
+    label, 
+    id, 
+    children 
+  }: { 
+    label: string;
+    id: string;
+    children: React.ReactNode;
+  }) => (
+    <div className="flex items-center space-x-2 min-h-10">
+      <label 
+        htmlFor={id}
+        className="text-sm font-medium text-foreground whitespace-nowrap flex-1"
+      >
+        {label}
+      </label>
+      <div className="w-48">
+        {children}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+    <div className="grid grid-cols-1 min-[400px]:grid-cols-1 min-[900px]:grid-cols-2 min-[1200px]:grid-cols-3 min-[1600px]:grid-cols-4 min-[2000px]:grid-cols-5 gap-x-6 gap-y-2 p-4">
       {/* Render minimum value filters */}
       {Object.entries(MIN_VALUE_FIELDS).map(([filterKey]) => (
-        <div key={filterKey} className="flex flex-col space-y-1">
-          <label 
-            htmlFor={filterKey}
-            className="text-sm font-medium text-foreground"
-          >
-            {formatLabel(filterKey)}
-          </label>
+        <FilterField
+          key={filterKey}
+          label={formatLabel(filterKey)}
+          id={filterKey}
+        >
           <input
             type="number"
             id={filterKey}
             min="0"
-            className="w-full rounded-md bg-background border border-input px-3 py-2"
+            className="w-full rounded-md bg-background border border-input px-3 py-1.5"
             value={filters[filterKey as keyof typeof filters]?.toString() ?? ''}
             onChange={(e) => handleMinValueChange(
               filterKey as keyof typeof MIN_VALUE_FIELDS,
               e.target.value
             )}
           />
-        </div>
+        </FilterField>
       ))}
-
-
+  
       {/* Render dropdown filters */}
       {DROPDOWN_FIELDS.map((fieldName) => {
         const options = filterOptions[fieldName];
         if (!options) return null;
-
+  
         const label = formatLabel(fieldName);
         const isBooleanField = Array.from(options).every(value => 
           typeof value === 'boolean'
         );
-
+  
         return (
-          <div key={fieldName} className="flex flex-col space-y-1">
-            <label 
-              htmlFor={fieldName}
-              className="text-sm font-medium text-foreground"
-            >
-              {label}
-            </label>
+          <FilterField
+            key={fieldName}
+            label={label}
+            id={fieldName}
+          >
             <select
               id={fieldName}
-              className="w-full rounded-md bg-background border border-input px-3 py-2"
+              className="w-full rounded-md bg-background border border-input px-3 py-1.5"
               value={filters[fieldName]?.toString() ?? ''}
               onChange={(e) => handleDropdownChange(fieldName, e.target.value)}
             >
@@ -150,7 +164,7 @@ export const TradeFilterer: React.FC<TradeFiltererProps> = ({ filters, onFilterC
                   </option>
                 ))}
             </select>
-          </div>
+          </FilterField>
         );
       })}
     </div>

@@ -5,9 +5,9 @@
     "cleaning_old_files",
     "fetching_stock_data"
   ],
-  "current_batch": 30,
+  "current_batch": 149,
   "total_batches": 211,
   "status": "running",
-  "last_updated": 1739018511.5004818,
+  "last_updated": 1739026563.8965464,
   "process_pid": 22972
 }
