@@ -29,7 +29,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     Category: '',
     Earnings_Quality: 0,
     Nr_Bases: 0,
-    Fundamentals_Quality: false,
+    Fundamentals_Quality: 0,
     Has_Earnings_Acceleration: false,
     Has_Catalyst: false,
     Earnings_Last_Q_20_Pct: false,

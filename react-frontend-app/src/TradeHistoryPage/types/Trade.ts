@@ -15,7 +15,7 @@ export interface Trade {
   Market_Condition: string;
   Category: string;
   Earnings_Quality: number;
-  Fundamentals_Quality: boolean;
+  Fundamentals_Quality: number;
   Nr_Bases: number;
   Has_Earnings_Acceleration: boolean;
   Has_Catalyst: boolean;

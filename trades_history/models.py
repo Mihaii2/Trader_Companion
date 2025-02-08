@@ -15,7 +15,7 @@ class Trades(models.Model):
     Market_Condition = models.CharField(max_length=100)
     Category = models.CharField(max_length=100)
     Earnings_Quality = models.IntegerField()
-    Fundamentals_Quality = models.BooleanField()
+    Fundamentals_Quality = models.IntegerField()
     Has_Earnings_Acceleration = models.BooleanField()
     Has_Catalyst = models.BooleanField()
     Earnings_Last_Q_20_Pct = models.BooleanField()
