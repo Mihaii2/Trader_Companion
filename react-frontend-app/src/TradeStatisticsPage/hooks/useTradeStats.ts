@@ -7,6 +7,16 @@ import { addMonths, format, parseISO, isAfter } from 'date-fns';
 export const useTradeStats = (filters: ExtendedFilters) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  // Initialize with all months from the last year
+  const [selectedMonths, setSelectedMonths] = useState<Set<string>>(() => {
+    const initialMonths = new Set<string>();
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const month = format(addMonths(now, -i), 'MMM yy');
+      initialMonths.add(month);
+    }
+    return initialMonths;
+  });
 
   useEffect(() => {
     const fetchTrades = async () => {
@@ -27,7 +37,6 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       return Object.entries(filters).every(([key, value]) => {
         if (value === undefined) return true;
   
-        // Handle minimum/maximum value filters
         switch (key) {
           case 'minEarningsQuality':
             return trade.Earnings_Quality >= value;
@@ -38,17 +47,14 @@ export const useTradeStats = (filters: ExtendedFilters) => {
           case 'minNrBases':
             return trade.Nr_Bases >= value;
           default:
-            // For boolean fields, explicitly compare as boolean
             if (typeof trade[key as keyof Trade] === 'boolean') {
               return trade[key as keyof Trade] === (value === 'true');
             }
-            // For other fields, use regular comparison
             return trade[key as keyof Trade] === value;
         }
       });
     });
   }, [trades, filters]);
-  
 
   const monthlyStats = useMemo((): MonthlyStats[] => {
     const lastYear = addMonths(new Date(), -12);
@@ -83,19 +89,20 @@ export const useTradeStats = (filters: ExtendedFilters) => {
         largestLoss: Math.min(...losses.map(t => ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100), 0),
         avgDaysGains: gains.length ? gains.reduce((acc, t) => acc + (t.Days_In_Pattern_Before_Entry || 0), 0) / gains.length : 0,
         avgDaysLoss: losses.length ? losses.reduce((acc, t) => acc + (t.Days_In_Pattern_Before_Entry || 0), 0) / losses.length : 0,
-        isInTrailingYear
+        isInTrailingYear,
+        useInYearly: selectedMonths.has(month)
       };
     });
-  }, [filteredTrades]);
+  }, [filteredTrades, selectedMonths]);
 
   const yearlyStats = useMemo((): YearlyStats => {
-    const yearlyTrades = filteredTrades.filter(trade => {
-      const tradeDate = parseISO(trade.Entry_Date);
-      return isAfter(tradeDate, addMonths(new Date(), -12));
+    const selectedTrades = filteredTrades.filter(trade => {
+      const month = format(parseISO(trade.Entry_Date), 'MMM yy');
+      return selectedMonths.has(month);
     });
 
-    const gains = yearlyTrades.filter(t => (t.Exit_Price || 0) > t.Entry_Price);
-    const losses = yearlyTrades.filter(t => (t.Exit_Price || 0) < t.Entry_Price);
+    const gains = selectedTrades.filter(t => (t.Exit_Price || 0) > t.Entry_Price);
+    const losses = selectedTrades.filter(t => (t.Exit_Price || 0) < t.Entry_Price);
 
     const avgGain = gains.length ? 
       gains.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
@@ -104,14 +111,27 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       losses.reduce((acc, t) => acc + ((t.Exit_Price || 0) - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
 
     return {
-      winningPercentage: yearlyTrades.length ? (gains.length / yearlyTrades.length) * 100 : 0,
+      winningPercentage: selectedTrades.length ? (gains.length / selectedTrades.length) * 100 : 0,
       averageGain: avgGain,
       averageLoss: avgLoss,
       winLossRatio: avgLoss !== 0 ? Math.abs(avgGain / avgLoss) : 0,
-      expectedValuePerTrade: (avgGain * (gains.length / yearlyTrades.length)) + 
-        (avgLoss * (losses.length / yearlyTrades.length))
+      expectedValuePerTrade: selectedTrades.length ? 
+        (avgGain * (gains.length / selectedTrades.length)) + 
+        (avgLoss * (losses.length / selectedTrades.length)) : 0
     };
-  }, [filteredTrades]);
+  }, [filteredTrades, selectedMonths]);
 
-  return { monthlyStats, yearlyStats, loading };
+  const toggleMonth = (month: string) => {
+    setSelectedMonths(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(month)) {
+        newSet.delete(month);
+      } else {
+        newSet.add(month);
+      }
+      return newSet;
+    });
+  };
+
+  return { monthlyStats, yearlyStats, loading, toggleMonth };
 };

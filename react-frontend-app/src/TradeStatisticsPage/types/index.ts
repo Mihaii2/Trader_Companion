@@ -47,6 +47,7 @@ export interface MonthlyStats {
   avgDaysGains: number;
   avgDaysLoss: number;
   isInTrailingYear: boolean;
+  useInYearly: boolean;
 }
 
 export interface YearlyStats {

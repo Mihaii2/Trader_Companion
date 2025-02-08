@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const TradingStatsPage: React.FC = () => {
   const [filters, setFilters] = useState<Partial<Trade>>({});
-  const { monthlyStats, yearlyStats, loading } = useTradeStats(filters);
+  const { monthlyStats, yearlyStats, loading, toggleMonth } = useTradeStats(filters);
 
   if (loading) {
     return (
@@ -47,7 +47,10 @@ export const TradingStatsPage: React.FC = () => {
           <CardTitle>Monthly Statistics</CardTitle>
         </CardHeader>
         <CardContent>
-          <MonthlyStatistics monthlyStats={monthlyStats} />
+          <MonthlyStatistics 
+            monthlyStats={monthlyStats} 
+            onToggleMonth={toggleMonth}
+          />
         </CardContent>
       </Card>
     </div>

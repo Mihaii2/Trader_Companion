@@ -1,27 +1,23 @@
 // components/MonthlyStatistics.tsx
 import React from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MonthlyStats } from '../types';
 
 interface MonthlyStatisticsProps {
-  monthlyStats: {
-    tradingMonth: string;
-    averageGain: number;
-    averageLoss: number;
-    winningPercentage: number;
-    totalTrades: number;
-    largestGain: number;
-    largestLoss: number;
-    avgDaysGains: number;
-    avgDaysLoss: number;
-    isInTrailingYear: boolean;
-  }[];
+  monthlyStats: MonthlyStats[];
+  onToggleMonth: (month: string) => void;
 }
 
-export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({ monthlyStats }) => {
+export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({ 
+  monthlyStats,
+  onToggleMonth
+}) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-gray-800 text-white">
+            <th className="p-2 text-left">Use In Yearly</th>
             <th className="p-2 text-left">Trading Month</th>
             <th className="p-2 text-right">Average GAIN</th>
             <th className="p-2 text-right">Average LOSS</th>
@@ -39,6 +35,12 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({ monthlySta
               key={month.tradingMonth}
               className={`border-b ${month.isInTrailingYear ? 'bg-blue-50' : ''}`}
             >
+              <td className="p-2">
+                <Checkbox
+                  checked={month.useInYearly}
+                  onCheckedChange={() => onToggleMonth(month.tradingMonth)}
+                />
+              </td>
               <td className="p-2">{month.tradingMonth}</td>
               <td className="p-2 text-right">{month.averageGain.toFixed(2)}%</td>
               <td className="p-2 text-right">{month.averageLoss.toFixed(2)}%</td>
@@ -55,4 +57,3 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({ monthlySta
     </div>
   );
 };
-

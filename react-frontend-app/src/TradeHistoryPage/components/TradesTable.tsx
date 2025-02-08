@@ -5,14 +5,29 @@ interface TradesTableProps {
   trades: Trade[];
   onUpdate: (updatedTrade: Trade) => void;
   onDelete: (id: number) => void;
+  columnWidths?: { [key in keyof Trade]?: string };  // New prop for column widths
 }
 
 export const TradesTable: React.FC<TradesTableProps> = ({
   trades,
   onUpdate,
   onDelete,
+  columnWidths = {}  // Default to empty object if not provided
 }) => {
   const [editedTrades, setEditedTrades] = useState<{ [key: number]: Trade }>({});
+
+  // Default widths if not specified
+  const defaultColumnWidths: { [key: string]: string } = {
+    Ticker: 'w-12',
+    Status: 'w-24',
+    Entry_Date: 'w-32',
+    Exit_Date: 'w-32',
+    Entry_Price: 'w-28',
+    Exit_Price: 'w-28',
+    Pattern: 'w-24',
+    Days_In_Pattern_Before_Entry: 'w-32',
+    Price_Tightness_1_Week_Before: 'w-32',
+  };
 
   // Synchronize editedTrades with incoming trades
   useEffect(() => {
@@ -40,11 +55,16 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     }
   };
 
+  const getColumnWidth = (field: keyof Trade) => {
+    return columnWidths[field] || defaultColumnWidths[field] || 'w-40';  // w-40 as fallback
+  };
+
   const renderCell = (trade: Trade, field: keyof Trade) => {
     const editedTrade = editedTrades[trade.ID];
-    if (!editedTrade) return null;  // Return null if trade is not in editedTrades yet
+    if (!editedTrade) return null;
     
     const value = editedTrade[field];
+    const width = getColumnWidth(field);
     
     if (field === 'ID') {
       return <span className="px-2">{value}</span>;
@@ -67,7 +87,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
           type="date"
           value={value || ''}
           onChange={(e) => handleInputChange(trade.ID, field, e.target.value)}
-          className="w-full px-2 py-1 border rounded bg-background"
+          className={`${width} px-2 py-1 border rounded bg-background`}
         />
       );
     }
@@ -78,7 +98,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
           type="number"
           value={value ?? ''}
           onChange={(e) => handleInputChange(trade.ID, field, Number(e.target.value))}
-          className="w-full px-2 py-1 border rounded bg-background"
+          className={`${width} px-2 py-1 border rounded bg-background`}
           step={field.includes('Price') ? '0.01' : '1'}
         />
       );
@@ -89,12 +109,11 @@ export const TradesTable: React.FC<TradesTableProps> = ({
         type="text"
         value={value || ''}
         onChange={(e) => handleInputChange(trade.ID, field, e.target.value)}
-        className="w-full px-2 py-1 border rounded bg-background"
+        className={`${width} px-2 py-1 border rounded bg-background`}
       />
     );
   };
 
-  // Get all fields from the first trade or return empty array if no trades
   const fields = trades.length > 0 ? Object.keys(trades[0]) as (keyof Trade)[] : [];
 
   if (trades.length === 0) {
@@ -108,22 +127,25 @@ export const TradesTable: React.FC<TradesTableProps> = ({
           <thead className="sticky top-0 bg-gray-100">
             <tr>
               {fields.map(field => (
-                <th key={field} className="px-4 py-2 text-left border-b font-medium">
+                <th 
+                  key={field} 
+                  className={`px-4 py-2 text-left border-b font-medium ${getColumnWidth(field)}`}
+                >
                   {field.replace(/_/g, ' ')}
                 </th>
               ))}
-              <th className="px-4 py-2 text-left border-b font-medium">Actions</th>
+              <th className="px-4 py-2 text-left border-b font-medium w-32">Actions</th>
             </tr>
           </thead>
           <tbody>
             {trades.map(trade => (
               <tr key={trade.ID} className="hover:bg-gray-50">
                 {fields.map(field => (
-                  <td key={field} className="px-4 py-2 border-b">
+                  <td key={field} className={`px-4 py-2 border-b ${getColumnWidth(field)}`}>
                     {renderCell(trade, field)}
                   </td>
                 ))}
-                <td className="px-4 py-2 border-b">
+                <td className="px-4 py-2 border-b w-32">
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleUpdate(trade.ID)}
