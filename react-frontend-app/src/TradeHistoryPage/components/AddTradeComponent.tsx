@@ -1,5 +1,11 @@
 // src/components/AddTradeComponent.tsx
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trade } from '../types/Trade';
 
 interface AddTradeComponentProps {
@@ -45,14 +51,14 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
 
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+    const checked = e.target.checked;
     
     setNewTrade(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked :
-              type === 'number' ? (value === '' ? null : Number(value)) : 
+              type === 'number' ? (value === '' ? 0 : Number(value)) : 
               value
     }));
   };
@@ -63,82 +69,69 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     setNewTrade(initialTrade);
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="bg-background p-6 rounded-lg shadow-md border">
-      <h2 className="text-xl font-bold mb-6">Add New Trade</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(newTrade).map(([key, value]) => {
-          if (key === 'ID') {
-            return (
-              <div key={key} className="mb-2">
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  {key}
-                </label>
-                <input
-                  type="number"
-                  name={key}
-                  value={value}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                />
-              </div>
-            );
-          }
+  type InputValue = string | number | boolean | null;
+  
+  const renderFormField = (key: keyof Trade, value: InputValue) => {
+    if (key === 'ID') return null;
 
-          if (typeof value === 'boolean') {
-            return (
-              <div key={key} className="flex items-center">
-                <input
-                  type="checkbox"
-                  name={key}
-                  checked={value}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 rounded border-gray-300 focus:ring-blue-500"
-                />
-                <span className="ml-2 text-sm text-muted-foreground">
-                  {key.replace(/_/g, ' ')}
-                </span>
-              </div>
-            );
-          }
+    if (typeof value === 'boolean') {
+      return (
+        <div key={key} className="flex items-center space-x-2">
+          <Checkbox
+            id={key}
+            name={key}
+            checked={value}
+            onCheckedChange={(checked: boolean) => 
+              setNewTrade(prev => ({ ...prev, [key]: checked }))
+            }
+          />
+          <Label htmlFor={key} className="text-sm">
+            {key.replace(/_/g, ' ')}
+          </Label>
+        </div>
+      );
+    }
 
-          return (
-            <div key={key} className="mb-2">
-              <label className="block text-sm font-medium text-foreground mb-1">
-                {key.replace(/_/g, ' ')}
-              </label>
-              {key === 'Entry_Date' || key === 'Exit_Date' ? (
-                <input
-                  type="date"
-                  name={key}
-                  value={value ?? ''}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  required={key === 'Entry_Date'}
-                />
-              ) : (
-                <input
-                  type={typeof value === 'number' ? 'number' : 'text'}
-                  name={key}
-                  value={value ?? ''}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  step={key.includes('Price') ? '0.01' : '1'}
-                />
-              )}
-            </div>
-          );
-        })}
+    return (
+      <div key={key} className="space-y-1">
+        <Label htmlFor={key} className="text-sm">
+          {key.replace(/_/g, ' ')}
+        </Label>
+        <Input
+          id={key}
+          type={key.includes('Date') ? 'date' : typeof value === 'number' ? 'number' : 'text'}
+          name={key}
+          value={value ?? ''}
+          onChange={handleInputChange}
+          step={key.includes('Price') ? '0.01' : '1'}
+          className="h-8"
+        />
       </div>
+    );
+  };
 
-      <button
-        type="submit"
-        className="w-full mt-6 bg-primary text-primary-foreground py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
-      >
-        Add Trade
-      </button>
-    </form>
+  return (
+    <Card className="max-h-full">
+      <CardHeader className="py-3">
+        <CardTitle className="text-lg font-semibold">Add New Trade</CardTitle>
+      </CardHeader>
+      <CardContent className="p-3">
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <ScrollArea className="max-h-[80vh] pr-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {Object.entries(newTrade).map(([key, value]) => 
+                  renderFormField(key as keyof Trade, value as InputValue)
+                )}
+              </div>
+            </ScrollArea>
+            
+            <Button type="submit" className="w-full">
+              Add Trade
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };

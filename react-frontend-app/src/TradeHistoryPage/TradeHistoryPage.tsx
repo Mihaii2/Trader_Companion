@@ -49,10 +49,9 @@ export const TradeHistoryPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full px-4 py-8">
-      <div className="max-w-[95vw] mx-auto space-y-8">
+    <div className="w-full px-4">
+      <div className="max-w-[95vw] mx-auto space-y-2">
         <div>
-          <h2 className="text-2xl font-bold mb-4">Trades List</h2>
           <TradesTable
             trades={trades}
             onUpdate={handleUpdateTrade}
@@ -61,7 +60,6 @@ export const TradeHistoryPage: React.FC = () => {
         </div>
         
         <div>
-          <h2 className="text-2xl font-bold mb-4">Add New Trade</h2>
           <AddTradeComponent onAdd={handleAddTrade} />
         </div>
       </div>
