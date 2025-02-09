@@ -1,4 +1,3 @@
-// src/components/AddTradeComponent.tsx
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -72,8 +71,6 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
   type InputValue = string | number | boolean | null;
   
   const renderFormField = (key: keyof Trade, value: InputValue) => {
-    if (key === 'ID') return null;
-
     if (typeof value === 'boolean') {
       return (
         <div key={key} className="flex items-center space-x-2">

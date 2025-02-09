@@ -50,8 +50,8 @@ export const useTradeStats = (filters: ExtendedFilters) => {
               return Number(trade.Fundamentals_Quality) >= value;
             case 'maxPriceTightness':
               return trade.Price_Tightness_1_Week_Before <= value;
-            case 'minNrBases':
-              return trade.Nr_Bases >= value;
+            case 'maxNrBases':
+              return trade.Nr_Bases <= value;
             default:
               if (typeof trade[key as keyof Trade] === 'boolean') {
                 return trade[key as keyof Trade] === (value === 'true');

@@ -10,7 +10,7 @@ type FilterExtensions = {
   minEarningsQuality?: number
   minFundamentalsQuality?: number
   maxPriceTightness?: number
-  minNrBases?: number
+  maxNrBases?: number
 }
 
 type TradeFiltererProps = {
@@ -22,7 +22,7 @@ const MIN_VALUE_FIELDS = {
   minEarningsQuality: 'Min Earnings Quality',
   minFundamentalsQuality: 'Min Fundamentals Quality',
   maxPriceTightness: 'Max Price Tightness (1 Week Before)',
-  minNrBases: 'Min Number of Bases'
+  maxNrBases: 'Max Number of Bases'
 } as const
 
 const DROPDOWN_FIELDS = [

@@ -1,5 +1,4 @@
-// components/MonthlyStatistics.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -20,6 +19,42 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
   monthlyStats,
   onToggleMonth
 }) => {
+  const summaryStats = useMemo(() => {
+    const filteredStats = monthlyStats.filter(month => month.useInYearly);
+    const totalTrades = filteredStats.reduce((sum, month) => sum + month.totalTrades, 0);
+    
+    // Calculate weighted averages based on number of trades
+    const averageGain = filteredStats.reduce((sum, month) => 
+      sum + (month.averageGain * month.totalTrades), 0) / totalTrades;
+    
+    const averageLoss = filteredStats.reduce((sum, month) => 
+      sum + (month.averageLoss * month.totalTrades), 0) / totalTrades;
+    
+    const winningPercentage = filteredStats.reduce((sum, month) => 
+      sum + (month.winningPercentage * month.totalTrades), 0) / totalTrades;
+    
+    const avgDaysGains = filteredStats.reduce((sum, month) => 
+      sum + (month.avgDaysGains * month.totalTrades), 0) / totalTrades;
+    
+    const avgDaysLoss = filteredStats.reduce((sum, month) => 
+      sum + (month.avgDaysLoss * month.totalTrades), 0) / totalTrades;
+    
+    // Find overall largest gain and loss
+    const largestGain = Math.max(...filteredStats.map(month => month.largestGain));
+    const largestLoss = Math.min(...filteredStats.map(month => month.largestLoss));
+    
+    return {
+      averageGain,
+      averageLoss,
+      winningPercentage,
+      totalTrades,
+      largestGain,
+      largestLoss,
+      avgDaysGains,
+      avgDaysLoss
+    };
+  }, [monthlyStats]);
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -33,8 +68,8 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
             <TableHead className="text-center">TOTAL TRADES</TableHead>
             <TableHead className="text-center">LG GAIN</TableHead>
             <TableHead className="text-center">LG LOSS</TableHead>
-            <TableHead className="text-center">Avg Days Gains</TableHead>
-            <TableHead className="text-center">Avg Days Loss</TableHead>
+            <TableHead className="text-center">Avg Days Gains Held</TableHead>
+            <TableHead className="text-center">Avg Days Loss Held</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -61,6 +96,20 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
               <TableCell className="text-center py-1">{month.avgDaysLoss.toFixed(1)}</TableCell>
             </TableRow>
           ))}
+          
+          {/* Summary Row */}
+          <TableRow className="bg-muted">
+            <TableCell className="py-1"></TableCell>
+            <TableCell className="py-1">Summary</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.averageGain.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.averageLoss.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.winningPercentage.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.totalTrades}</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.largestGain.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.largestLoss.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.avgDaysGains.toFixed(1)}</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.avgDaysLoss.toFixed(1)}</TableCell>
+          </TableRow>
         </TableBody>
       </Table>
     </div>

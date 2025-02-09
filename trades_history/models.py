@@ -11,7 +11,7 @@ class Trades(models.Model):
     Pattern = models.CharField(max_length=100)
     Days_In_Pattern_Before_Entry = models.IntegerField()
     Price_Tightness_1_Week_Before = models.FloatField()
-    Exit_Reason = models.CharField(max_length=200)
+    Exit_Reason = models.CharField(max_length=1000)
     Market_Condition = models.CharField(max_length=100)
     Category = models.CharField(max_length=100)
     Earnings_Quality = models.IntegerField()

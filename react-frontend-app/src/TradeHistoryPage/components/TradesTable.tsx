@@ -31,19 +31,20 @@ export const TradesTable: React.FC<TradesTableProps> = ({
   const [displayCount, setDisplayCount] = useState<number>(20);
 
   const defaultColumnWidths: { [key: string]: string } = {
-    Ticker: 'w-11',
-    Status: 'w-14',
+    Ticker: 'w-14',
+    Status: 'w-24',
     Entry_Date: 'w-32',
     Exit_Date: 'w-32',
-    Entry_Price: 'w-12',
-    Exit_Price: 'w-12',
-    Pattern: 'w-20',
+    Entry_Price: 'w-20',
+    Exit_Price: 'w-20',
+    Pattern: 'w-28',
     Days_In_Pattern_Before_Entry: 'w-14',
     Price_Tightness_1_Week_Before: 'w-20',
-    Exit_Reason: 'w-20',
+    Exit_Reason: 'w-40',
     Market_Condition: 'w-20',
     Category: 'w-20',
     Earnings_Quality: 'w-16',
+    Fundamentals_Quality: 'w-20',
     Nr_Bases: 'w-10',
   };
 
@@ -74,9 +75,19 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     return columnWidths[field] || defaultColumnWidths[field] || 'w-40';
   };
 
+  const getTradeRowClass = (trade: Trade) => {
+    if (!trade.Exit_Price) return 'hover:bg-muted/50';
+    const profitPercent = ((trade.Exit_Price - trade.Entry_Price) / trade.Entry_Price) * 100;
+    if (profitPercent > 0) {
+      return 'bg-emerald-500/20 hover:bg-emerald-500/30 dark:bg-emerald-500/30 dark:hover:bg-emerald-500/40';
+    } else if (profitPercent < 0) {
+      return 'bg-destructive/20 hover:bg-destructive/30 dark:bg-destructive/30 dark:hover:bg-destructive/40';
+    }
+    return 'hover:bg-muted/50';
+  };
+
   const sortedTrades = useMemo(() => {
     return [...trades].sort((a, b) => {
-      // Handle cases where Exit_Date might be undefined or invalid
       const dateA = a.Exit_Date ? new Date(a.Exit_Date).getTime() : 0;
       const dateB = b.Exit_Date ? new Date(b.Exit_Date).getTime() : 0;
       return dateB - dateA;
@@ -178,6 +189,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
           <Table>
             <TableHeader className="sticky top-0 bg-muted">
               <TableRow className="border-b">
+                <TableHead className="w-32 py-0.5 px-0.5 text-xs text-center border-r">Actions</TableHead>
                 {fields.map(field => (
                   <TableHead 
                     key={field} 
@@ -186,18 +198,15 @@ export const TradesTable: React.FC<TradesTableProps> = ({
                     {field.replace(/_/g, ' ')}
                   </TableHead>
                 ))}
-                <TableHead className="w-32 py-0.5 px-0.5 text-xs text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedTrades.slice(0, displayCount).map(trade => (
-                <TableRow key={trade.ID} className="border-b hover:bg-muted/50">
-                  {fields.map(field => (
-                    <TableCell key={field} className={`p-0 border-r ${getColumnWidth(field)}`}>
-                      {renderCell(trade, field)}
-                    </TableCell>
-                  ))}
-                  <TableCell className="p-0 w-32">
+                <TableRow 
+                  key={trade.ID} 
+                  className={`border-b ${getTradeRowClass(trade)}`}
+                >
+                  <TableCell className="p-0 w-32 border-r">
                     <div className="flex space-x-0.5">
                       <Button
                         onClick={() => onUpdate(editedTrades[trade.ID])}
@@ -217,6 +226,11 @@ export const TradesTable: React.FC<TradesTableProps> = ({
                       </Button>
                     </div>
                   </TableCell>
+                  {fields.map(field => (
+                    <TableCell key={field} className={`p-0 border-r ${getColumnWidth(field)}`}>
+                      {renderCell(trade, field)}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
