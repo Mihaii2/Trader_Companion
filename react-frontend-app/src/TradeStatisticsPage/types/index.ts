@@ -34,6 +34,7 @@ export interface Trade {
   Ownership_Pct_Change_Past_Earnings: boolean;
   Quarters_With_75pct_Surprise: boolean;
   Over_10_pct_Avg_Surprise: boolean;
+  Case: string;
 }
 
 export interface MonthlyStats {

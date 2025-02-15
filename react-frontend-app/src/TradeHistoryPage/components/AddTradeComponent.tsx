@@ -28,6 +28,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     Category: '',
     Earnings_Quality: 0,
     Nr_Bases: 0,
+    Case: '',
     Fundamentals_Quality: 0,
     Has_Earnings_Acceleration: false,
     Has_Catalyst: false,
@@ -108,25 +109,23 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
   };
 
   return (
-    <Card className="max-h-full">
-      <CardHeader className="py-3">
+    <Card className="w-full h-full flex flex-col">
+      <CardHeader className="py-3 flex-shrink-0">
         <CardTitle className="text-lg font-semibold">Add New Trade</CardTitle>
       </CardHeader>
-      <CardContent className="p-3">
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <ScrollArea className="max-h-[80vh] pr-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {Object.entries(newTrade).map(([key, value]) => 
-                  renderFormField(key as keyof Trade, value as InputValue)
-                )}
-              </div>
-            </ScrollArea>
-            
-            <Button type="submit" className="w-full">
-              Add Trade
-            </Button>
-          </div>
+      <CardContent className="p-3 flex-grow overflow-hidden">
+        <form onSubmit={handleSubmit} className="h-full flex flex-col">
+          <ScrollArea className="flex-grow pr-4 -mr-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 mb-4">
+              {Object.entries(newTrade).map(([key, value]) => 
+                renderFormField(key as keyof Trade, value as InputValue)
+              )}
+            </div>
+          </ScrollArea>
+          
+          <Button type="submit" className="w-full mt-4">
+            Add Trade
+          </Button>
         </form>
       </CardContent>
     </Card>

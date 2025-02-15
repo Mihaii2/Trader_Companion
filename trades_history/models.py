@@ -14,6 +14,8 @@ class Trades(models.Model):
     Exit_Reason = models.CharField(max_length=1000)
     Market_Condition = models.CharField(max_length=100)
     Category = models.CharField(max_length=100)
+    Case = models.TextField(blank=True, default='')
+    
     Earnings_Quality = models.IntegerField()
     Fundamentals_Quality = models.IntegerField()
     Has_Earnings_Acceleration = models.BooleanField()

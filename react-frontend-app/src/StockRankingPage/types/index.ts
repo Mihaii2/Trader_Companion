@@ -10,8 +10,9 @@ export interface StockCharacteristic {
 export interface StockPick {
   id: number;
   symbol: string;
-  total_score: number;  // Changed from camelCase to snake_case
-  ranking_box: number;  // Added to match backend
+  total_score: number;
+  ranking_box: number;
+  case_text: string;
   characteristics: StockCharacteristic[];
 }
 

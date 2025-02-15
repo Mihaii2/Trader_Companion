@@ -42,6 +42,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Price_Tightness_1_Week_Before: 'w-20',
     Exit_Reason: 'w-40',
     Market_Condition: 'w-20',
+    Case: 'w-40',
     Category: 'w-20',
     Earnings_Quality: 'w-16',
     Fundamentals_Quality: 'w-20',

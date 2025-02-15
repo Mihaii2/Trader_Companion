@@ -36,12 +36,21 @@ export const RankingItem: React.FC<Props> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [caseText, setCaseText] = useState(initialStock.case_text || '');
   const [newCharacteristic, setNewCharacteristic] = useState({
     name: '',
     description: '',
     score: '' as number | '',
     stock_pick: initialStock.id
   });
+
+  const handleCaseTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCaseText(e.target.value);
+    onUpdate({
+      ...initialStock,
+      case_text: e.target.value
+    });
+  };
 
   const handleAddCharacteristic = async () => {
     try {
@@ -255,6 +264,18 @@ export const RankingItem: React.FC<Props> = ({
                   }}
                 />
               ))}
+            </div>
+
+            <div className="mt-2">
+              <span className="text-sm font-medium">Case</span>
+              <Textarea
+                placeholder="Enter your investment case..."
+                value={caseText}
+                onChange={handleCaseTextChange}
+                className="mt-1"
+                rows={4}
+                style={{ resize: 'vertical' }}
+              />
             </div>
           </div>
         )}

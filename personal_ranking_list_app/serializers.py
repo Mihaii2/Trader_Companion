@@ -17,10 +17,11 @@ class StockPickSerializer(serializers.ModelSerializer):
     characteristics = StockCharacteristicSerializer(many=True, read_only=True)
     ranking_box = serializers.PrimaryKeyRelatedField(queryset=RankingBox.objects.all())
     total_score = serializers.FloatField()  # Explicitly define as FloatField
+    case_text = serializers.CharField(required=False, allow_blank=True)  # Add this line
 
     class Meta:
         model = StockPick
-        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'created_at', 'characteristics']
+        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'case_text', 'created_at', 'characteristics']  # Add case_text to fields
 
 
 class RankingBoxSerializer(serializers.ModelSerializer):

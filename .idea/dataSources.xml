@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\trades_db.sqlite3</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="personal_ranking.sqlite3" uuid="686fe3ae-427e-46e6-aa9c-54731f8edd8e">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/personal_ranking.sqlite3</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
