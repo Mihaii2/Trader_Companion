@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trade } from '../types/Trade';
+import { AxiosError } from 'axios';
 
 interface AddTradeComponentProps {
-  onAdd: (trade: Trade) => void;
+  onAdd: (trade: Trade) => Promise<void>;
 }
 
 export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) => {
@@ -50,6 +52,8 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
   };
 
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -61,12 +65,32 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
               type === 'number' ? (value === '' ? 0 : Number(value)) : 
               value
     }));
+
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onAdd(newTrade);
-    setNewTrade(initialTrade);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      await onAdd(newTrade);
+      setNewTrade(initialTrade); // Only reset form on successful submission
+    } catch (err) {
+      // Handle different types of errors
+      if (err instanceof AxiosError) {
+        const errorMessage = err.response?.data?.detail || 
+                           err.response?.data?.message ||
+                           'Failed to add trade. Please try again.';
+        setError(errorMessage);
+      } else {
+        setError('An unexpected error occurred. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   type InputValue = string | number | boolean | null;
@@ -82,6 +106,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
             onCheckedChange={(checked: boolean) => 
               setNewTrade(prev => ({ ...prev, [key]: checked }))
             }
+            disabled={isSubmitting}
           />
           <Label htmlFor={key} className="text-sm">
             {key.replace(/_/g, ' ')}
@@ -103,6 +128,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
           onChange={handleInputChange}
           step={key.includes('Price') ? '0.01' : '1'}
           className="h-8"
+          disabled={isSubmitting}
         />
       </div>
     );
@@ -115,6 +141,12 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
       </CardHeader>
       <CardContent className="p-3 flex-grow overflow-hidden">
         <form onSubmit={handleSubmit} className="h-full flex flex-col">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          
           <ScrollArea className="flex-grow pr-4 -mr-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 mb-4">
               {Object.entries(newTrade).map(([key, value]) => 
@@ -123,8 +155,12 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
             </div>
           </ScrollArea>
           
-          <Button type="submit" className="w-full mt-4">
-            Add Trade
+          <Button 
+            type="submit" 
+            className="w-full mt-4"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding Trade...' : 'Add Trade'}
           </Button>
         </form>
       </CardContent>

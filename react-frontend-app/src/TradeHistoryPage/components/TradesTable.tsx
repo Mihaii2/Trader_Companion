@@ -79,11 +79,13 @@ export const TradesTable: React.FC<TradesTableProps> = ({
   const getTradeRowClass = (trade: Trade) => {
     if (!trade.Exit_Price) return 'hover:bg-muted/50';
     const profitPercent = ((trade.Exit_Price - trade.Entry_Price) / trade.Entry_Price) * 100;
+    
     if (profitPercent > 0) {
-      return 'bg-emerald-500/20 hover:bg-emerald-500/30 dark:bg-emerald-500/30 dark:hover:bg-emerald-500/40';
+      return 'bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/70';
     } else if (profitPercent < 0) {
-      return 'bg-destructive/20 hover:bg-destructive/30 dark:bg-destructive/30 dark:hover:bg-destructive/40';
+      return 'bg-red-500/10 hover:bg-red-500/20 dark:bg-red-950/50 dark:hover:bg-red-950/70';
     }
+    
     return 'hover:bg-muted/50';
   };
 
