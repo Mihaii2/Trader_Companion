@@ -56,7 +56,7 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
       valueColor: "text-red-500"
     },
     {
-      label: "Win / Loss Ratio",
+      label: "Win / Loss",
       value: yearlyStats.winLossRatio.toFixed(2),
       icon: Scale,
       valueColor: "text-yellow-500"

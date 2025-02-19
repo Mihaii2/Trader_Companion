@@ -36,6 +36,7 @@ class Trades(models.Model):
     Ownership_Pct_Change_Past_Earnings = models.BooleanField()
     Quarters_With_75pct_Surprise = models.BooleanField()
     Over_10_pct_Avg_Surprise = models.BooleanField()
+    Under_30k_Shares = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.Ticker} - {self.Entry_Date}"

@@ -49,6 +49,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     Ownership_Pct_Change_Past_Earnings: false,
     Quarters_With_75pct_Surprise: false,
     Over_10_pct_Avg_Surprise: false,
+    Under_30k_Shares: false,
   };
 
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);

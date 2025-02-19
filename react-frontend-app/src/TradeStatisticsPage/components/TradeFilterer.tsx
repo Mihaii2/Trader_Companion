@@ -47,7 +47,8 @@ const DROPDOWN_FIELDS = [
   'Positive_Analysts_Revisions',
   'Ownership_Pct_Change_Past_Earnings',
   'Quarters_With_75pct_Surprise',
-  'Over_10_pct_Avg_Surprise'
+  'Over_10_pct_Avg_Surprise',
+  'Under_30k_Shares'
 ] as const
 
 const formatLabel = (fieldName: string): string => {
