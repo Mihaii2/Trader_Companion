@@ -1,4 +1,4 @@
-⚠️ OUTDATED README – DOCKER COMPOSE MAY NOT WORK
+⚠️ OUTDATED README – Last update: Dec 30, 2024
 
 # Stock Filtering Application
 
