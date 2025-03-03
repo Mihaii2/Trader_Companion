@@ -23,12 +23,19 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
     const filteredStats = monthlyStats.filter(month => month.useInYearly);
     const totalTrades = filteredStats.reduce((sum, month) => sum + month.totalTrades, 0);
     
-    // Calculate weighted averages based on number of trades
-    const averageGain = filteredStats.reduce((sum, month) => 
-      sum + (month.averageGain * month.totalTrades), 0) / totalTrades;
+    const totalWinningTrades = filteredStats.reduce((sum, month) => 
+      sum + Math.round((month.winningPercentage / 100) * month.totalTrades), 0);
     
-    const averageLoss = filteredStats.reduce((sum, month) => 
-      sum + (month.averageLoss * month.totalTrades), 0) / totalTrades;
+    const totalLosingTrades = totalTrades - totalWinningTrades;
+    
+    const averageGain = totalWinningTrades
+      ? filteredStats.reduce((sum, month) => sum + (month.averageGain * Math.round((month.winningPercentage / 100) * month.totalTrades)), 0) / totalWinningTrades
+      : 0;
+    
+    const averageLoss = totalLosingTrades
+      ? filteredStats.reduce((sum, month) => sum + (month.averageLoss * (month.totalTrades - Math.round((month.winningPercentage / 100) * month.totalTrades))), 0) / totalLosingTrades
+      : 0;
+    
     
     const winningPercentage = filteredStats.reduce((sum, month) => 
       sum + (month.winningPercentage * month.totalTrades), 0) / totalTrades;

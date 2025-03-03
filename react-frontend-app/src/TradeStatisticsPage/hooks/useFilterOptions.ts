@@ -1,6 +1,6 @@
 // hooks/useFilterOptions.ts
 import { useState, useEffect } from 'react';
-import { Trade } from '../types';
+import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { tradeAPI } from '../services/tradeAPI';
 
 // Helper type to store the unique values

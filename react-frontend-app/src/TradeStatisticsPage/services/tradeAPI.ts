@@ -1,6 +1,6 @@
 // services/tradeAPI.ts
 import axios from 'axios';
-import { Trade } from '../types/index';
+import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { API_CONFIG } from '@/config';
 
 const api = axios.create({

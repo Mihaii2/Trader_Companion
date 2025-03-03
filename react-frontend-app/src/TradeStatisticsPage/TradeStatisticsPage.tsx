@@ -3,7 +3,7 @@ import { MonthlyStatistics } from './components/MonthlyStatistics';
 import { YearlyStatistics } from './components/YearlyStatistics';
 import { TradeFilterer } from './components/TradeFilterer';
 import { useTradeStats } from './hooks/useTradeStats';
-import { Trade } from './types';
+import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const TradingStatsPage: React.FC = () => {

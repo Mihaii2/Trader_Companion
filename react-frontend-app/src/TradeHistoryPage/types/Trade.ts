@@ -36,4 +36,5 @@ export interface Trade {
   Over_10_pct_Avg_Surprise: boolean;
   Under_30k_Shares: boolean;
   Case: string;
+  Spikes_On_Volume: boolean;
 }

@@ -3,7 +3,7 @@ import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { Trade } from '../types'
+import { Trade } from '@/TradeHistoryPage/types/Trade'
 import { useFilterOptions } from '../hooks/useFilterOptions'
 
 type FilterExtensions = {
@@ -48,7 +48,8 @@ const DROPDOWN_FIELDS = [
   'Ownership_Pct_Change_Past_Earnings',
   'Quarters_With_75pct_Surprise',
   'Over_10_pct_Avg_Surprise',
-  'Under_30k_Shares'
+  'Under_30k_Shares',
+  'Spikes_On_Volume'
 ] as const
 
 const formatLabel = (fieldName: string): string => {

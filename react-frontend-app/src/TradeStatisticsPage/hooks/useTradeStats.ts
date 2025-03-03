@@ -1,6 +1,7 @@
 // hooks/useTradeStats.ts
 import { useState, useEffect, useMemo } from 'react';
-import { Trade, MonthlyStats, YearlyStats, ExtendedFilters } from '../types';
+import { MonthlyStats, YearlyStats, ExtendedFilters } from '../types';
+import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { tradeAPI } from '../services/tradeAPI';
 import { addMonths, format, parseISO, isAfter, differenceInDays } from 'date-fns';
 
@@ -76,11 +77,11 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       const gains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
       const losses = monthTrades.filter(t => t.Exit_Price < t.Entry_Price);
 
-      const avgGain = gains.length ? 
-        gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
+      const totalGain = gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
+      const totalLoss = losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
 
-      const avgLoss = losses.length ? 
-        losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
+      const avgGain = gains.length ? totalGain / gains.length : 0;
+      const avgLoss = losses.length ? totalLoss / losses.length : 0;
 
       const monthDate = parseISO(`01 ${month}`);
       const isInTrailingYear = isAfter(monthDate, lastYear);
@@ -117,11 +118,11 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     const gains = selectedTrades.filter(t => t.Exit_Price > t.Entry_Price);
     const losses = selectedTrades.filter(t => t.Exit_Price < t.Entry_Price);
 
-    const avgGain = gains.length ? 
-      gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / gains.length : 0;
+    const totalGain = gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
+    const totalLoss = losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
 
-    const avgLoss = losses.length ? 
-      losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0) / losses.length : 0;
+    const avgGain = gains.length ? totalGain / gains.length : 0;
+    const avgLoss = losses.length ? totalLoss / losses.length : 0;
 
     return {
       winningPercentage: selectedTrades.length ? (gains.length / selectedTrades.length) * 100 : 0,
