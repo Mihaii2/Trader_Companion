@@ -1,3 +1,5 @@
+⚠️ OUTDATED README – Last update: Dec 30, 2024
+
 # Stock Filtering Application
 
 A Django-based backend-1 application with a Flask microservice for filtering and analyzing stocks.
@@ -33,7 +35,6 @@ This will:
 - Build the Django application container
 - Build the Flask microservice container
 - Start both services
-- The Django app will be available at http://localhost:8000
 - The front end will be available at http://localhost:5173
 
 3. To run in detached mode (background):
