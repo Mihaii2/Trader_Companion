@@ -13,12 +13,13 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 logs_dir = os.path.join(script_dir, "logs")
 os.makedirs(logs_dir, exist_ok=True)
 
-# Define pipeline paths
+# Define pipeline paths (convert to absolute paths)
 PIPELINE_PATHS = [
-    "./minervini_1mo/stock_screening_pipeline.py",
-    "./minervini_4mo/stock_screening_pipeline.py",
-    "./ipos/stock_screening_pipeline.py"
+    os.path.join(script_dir, "minervini_1mo", "stock_screening_pipeline.py"),
+    os.path.join(script_dir, "minervini_4mo", "stock_screening_pipeline.py"),
+    os.path.join(script_dir, "ipos", "stock_screening_pipeline.py"),
 ]
+
 
 # Define paths
 fetch_data_script = os.path.join(script_dir, "./price_1y_fundamental_2y.py")  # Modify if needed
@@ -54,7 +55,7 @@ def put_computer_to_sleep():
 
 # Run a script and log output
 def run_script(script_path, args=None):
-    script_path = os.path.abspath(script_path)  # Convert to absolute path
+    script_path = os.path.abspath(script_path)  # Ensure absolute path
     pipeline_dir = os.path.dirname(script_path)  # Get the pipeline folder
 
     # Check if the script exists
@@ -91,6 +92,7 @@ def run_pipelines_in_parallel(pipeline_paths, price_increase, top_n, status_trac
     with ThreadPoolExecutor() as executor:
         futures = []
         for pipeline_path in pipeline_paths:
+            logging.info(f"Running pipeline: {pipeline_path}")
             futures.append(
                 executor.submit(run_script, pipeline_path, [price_increase, "--top-n", top_n])
             )

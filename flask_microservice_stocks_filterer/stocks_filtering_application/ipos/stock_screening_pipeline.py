@@ -87,7 +87,7 @@ def main():
     ]
     ranking_screens = [
         os.path.join(script_dir, "ranking_screens", f"{name}.py")
-        for name in ["annual_EPS_acceleration", "annual_margin_acceleration", "quarterly_EPS_acceleration", "quarterly_margin_acceleration", "quarterly_sales_acceleration", "top_price_increases_1y"]
+        for name in ["top_price_increases_1y", "price_spikes", "volume_acceleration"]
     ]
     
     logging.info("Finding and deleting old CSV files...")
@@ -103,11 +103,9 @@ def main():
     run_script(os.path.join(script_dir, "obligatory_screens", "obligatory_screen_passer.py"))
     
     run_script(os.path.join(script_dir, "banned_stocks", "banned_filter.py"))
-
-    # Run the filter for passed and unbanned stocks
-    logging.info("\nRunning the filter for passed and unbanned stocks...")
+    
     run_script(os.path.join(script_dir, "ranking_screens", "passed_stocks_input_data", "obligatory_screen_data_filter.py"))
-
+    
     run_scripts_in_parallel(ranking_screens)
     
     if args.top_n:

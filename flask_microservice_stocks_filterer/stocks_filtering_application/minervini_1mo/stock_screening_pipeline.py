@@ -87,7 +87,7 @@ def main():
     ]
     ranking_screens = [
         os.path.join(script_dir, "ranking_screens", f"{name}.py")
-        for name in ["annual_EPS_acceleration", "annual_margin_acceleration", "quarterly_EPS_acceleration", "quarterly_margin_acceleration", "quarterly_sales_acceleration", "top_price_increases_1y"]
+        for name in ["top_price_increases_1y", "price_spikes", "volume_acceleration", "top_price_increases_1y"]
     ]
     
     logging.info("Finding and deleting old CSV files...")

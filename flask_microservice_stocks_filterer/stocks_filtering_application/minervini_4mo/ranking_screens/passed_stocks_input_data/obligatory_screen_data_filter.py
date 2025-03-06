@@ -30,11 +30,11 @@ def filter_stock_data(stocks_to_screen_file, all_stocks_data_file, output_file):
 
 # Usage
 stocks_to_screen_file = './banned_stocks/stocks_not_banned.csv'
-all_stocks_data_file1 = './stock_api_data/annual_fundamental_data_2years.csv'
+all_stocks_data_file1 = '../stock_api_data/annual_fundamental_data_2years.csv'
 output_file1 = './ranking_screens/passed_stocks_input_data/filtered_annual_fundamental_data_2years.csv'
-all_stocks_data_file2 = './stock_api_data/quarterly_fundamental_data_2years.csv'
+all_stocks_data_file2 = '../stock_api_data/quarterly_fundamental_data_2years.csv'
 output_file2 = './ranking_screens/passed_stocks_input_data/filtered_quarterly_fundamental_data_2years.csv'
-all_stocks_data_file3 = './stock_api_data/nasdaq_stocks_1_year_price_data.csv'
+all_stocks_data_file3 = '../stock_api_data/nasdaq_stocks_1_year_price_data.csv'
 output_file3 = './ranking_screens/passed_stocks_input_data/filtered_price_data.csv'
 
 filter_stock_data(stocks_to_screen_file, all_stocks_data_file1, output_file1)

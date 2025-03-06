@@ -14,7 +14,7 @@ export const StocksRankingPage: React.FC = () => {
       <div className="space-y-8 mt-8">
         
         <RankingList 
-          filename="minervini_1mo/stocks_ranking_by_price.csv" 
+          filename="minervini_4mo/stocks_ranking_by_price.csv" 
           title="Minervini Trend 4 Months (Good for Breakouts)" 
         />
         

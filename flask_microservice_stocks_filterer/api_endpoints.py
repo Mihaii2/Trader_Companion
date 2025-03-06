@@ -112,7 +112,6 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
 
 @app.route('/rankings/<path:filename>', methods=['GET'])
 def get_rankings(filename):
-    print("API CALLED")
     """
     Get the contents of a ranking file
 
@@ -124,10 +123,6 @@ def get_rankings(filename):
     """
 
     file_path = os.path.join('./stocks_filtering_application', filename)
-
-    # Write the file_path to a text file in the current directory
-    with open("file_path_output.txt", "w") as output_file:
-        output_file.write(file_path)
     stock_data_path = os.path.join('./stocks_filtering_application', 'stock_api_data',
                                    'nasdaq_stocks_1_year_price_data.csv')
 
