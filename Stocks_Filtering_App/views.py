@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -17,12 +16,14 @@ def handle_microservice_error(error):
 
 @require_http_methods(["GET"])
 def rankings_view(request, filename):
-    """View to get rankings from the Flask microservice"""
+    """Dynamically forward ANY /rankings/... request to Flask"""
     try:
-        response = requests.get(f'{FLASK_SERVICE_URL}/rankings/{filename}')
+        flask_url = f"{FLASK_SERVICE_URL}/rankings/{filename}"
+        response = requests.get(flask_url, params=request.GET)  # Forward query params too
         return JsonResponse(response.json(), status=response.status_code)
     except requests.RequestException as e:
         return handle_microservice_error(e)
+
 
 @require_http_methods(["GET"])
 def pipeline_status_view(request):

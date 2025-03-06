@@ -2,9 +2,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RankingListSuccessResponse } from '../types/rankingList';
 import { rankingService } from '../services/rankingService';
-import { RankingType } from '../types/rankingList';
 
-export const useRankingList = (rankingType: RankingType) => {
+export const useRankingList = (fileName: string) => {
   const [rankings, setRankings] = useState<RankingListSuccessResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -12,18 +11,18 @@ export const useRankingList = (rankingType: RankingType) => {
   const fetchRankings = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await rankingService.fetchRankingList(rankingType);
+      const data = await rankingService.fetchRankingList(fileName);
       setRankings(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
-  }, [rankingType]); // Memoize fetchRankings based on rankingType
+  }, [fileName]); // Memoize fetchRankings based on fileName now
 
   useEffect(() => {
     fetchRankings();
-  }, [rankingType, fetchRankings]); // Now we can safely include fetchRankings in dependencies
+  }, [fileName, fetchRankings]); // Dependencies updated
 
   return { rankings, loading, error, refetch: fetchRankings };
 };

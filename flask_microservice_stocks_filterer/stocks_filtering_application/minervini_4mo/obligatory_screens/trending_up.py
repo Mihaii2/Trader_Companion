@@ -26,21 +26,23 @@ def check_conditions(group):
     return all(conditions)
 
 def is_200ma_trending_up(group):
-    # Get the last 120 days of data
-    last_5month = group.iloc[-120:]
+    # Reduce to last 80 trading days (instead of 120)
+    last_four_months = group.iloc[-50:]
     
-    if len(last_5month) < 120:
+    if len(last_four_months) < 50:
         return False  # Not enough data
     
-    # Check if 200MA is trending up in the last 5 months
-    ma_start = last_5month['200MA'].iloc[0]
-    ma_end = last_5month['200MA'].iloc[-1]
+    # Check if 200MA is trending up over 4 months
+    ma_start = last_four_months['200MA'].iloc[0]
+    ma_end = last_four_months['200MA'].iloc[-1]
     
-    return ma_end > ma_start and last_5month['200MA'].is_monotonic_increasing
+    return ma_end > ma_start and last_four_months['200MA'].is_monotonic_increasing
+
+
 
 def main():
     # Read the CSV file
-    df = pd.read_csv('./stock_api_data/nasdaq_stocks_1_year_price_data.csv', parse_dates=['Date'])
+    df = pd.read_csv('../stock_api_data/nasdaq_stocks_1_year_price_data.csv', parse_dates=['Date'])
     
     # Group the data by stock symbol
     grouped = df.groupby('Symbol')
@@ -53,7 +55,7 @@ def main():
         
         # Calculate moving averages
         group['200MA'] = calculate_ma(group, 200)
-        group['150MA'] = calculate_ma(group, 120)
+        group['150MA'] = calculate_ma(group, 150)
         group['50MA'] = calculate_ma(group, 50)
         
         # Check all conditions

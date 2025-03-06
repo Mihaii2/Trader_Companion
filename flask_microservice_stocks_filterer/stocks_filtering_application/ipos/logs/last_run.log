@@ -1,0 +1,52 @@
+2025-03-06 20:01:42,592 - INFO - Starting stock screening pipeline
+2025-03-06 20:01:42,594 - INFO - Finding and deleting old CSV files...
+2025-03-06 20:01:42,595 - INFO - Found 10 CSV files to delete
+2025-03-06 20:01:42,595 - INFO - Deleting: annual_EPS_acceleration_stocks.csv
+2025-03-06 20:01:42,595 - INFO - Deleting: annual_margin_acceleration_stocks.csv
+2025-03-06 20:01:42,595 - INFO - Deleting: quarterly_EPS_acceleration_stocks.csv
+2025-03-06 20:01:42,596 - INFO - Deleting: quarterly_margin_acceleration_stocks.csv
+2025-03-06 20:01:42,596 - INFO - Deleting: quarterly_sales_acceleration_stocks.csv
+2025-03-06 20:01:42,596 - INFO - Deleting: top_price_increase_1y.csv
+2025-03-06 20:01:42,596 - INFO - Deleting: close_to_52week_high.csv
+2025-03-06 20:01:42,597 - INFO - Deleting: filtered_recent_stocks.csv
+2025-03-06 20:01:42,597 - INFO - Deleting: minimum_volume_100k.csv
+2025-03-06 20:01:42,598 - INFO - Deleting: obligatory_passed_stocks.csv
+2025-03-06 20:02:11,156 - INFO - [minimum_volume_100k.py] Min Volume Processing complete. 5576 stocks met the criteria.
+2025-03-06 20:02:12,555 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 7031 stocks meeting the criteria have been saved to ./obligatory_screens/results/close_to_52week_high.csv.
+2025-03-06 20:02:12,555 - INFO - [close_to_52week_high.py] Skipped 2 rows due to missing or invalid data.
+2025-03-06 20:02:12,562 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 3 months analysis complete. 438 stocks meeting the criteria have been saved to ./obligatory_screens/results/filtered_recent_stocks.csv.
+2025-03-06 20:02:12,563 - INFO - [trading_for_at_most_3mo.py] Skipped 2 rows due to missing or invalid data.
+2025-03-06 20:02:12,661 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
+2025-03-06 20:02:12,661 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-03-06 20:02:12,661 - INFO - [obligatory_screen_passer.py] - filtered_recent_stocks.csv
+2025-03-06 20:02:12,662 - INFO - [obligatory_screen_passer.py] - minimum_volume_100k.csv
+2025-03-06 20:02:12,662 - INFO - [obligatory_screen_passer.py] 
+2025-03-06 20:02:12,662 - INFO - [obligatory_screen_passer.py] Found 70 stocks that passed all available screens
+2025-03-06 20:02:12,662 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
+2025-03-06 20:02:12,695 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
+2025-03-06 20:02:12,696 - INFO - [banned_filter.py] Checking 70 symbols for ban. 70 symbols are allowed.
+2025-03-06 20:02:12,696 - INFO - [banned_filter.py] Removed 0 expired bans.
+2025-03-06 20:02:12,701 - INFO - 
+Running the filter for passed and unbanned stocks...
+2025-03-06 20:02:12,738 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_annual_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2025-03-06 20:02:12,776 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_quarterly_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2025-03-06 20:02:15,143 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_price_data.csv' mode='w' encoding='cp1252'>
+2025-03-06 20:02:15,495 - INFO - [quarterly_margin_acceleration.py] 6 stocks with quarterly Net profit margin acceleration >= 20% saved to ./ranking_screens/results/quarterly_margin_acceleration_stocks.csv
+2025-03-06 20:02:15,501 - INFO - [quarterly_EPS_acceleration.py] 2 stocks with quarterly EPS acceleration >= 20% saved to ./ranking_screens/results/quarterly_EPS_acceleration_stocks.csv
+2025-03-06 20:02:15,526 - INFO - [annual_EPS_acceleration.py] 0 stocks with annual EPS acceleration >= 20% saved to ./ranking_screens/results/annual_EPS_acceleration_stocks.csv
+2025-03-06 20:02:15,527 - INFO - [annual_margin_acceleration.py] 0 stocks with annual Net profit margin acceleration >= 20% saved to ./ranking_screens/results/annual_margin_acceleration_stocks.csv
+2025-03-06 20:02:15,531 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
+2025-03-06 20:02:15,540 - INFO - [quarterly_sales_acceleration.py] 9 stocks with quarterly Revenue acceleration >= 10% saved to ./ranking_screens/results/quarterly_sales_acceleration_stocks.csv
+2025-03-06 20:02:15,540 - INFO - [quarterly_sales_acceleration.py] Average number of data points per stock: 3.33
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_increases_1y.py:7: RuntimeWarning: invalid value encountered in scalar divide
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] return (year_high - year_low) / year_low * 100
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_increases_1y.py:7: RuntimeWarning: divide by zero encountered in scalar divide
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] return (year_high - year_low) / year_low * 100
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-03-06 20:02:15,617 - ERROR - [top_price_increases_1y.py ERROR] price_increases = df.groupby('Symbol').apply(calculate_price_increase)
+2025-03-06 20:02:15,663 - INFO - [top_n_stocks_by_price_increase.py] Warning: Invalid price increase value for AAGRW. Skipping.
+2025-03-06 20:02:15,663 - INFO - [top_n_stocks_by_price_increase.py] Warning: Invalid price increase value for BROGW. Skipping.
+2025-03-06 20:02:15,663 - INFO - [top_n_stocks_by_price_increase.py] Warning: Invalid price increase value for GSMGW. Skipping.
+2025-03-06 20:02:15,664 - INFO - [top_n_stocks_by_price_increase.py] 'stocks_ranking_by_price.csv' has been created.
+2025-03-06 20:02:15,703 - INFO - [top_n_stocks_by_nr_screeners.py] 'stocks_ranking_by_screeners.csv' has been created.
+2025-03-06 20:02:15,709 - INFO - Stock screening pipeline completed successfully.

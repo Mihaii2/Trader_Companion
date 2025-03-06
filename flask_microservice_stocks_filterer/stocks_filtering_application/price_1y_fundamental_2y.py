@@ -15,7 +15,7 @@ def get_stock_data(ticker):
 
         # Get price data for the last year
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=365)
+        start_date = end_date - timedelta(days=550)
 
         try:
             price_data = stock.history(start=start_date, end=end_date, interval='1d')

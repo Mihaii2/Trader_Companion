@@ -1,14 +1,15 @@
 {
-  "start_time": 1741271603.9517417,
-  "current_step": "fetching_stock_data",
+  "start_time": 1741290996.488626,
+  "current_step": "pipelines_completed",
   "steps_completed": [
-    "cleaning_old_files",
-    "fetching_stock_data"
+    "starting_pipeline",
+    "running_pipelines",
+    "pipelines_completed"
   ],
   "current_batch": null,
   "total_batches": null,
   "status": "completed",
-  "last_updated": 1741271616.0582526,
+  "last_updated": 1741291029.5105877,
   "process_pid": null,
-  "end_time": 1741271616.0582519
+  "end_time": 1741291029.5105875
 }

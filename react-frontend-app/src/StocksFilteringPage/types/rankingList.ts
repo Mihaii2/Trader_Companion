@@ -9,6 +9,7 @@ export interface RankingItem {
   [key: string]: string | number;  // This allows for dynamic screener fields
 }
 
+// We'll keep this for backward compatibility if needed elsewhere
 export type RankingType = 'price' | 'screeners';
 
 // For the success response

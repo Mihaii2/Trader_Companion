@@ -7,10 +7,29 @@ export const StocksRankingPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="space-y-8">
-        <StocksScreenerCommander/>
+        <StocksScreenerCommander />
       </div>
       <PipelineStatus pollingInterval={1500} />
-      <RankingList />
+      
+      <div className="space-y-8 mt-8">
+        
+        <RankingList 
+          filename="minervini_1mo/stocks_ranking_by_price.csv" 
+          title="Minervini Trend 4 Months (Good for Breakouts)" 
+        />
+        
+        <RankingList 
+          filename="minervini_1mo/stocks_ranking_by_price.csv" 
+          title="Minervini Trend 1 Month (Good for Power Plays)" 
+        />
+
+        <RankingList 
+          filename="ipos/stocks_ranking_by_price.csv" 
+          title="IPO's" 
+        />
+      </div>
     </div>
   );
 };
+
+export default StocksRankingPage;
