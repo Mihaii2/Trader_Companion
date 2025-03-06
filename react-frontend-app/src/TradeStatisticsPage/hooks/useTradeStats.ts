@@ -114,26 +114,53 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       const month = format(parseISO(trade.Exit_Date), 'MMM yy');
       return selectedMonths.has(month);
     });
-
+  
     const gains = selectedTrades.filter(t => t.Exit_Price > t.Entry_Price);
     const losses = selectedTrades.filter(t => t.Exit_Price < t.Entry_Price);
-
+  
     const totalGain = gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
     const totalLoss = losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
-
+  
     const avgGain = gains.length ? totalGain / gains.length : 0;
     const avgLoss = losses.length ? totalLoss / losses.length : 0;
-
+    
+    // For compounding returns, use the expected growth rate formula
+    const winRate = gains.length / selectedTrades.length;
+    const lossRate = losses.length / selectedTrades.length;
+    
+    // Calculate expected growth rate (log mean)
+    const expectedGrowthRate = selectedTrades.length ? 
+      winRate * Math.log(1 + avgGain/100) + 
+      lossRate * Math.log(1 + avgLoss/100) : 0;
+    
+    // Expected growth per trade (with compounding effect)
+    const expectedGrowthPerTrade = (Math.exp(expectedGrowthRate) - 1) * 100;
+    
+    // Position sizing calculations
+    const positionSize125 = 0.125; // 12.5% position sizing
+    const positionSize25 = 0.25;   // 25% position sizing
+    
+    // Calculate expected returns with 12.5% position sizing
+    const expectedReturnOn10Trades_125 = (Math.exp(expectedGrowthRate * positionSize125 * 10) - 1) * 100;
+    const expectedReturnOn50Trades_125 = (Math.exp(expectedGrowthRate * positionSize125 * 50) - 1) * 100;
+    
+    // Calculate expected returns with 25% position sizing
+    const expectedReturnOn10Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 10) - 1) * 100;
+    const expectedReturnOn50Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 50) - 1) * 100;
+  
     return {
-      winningPercentage: selectedTrades.length ? (gains.length / selectedTrades.length) * 100 : 0,
+      winningPercentage: selectedTrades.length ? winRate * 100 : 0,
       averageGain: avgGain,
       averageLoss: avgLoss,
       winLossRatio: avgLoss !== 0 ? Math.abs(avgGain / avgLoss) : 0,
-      expectedValuePerTrade: selectedTrades.length ? 
-        (avgGain * (gains.length / selectedTrades.length)) + 
-        (avgLoss * (losses.length / selectedTrades.length)) : 0
+      expectedValuePerTrade: expectedGrowthPerTrade, // Using the geometric growth rate
+      expectedReturnOn10Trades_125: expectedReturnOn10Trades_125,
+      expectedReturnOn50Trades_125: expectedReturnOn50Trades_125,
+      expectedReturnOn10Trades_25: expectedReturnOn10Trades_25,
+      expectedReturnOn50Trades_25: expectedReturnOn50Trades_25
     };
   }, [filteredTrades, selectedMonths]);
+  
 
   const toggleMonth = (month: string) => {
     setSelectedMonths(prev => {

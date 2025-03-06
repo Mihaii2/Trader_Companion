@@ -1,22 +1,14 @@
 {
-  "start_time": 1740783230.2417896,
-  "current_step": "running_history_handler",
+  "start_time": 1741271603.9517417,
+  "current_step": "fetching_stock_data",
   "steps_completed": [
     "cleaning_old_files",
-    "fetching_stock_data",
-    "running_obligatory_screens",
-    "checking_obligatory_screens",
-    "checking_banned_stocks",
-    "filtering_passed_stocks",
-    "running_ranking_screens",
-    "finding_top_stocks",
-    "running_sentiment_screens",
-    "running_history_handler"
+    "fetching_stock_data"
   ],
-  "current_batch": 214,
-  "total_batches": 214,
+  "current_batch": null,
+  "total_batches": null,
   "status": "completed",
-  "last_updated": 1740797016.2340174,
+  "last_updated": 1741271616.0582526,
   "process_pid": null,
-  "end_time": 1740797016.2340167
+  "end_time": 1741271616.0582519
 }

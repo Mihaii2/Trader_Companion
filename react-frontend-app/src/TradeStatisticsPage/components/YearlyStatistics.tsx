@@ -10,6 +10,10 @@ interface YearlyStatisticsProps {
     averageLoss: number;
     winLossRatio: number;
     expectedValuePerTrade: number;
+    expectedReturnOn10Trades_125?: number;
+    expectedReturnOn50Trades_125?: number;
+    expectedReturnOn10Trades_25?: number;
+    expectedReturnOn50Trades_25?: number;
   };
 }
 
@@ -36,7 +40,7 @@ const StatCard = ({
 );
 
 export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats }) => {
-  const stats = [
+  const mainStats = [
     {
       label: "Win Rate",
       value: `${yearlyStats.winningPercentage.toFixed(2)}%`,
@@ -60,22 +64,62 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
       value: yearlyStats.winLossRatio.toFixed(2),
       icon: Scale,
       valueColor: "text-yellow-500"
-    },
-    {
-      label: "Expected Value Per Trade",
-      value: `${yearlyStats.expectedValuePerTrade.toFixed(2)}%`,
-      icon: DollarSign,
-      valueColor: "text-purple-500"
     }
   ];
+  
+  const returnStats = [
+    {
+      label: "Expected Return (12.5% Position sizing, 10 Trades)",
+      value: `${(yearlyStats.expectedReturnOn10Trades_125 || 0).toFixed(2)}%`,
+      icon: DollarSign,
+      valueColor: "text-purple-500"
+    },
+    {
+      label: "Expected Return (12.5% Position sizing, 50 Trades)",
+      value: `${(yearlyStats.expectedReturnOn50Trades_125 || 0).toFixed(2)}%`,
+      icon: DollarSign,
+      valueColor: "text-purple-500"
+    },
+    {
+      label: "Expected Return (25% Position sizing, 10 Trades)",
+      value: `${(yearlyStats.expectedReturnOn10Trades_25 || 0).toFixed(2)}%`,
+      icon: DollarSign,
+      valueColor: "text-indigo-500"
+    },
+    {
+      label: "Expected Return (25% Position sizing, 50 Trades)",
+      value: `${(yearlyStats.expectedReturnOn50Trades_25 || 0).toFixed(2)}%`,
+      icon: DollarSign,
+      valueColor: "text-indigo-500"
+    }
+  ];
+  
+  const expectedValueStat = {
+    label: "Expected Growth Per Trade",
+    value: `${yearlyStats.expectedValuePerTrade.toFixed(2)}%`,
+    icon: DollarSign,
+    valueColor: "text-purple-500"
+  };
 
   return (
-    <div className="grid grid-cols-2 gap-1">
-      {stats.map((stat, index) => (
-        <div key={stat.label} className={index === 4 ? "col-span-2" : ""}>
-          <StatCard {...stat} />
-        </div>
-      ))}
+    <div className="space-y-1">
+      <div className="grid grid-cols-2 gap-1">
+        {mainStats.map((stat) => (
+          <div key={stat.label}>
+            <StatCard {...stat} />
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-1">
+        {returnStats.map((stat) => (
+          <div key={stat.label}>
+            <StatCard {...stat} />
+          </div>
+        ))}
+      </div>
+      <div>
+        <StatCard {...expectedValueStat} />
+      </div>
     </div>
   );
 };

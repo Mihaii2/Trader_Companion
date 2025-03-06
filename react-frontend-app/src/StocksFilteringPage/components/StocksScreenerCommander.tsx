@@ -41,7 +41,7 @@ export const StocksScreenerCommander: React.FC = () => {
     ranking_method: 'price',
     fetch_data: true,
     top_n: 100,
-    obligatory_screens: ['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_price_increase'],
+    obligatory_screens: ['above_52week_low', 'trending_up', 'close_to_52week_high', 'minimum_price_increase', 'minimum_volume_100k'],
     ranking_screens: ['annual_EPS_acceleration', 'annual_margin_acceleration', 'annual_sales_acceleration', 'quarterly_EPS_acceleration', 'quarterly_eps_breakout', 'quarterly_margin_acceleration', 'quarterly_sales_acceleration', 'rs_over_70', 'rsi_trending_up', 'volume_acceleration', 'price_spikes', 'top_price_increases_1y'],
     skip_obligatory: false,
     skip_sentiment: false,

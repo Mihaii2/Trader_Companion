@@ -21,6 +21,10 @@ export interface YearlyStats {
   averageLoss: number;
   winLossRatio: number;
   expectedValuePerTrade: number;
+  expectedReturnOn10Trades_125?: number; // 12.5% position sizing
+  expectedReturnOn50Trades_125?: number; // 12.5% position sizing
+  expectedReturnOn10Trades_25?: number;  // 25% position sizing
+  expectedReturnOn50Trades_25?: number;  // 25% position sizing
 }
 
 export interface ExtendedFilters extends Partial<Trade> {
