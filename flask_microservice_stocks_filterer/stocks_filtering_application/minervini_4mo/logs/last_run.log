@@ -1,36 +1,50 @@
-2025-03-07 00:47:44,653 - INFO - Starting stock screening pipeline
-2025-03-07 00:47:44,653 - INFO - Finding and deleting old CSV files...
-2025-03-07 00:47:44,654 - INFO - Found 0 CSV files to delete
-2025-03-07 00:47:49,100 - INFO - [minimum_price_increase.py] Error processing row 328597: could not convert string to float: ''
-2025-03-07 00:48:15,063 - INFO - [trending_up.py] Trending up analysis complete. Saved 1376 symbols to ./obligatory_screens/results/trending_up_stocks.csv
-2025-03-07 00:48:20,168 - INFO - [minimum_price_increase.py] Error processing row 1572175: could not convert string to float: ''
-2025-03-07 00:48:36,383 - INFO - [minimum_volume_100k.py] Min Volume Processing complete. 5573 stocks met the criteria.
-2025-03-07 00:48:38,496 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 7031 stocks meeting the criteria have been saved to ./obligatory_screens/results/close_to_52week_high.csv.
-2025-03-07 00:48:38,496 - INFO - [close_to_52week_high.py] Skipped 2 rows due to missing or invalid data.
-2025-03-07 00:48:39,257 - INFO - [above_52week_low.py] Above 52 week low analysis complete. 3075 stocks meeting the criteria have been saved to ./obligatory_screens/results/above_52week_low.csv.
-2025-03-07 00:48:39,257 - INFO - [above_52week_low.py] Skipped 2 rows due to missing or invalid data.
-2025-03-07 00:48:40,151 - INFO - [minimum_price_increase.py] Analysis complete. 1793 stocks with minimum 200.0% increase have been saved to ./obligatory_screens/results/minimum_price_increase.csv.
-2025-03-07 00:48:40,151 - INFO - [minimum_price_increase.py] Skipped 533 rows due to missing or invalid data.
-2025-03-07 00:48:40,266 - INFO - [obligatory_screen_passer.py] Processing 5 CSV files:
-2025-03-07 00:48:40,267 - INFO - [obligatory_screen_passer.py] - above_52week_low.csv
-2025-03-07 00:48:40,267 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-03-07 00:48:40,267 - INFO - [obligatory_screen_passer.py] - minimum_price_increase.csv
-2025-03-07 00:48:40,267 - INFO - [obligatory_screen_passer.py] - minimum_volume_100k.csv
-2025-03-07 00:48:40,267 - INFO - [obligatory_screen_passer.py] - trending_up_stocks.csv
-2025-03-07 00:48:40,268 - INFO - [obligatory_screen_passer.py] 
-2025-03-07 00:48:40,268 - INFO - [obligatory_screen_passer.py] Found 45 stocks that passed all available screens
-2025-03-07 00:48:40,268 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
-2025-03-07 00:48:40,308 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
-2025-03-07 00:48:40,309 - INFO - [banned_filter.py] Checking 45 symbols for ban. 45 symbols are allowed.
-2025-03-07 00:48:40,309 - INFO - [banned_filter.py] Removed 0 expired bans.
-2025-03-07 00:48:40,356 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_annual_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
-2025-03-07 00:48:40,399 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_quarterly_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
-2025-03-07 00:48:42,679 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_price_data.csv' mode='w' encoding='cp1252'>
-2025-03-07 00:48:42,812 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 16 Results saved to ./ranking_screens/results/volume_acceleration_stocks.csv
-2025-03-07 00:48:43,016 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
-2025-03-07 00:48:43,061 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\minervini_4mo\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-03-07 00:48:43,061 - ERROR - [top_price_increases_1y.py ERROR] price_increases = df.groupby('Symbol').apply(calculate_price_increase)
-2025-03-07 00:48:43,067 - INFO - [price_spikes.py] Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
-2025-03-07 00:48:43,161 - INFO - [top_n_stocks_by_price_increase.py] 'stocks_ranking_by_price.csv' has been created.
-2025-03-07 00:48:43,208 - INFO - [top_n_stocks_by_nr_screeners.py] 'stocks_ranking_by_screeners.csv' has been created.
-2025-03-07 00:48:43,214 - INFO - Stock screening pipeline completed successfully.
+2025-03-07 02:02:16,104 - INFO - Starting stock screening pipeline
+2025-03-07 02:02:16,104 - INFO - Finding and deleting old CSV files...
+2025-03-07 02:02:16,104 - INFO - Found 10 CSV files to delete
+2025-03-07 02:02:16,104 - INFO - Deleting: price_spikes.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: top_price_increase_1y.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: top_relative_strength_3m.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: volume_acceleration_stocks.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: above_52week_low.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: close_to_52week_high.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: minimum_price_increase.csv
+2025-03-07 02:02:16,105 - INFO - Deleting: minimum_volume_100k.csv
+2025-03-07 02:02:16,106 - INFO - Deleting: obligatory_passed_stocks.csv
+2025-03-07 02:02:16,106 - INFO - Deleting: trending_up_stocks.csv
+2025-03-07 02:02:20,796 - INFO - [minimum_price_increase.py] Error processing row 328597: could not convert string to float: ''
+2025-03-07 02:02:43,859 - INFO - [trending_up.py] Trending up analysis complete. Saved 1376 symbols to ./obligatory_screens/results/trending_up_stocks.csv
+2025-03-07 02:02:50,311 - INFO - [minimum_price_increase.py] Error processing row 1572175: could not convert string to float: ''
+2025-03-07 02:03:04,639 - INFO - [minimum_volume_100k.py] Min Volume Processing complete. 5573 stocks met the criteria.
+2025-03-07 02:03:07,174 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 7031 stocks meeting the criteria have been saved to ./obligatory_screens/results/close_to_52week_high.csv.
+2025-03-07 02:03:07,174 - INFO - [close_to_52week_high.py] Skipped 2 rows due to missing or invalid data.
+2025-03-07 02:03:07,411 - INFO - [above_52week_low.py] Above 52 week low analysis complete. 3075 stocks meeting the criteria have been saved to ./obligatory_screens/results/above_52week_low.csv.
+2025-03-07 02:03:07,411 - INFO - [above_52week_low.py] Skipped 2 rows due to missing or invalid data.
+2025-03-07 02:03:09,061 - INFO - [minimum_price_increase.py] Analysis complete. 1793 stocks with minimum 200.0% increase have been saved to ./obligatory_screens/results/minimum_price_increase.csv.
+2025-03-07 02:03:09,062 - INFO - [minimum_price_increase.py] Skipped 533 rows due to missing or invalid data.
+2025-03-07 02:03:09,167 - INFO - [obligatory_screen_passer.py] Processing 5 CSV files:
+2025-03-07 02:03:09,167 - INFO - [obligatory_screen_passer.py] - above_52week_low.csv
+2025-03-07 02:03:09,168 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-03-07 02:03:09,168 - INFO - [obligatory_screen_passer.py] - minimum_price_increase.csv
+2025-03-07 02:03:09,168 - INFO - [obligatory_screen_passer.py] - minimum_volume_100k.csv
+2025-03-07 02:03:09,168 - INFO - [obligatory_screen_passer.py] - trending_up_stocks.csv
+2025-03-07 02:03:09,169 - INFO - [obligatory_screen_passer.py] 
+2025-03-07 02:03:09,169 - INFO - [obligatory_screen_passer.py] Found 45 stocks that passed all available screens
+2025-03-07 02:03:09,169 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
+2025-03-07 02:03:09,201 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
+2025-03-07 02:03:09,202 - INFO - [banned_filter.py] Checking 45 symbols for ban. 45 symbols are allowed.
+2025-03-07 02:03:09,203 - INFO - [banned_filter.py] Removed 0 expired bans.
+2025-03-07 02:03:09,243 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_annual_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2025-03-07 02:03:09,279 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_quarterly_fundamental_data_2years.csv' mode='w' encoding='cp1252'>
+2025-03-07 02:03:11,459 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='./ranking_screens/passed_stocks_input_data/filtered_price_data.csv' mode='w' encoding='cp1252'>
+2025-03-07 02:03:11,582 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 16 Results saved to ./ranking_screens/results/volume_acceleration_stocks.csv
+2025-03-07 02:03:11,773 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to ./ranking_screens/results/top_price_increase_1y.csv
+2025-03-07 02:03:11,819 - INFO - [price_spikes.py] Analysis complete. Results saved to ./ranking_screens/results/price_spikes.csv
+2025-03-07 02:03:11,822 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\minervini_4mo\ranking_screens\top_price_increases_1y.py:16: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-03-07 02:03:11,822 - ERROR - [top_price_increases_1y.py ERROR] price_increases = df.groupby('Symbol').apply(calculate_price_increase)
+2025-03-07 02:03:12,117 - INFO - [good_rsi_against_market.py] YF.download() has changed argument auto_adjust default to True
+2025-03-07 02:03:12,693 - INFO - [good_rsi_against_market.py] Top stocks by relative strength have been saved to ./ranking_screens/results/top_relative_strength_3m.csv
+2025-03-07 02:03:12,753 - ERROR - [good_rsi_against_market.py ERROR] 
+2025-03-07 02:03:12,753 - ERROR - [good_rsi_against_market.py ERROR] [*********************100%***********************]  1 of 1 completed
+2025-03-07 02:03:12,793 - INFO - [top_n_stocks_by_price_increase.py] 'stocks_ranking_by_price.csv' has been created.
+2025-03-07 02:03:12,831 - INFO - [top_n_stocks_by_nr_screeners.py] 'stocks_ranking_by_screeners.csv' has been created.
+2025-03-07 02:03:12,837 - INFO - Stock screening pipeline completed successfully.

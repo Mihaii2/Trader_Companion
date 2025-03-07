@@ -54,9 +54,10 @@ def put_computer_to_sleep():
         return False
 
 # Run a script and log output
-def run_script(script_path, args=None):
+def run_script(script_path, args=None, status_tracker=None):
     script_path = os.path.abspath(script_path)  # Ensure absolute path
     pipeline_dir = os.path.dirname(script_path)  # Get the pipeline folder
+    script_name = os.path.basename(script_path)
 
     # Check if the script exists
     if not os.path.exists(script_path):
@@ -78,9 +79,16 @@ def run_script(script_path, args=None):
         )
 
         for line in process.stdout:
-            logging.info(f"[{os.path.basename(script_path)}] {line.strip()}")
+            line_stripped = line.strip()
+            logging.info(f"[{script_name}] {line_stripped}")
+            if status_tracker:
+                status_tracker.handle_script_output(line_stripped, script_name)
+                
         for line in process.stderr:
-            logging.error(f"[{os.path.basename(script_path)} ERROR] {line.strip()}")
+            line_stripped = line.strip()
+            logging.error(f"[{script_name} ERROR] {line_stripped}")
+            if status_tracker:
+                status_tracker.handle_script_output(line_stripped, script_name)
 
         process.wait()
         return process.returncode
@@ -94,7 +102,7 @@ def run_pipelines_in_parallel(pipeline_paths, price_increase, top_n, status_trac
         for pipeline_path in pipeline_paths:
             logging.info(f"Running pipeline: {pipeline_path}")
             futures.append(
-                executor.submit(run_script, pipeline_path, [price_increase, "--top-n", top_n])
+                executor.submit(run_script, pipeline_path, [price_increase, "--top-n", top_n], status_tracker)
             )
 
         for future in as_completed(futures):
@@ -126,7 +134,7 @@ def main():
 
     if not PIPELINE_PATHS:
         logging.error("No pipelines defined. Exiting.")
-        status_tracker.complete_pipeline(failed=True, error_message="No pipelines defined.")
+        status_tracker.fail_pipeline("No pipelines defined.")
         sys.exit(1)
 
     # Fetch stock data if requested
@@ -134,13 +142,13 @@ def main():
         logging.info("Fetching stock data...")
         status_tracker.update_step("fetching_stock_data")
         if os.path.exists(fetch_data_script):
-            if run_script(fetch_data_script) != 0:
+            if run_script(fetch_data_script, status_tracker=status_tracker) != 0:
                 logging.error("Stock data fetching failed. Exiting.")
-                status_tracker.complete_pipeline(failed=True, error_message="Stock data fetching failed.")
+                status_tracker.fail_pipeline("Stock data fetching failed.")
                 sys.exit(1)
         else:
             logging.error(f"Fetch data script not found: {fetch_data_script}")
-            status_tracker.complete_pipeline(failed=True, error_message="Fetch data script not found.")
+            status_tracker.fail_pipeline("Fetch data script not found.")
             sys.exit(1)
 
     # Run all pipelines in parallel

@@ -1,1 +1,1 @@
-python master_pipeline.py 200 --fetch-data --top-n 100
+python master_pipeline.py 200 --top-n 100
