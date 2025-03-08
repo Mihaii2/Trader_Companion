@@ -47,6 +47,17 @@ def analyze_stocks(input_file, output_file):
     print(f"Analysis complete. Results saved to {output_file}")
 
 # Usage
-input_file = './ranking_screens/passed_stocks_input_data/filtered_price_data.csv'
-output_file = './ranking_screens/results/price_spikes.csv'
+import os
+
+# Get the absolute path of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input and output files
+input_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "results", "price_spikes.csv")
+
 analyze_stocks(input_file, output_file)

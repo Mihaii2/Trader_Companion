@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 import argparse
 
-def process_csv_files(directory, top_n):
+def process_csv_files(directory, top_n, output_file):
     # Dictionary to store all data
     data = defaultdict(dict)
     characteristics = set()
@@ -40,38 +40,38 @@ def process_csv_files(directory, top_n):
                         continue
                     
                     characteristic = header[1]
-                    characteristics.add(characteristic)
+                    characteristics.add(characteristic)  # Ensure characteristic is stored
                     
+                    has_data = False
                     for row in reader:
                         if len(row) < 2:
                             print(f"Warning: Invalid row in '{filename}'. Skipping row.")
                             continue
                         symbol, value = row[:2]
                         data[symbol][characteristic] = value
+                        has_data = True
+
+                    # If no valid data rows, ensure empty column appears
+                    if not has_data:
+                        for symbol in data.keys():  # Ensure existing symbols have an empty column
+                            data[symbol][characteristic] = ''
             except Exception as e:
                 print(f"Error processing file '{filename}': {str(e)}")
 
-    if not data or not price_increases:
-        print("No valid data found. Check your CSV files and directory path.")
-        return
-
-    # Create a list of all symbols that have either characteristics or price increases
+    # Ensure all symbols appear even if they have no data
     all_symbols = set(data.keys()) | set(price_increases.keys())
-    # Prepare data for writing (sort by price increase)
 
-    # Prepare data for writing (sort by price increase)
+    # Prepare sorted data
     sorted_data = sorted(
         [(symbol, data.get(symbol, {})) for symbol in all_symbols],
         key=lambda item: price_increases.get(item[0], 0),
         reverse=True
     )
-
-    # Write the top N symbols with the highest price increase to a new CSV file
-    output_filename = f'stocks_ranking_by_price.csv'
-    with open(output_filename, 'w', newline='') as outfile:
+    
+    with open(output_file, 'w', newline='') as outfile:
         writer = csv.writer(outfile)
         
-        # Write header
+        # Write header ensuring all characteristics appear
         header = ['Symbol', 'Price_Increase_Percentage', 'Screeners'] + list(characteristics)
         writer.writerow(header)
         
@@ -79,17 +79,29 @@ def process_csv_files(directory, top_n):
         for symbol, char_dict in sorted_data[:top_n]:
             row = [symbol, price_increases.get(symbol, ''), len(char_dict)]
             for char in characteristics:
-                row.append(char_dict.get(char, ''))
+                row.append(char_dict.get(char, ''))  # Ensure empty columns exist
             writer.writerow(row)
 
-    print(f"'{output_filename}' has been created.")
+    print(f"'{output_file}' has been created.")
 
 def main():
     parser = argparse.ArgumentParser(description='Process top N stocks by price increase')
     parser.add_argument('top_n', type=int, help='Number of top stocks to select')
     args = parser.parse_args()
     
-    process_csv_files('./ranking_screens/results', args.top_n)
+        # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Append the correct relative path to the directory
+    directory = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results")
+    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "stocks_ranking_by_price.csv")
+
+    
+    process_csv_files(directory, args.top_n, output_file)
 
 if __name__ == "__main__":
     main()

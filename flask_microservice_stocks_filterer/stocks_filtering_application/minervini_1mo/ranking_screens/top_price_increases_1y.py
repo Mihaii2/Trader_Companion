@@ -1,22 +1,38 @@
 import pandas as pd
 import numpy as np
+import os
 
 def calculate_price_increase(group):
     year_high = group['High'].max()
     year_low = group['Low'].min()
     return (year_high - year_low) / year_low * 100
 
-# Read the input CSV file
-input_file = './ranking_screens/passed_stocks_input_data/filtered_price_data.csv'
-output_file = './ranking_screens/results/top_price_increase_1y.csv'
+# Get the absolute path of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input and output files
+input_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results", "top_price_increase_1y.csv")
+
+# Read CSV with date parsing
 df = pd.read_csv(input_file, parse_dates=['Date'])
 
-# Group by symbol and calculate price increase
-price_increases = df.groupby('Symbol').apply(calculate_price_increase)
+# Determine the latest date in the dataset
+latest_date = df['Date'].max()
 
-# Sort price increases in descending order
-top_100 = price_increases.sort_values(ascending=False)
+# Filter data to only include the last 1 year
+one_year_ago = latest_date - pd.DateOffset(years=1)
+df_filtered = df[df['Date'] >= one_year_ago]
+
+# Group by symbol and calculate price increase
+price_increases = df_filtered.groupby('Symbol').apply(calculate_price_increase)
+
+# Sort price increases in descending order and get top 100
+top_100 = price_increases.sort_values(ascending=False).head(100)
 
 # Create a DataFrame with the results
 result_df = pd.DataFrame({
@@ -27,4 +43,4 @@ result_df = pd.DataFrame({
 # Write the results to the output CSV file
 result_df.to_csv(output_file, index=False)
 
-print(f"Top 100 stocks by price increase have been saved to {output_file}")
+print(f"Top 100 stocks by price increase (last 1 year) have been saved to {output_file}")

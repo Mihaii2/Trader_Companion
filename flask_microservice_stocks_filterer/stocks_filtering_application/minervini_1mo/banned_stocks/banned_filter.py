@@ -63,22 +63,38 @@ def process_symbols(symbols, banned_symbols, current_date):
 
 def main():
     current_date = datetime.now()
-    not_banned_file_path = './banned_stocks/stocks_not_banned.csv'
+    
+    import os
 
+    # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Define the file paths dynamically
+    not_banned_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "banned_stocks", "stocks_not_banned.csv")
+    passed_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo","obligatory_screens", "results", "obligatory_passed_stocks.csv")
+    banned_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo","banned_stocks", "banned_stocks.csv")
+
+    # Ensure the necessary directories exist
+    os.makedirs(os.path.dirname(not_banned_file_path), exist_ok=True)
+    
     # Create a new empty stocks_not_banned.csv file
     print("Creating new empty stocks_not_banned.csv file...")
     create_empty_not_banned_file(not_banned_file_path)
 
     try:
         # Read input files
-        symbols = read_symbols('./obligatory_screens/results/obligatory_passed_stocks.csv')
-        banned_symbols = read_banned_symbols('./banned_stocks/banned_stocks.csv')
+        symbols = read_symbols(passed_stocks_file_path)
+        banned_symbols = read_banned_symbols(banned_stocks_file_path)
 
         # Process symbols
         allowed_symbols, updated_banned_symbols, removed_count = process_symbols(symbols, banned_symbols, current_date)
 
         # Update banned_stocks.csv to remove expired bans
-        write_banned_symbols('./banned_stocks/banned_stocks.csv', updated_banned_symbols)
+        write_banned_symbols(banned_stocks_file_path, updated_banned_symbols)
 
         # Write the allowed symbols to stocks_not_banned.csv
         with open(not_banned_file_path, 'w', newline='') as f:

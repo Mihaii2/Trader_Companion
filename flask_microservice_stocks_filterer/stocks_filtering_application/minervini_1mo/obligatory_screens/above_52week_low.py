@@ -1,5 +1,6 @@
 import csv
 from datetime import datetime
+import os
 
 def process_stocks(input_file, output_file):
     stocks = {}
@@ -65,7 +66,23 @@ def process_stocks(input_file, output_file):
     print(f"Above 52 week low analysis complete. {len(qualified_stocks)} stocks meeting the criteria have been saved to {output_file}.")
     print(f"Skipped {skipped_rows} rows due to missing or invalid data.")
 
-# Usage
-input_file = '../stock_api_data/nasdaq_stocks_1_year_price_data.csv'
-output_file = './obligatory_screens/results/above_52week_low.csv'
+import os
+
+# Get the absolute path of the current script
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input file
+input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+
+# Define the output file
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "above_52week_low.csv")
+
+print(f"Resolved input file path: {input_file}")
+print(f"Resolved output file path: {output_file}")
+
+# Run the function
 process_stocks(input_file, output_file)

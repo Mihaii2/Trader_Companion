@@ -7,8 +7,19 @@ def calculate_price_increase(group):
     return (year_high - year_low) / year_low * 100
 
 # Read the input CSV file
-input_file = './ranking_screens/passed_stocks_input_data/filtered_price_data.csv'
-output_file = './ranking_screens/results/top_price_increase_1y.csv'
+import os
+
+# Get the absolute path of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input and output files
+input_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "ranking_screens", "results", "top_price_increase_1y.csv")
+
 
 df = pd.read_csv(input_file, parse_dates=['Date'])
 

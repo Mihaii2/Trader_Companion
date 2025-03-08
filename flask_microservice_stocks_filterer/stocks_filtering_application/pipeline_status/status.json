@@ -1,13 +1,14 @@
 {
-  "start_time": 1741305736.0559509,
-  "current_step": "running_pipelines",
+  "start_time": 1741391719.0986176,
+  "current_step": "Running pipelines",
   "steps_completed": [
-    "starting_pipeline",
-    "running_pipelines"
+    "Fetching data",
+    "Running pipelines"
   ],
-  "current_batch": null,
-  "total_batches": null,
-  "status": "running",
-  "last_updated": 1741305736.0566547,
-  "process_pid": 11956
+  "current_batch": 214,
+  "total_batches": 214,
+  "status": "completed",
+  "last_updated": 1741405556.0652556,
+  "process_pid": null,
+  "end_time": 1741405556.0652554
 }

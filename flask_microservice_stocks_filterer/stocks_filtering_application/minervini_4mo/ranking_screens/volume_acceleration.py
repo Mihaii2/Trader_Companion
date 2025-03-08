@@ -59,7 +59,16 @@ def calculate_volume_acceleration(file_path, output_path):
 
     print(f"Volume Acceleration Analysis complete. {len(accelerated_stocks)} Results saved to {output_path}")
 
-# Usage
-input_file = './ranking_screens/passed_stocks_input_data/filtered_price_data.csv'  # Replace with your input file path
-output_file = './ranking_screens/results/volume_acceleration_stocks.csv'  # Replace with your desired output file path
+import os
+
+# Get the absolute path of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input and output files
+input_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "results", "volume_acceleration_stocks.csv")
 calculate_volume_acceleration(input_file, output_file)

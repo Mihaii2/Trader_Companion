@@ -26,10 +26,10 @@ def check_conditions(group):
     return all(conditions)
 
 def is_200ma_trending_up(group):
-    # Reduce to last 80 trading days (instead of 120)
-    last_four_months = group.iloc[-50:]
+    # Reduce to last 120 trading days
+    last_four_months = group.iloc[-120:]
     
-    if len(last_four_months) < 50:
+    if len(last_four_months) < 120:
         return False  # Not enough data
     
     # Check if 200MA is trending up over 4 months
@@ -41,8 +41,23 @@ def is_200ma_trending_up(group):
 
 
 def main():
+    import os
+
+    # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Define the input and output file paths
+    input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "obligatory_screens", "results", "trending_up_stocks.csv")
+
+    print(f"Resolved input file path: {input_file}")
+    print(f"Resolved output file path: {output_file}")
     # Read the CSV file
-    df = pd.read_csv('../stock_api_data/nasdaq_stocks_1_year_price_data.csv', parse_dates=['Date'])
+    df = pd.read_csv(input_file, parse_dates=['Date'])
     
     # Group the data by stock symbol
     grouped = df.groupby('Symbol')
@@ -63,8 +78,8 @@ def main():
             qualifying_symbols.append(symbol)
     
     # Save the symbols to a new CSV file
-    pd.DataFrame({'Symbol': qualifying_symbols}).to_csv('./obligatory_screens/results/trending_up_stocks.csv', index=False)
-    print(f"Trending up analysis complete. Saved {len(qualifying_symbols)} symbols to ./obligatory_screens/results/trending_up_stocks.csv")
+    pd.DataFrame({'Symbol': qualifying_symbols}).to_csv(output_file, index=False)
+    print(f"Trending up analysis complete. Saved {len(qualifying_symbols)} symbols to {output_file}")
 
 if __name__ == "__main__":
     main()

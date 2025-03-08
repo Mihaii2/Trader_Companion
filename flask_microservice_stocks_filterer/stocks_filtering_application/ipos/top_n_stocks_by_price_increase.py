@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 import argparse
 
-def process_csv_files(directory, top_n):
+def process_csv_files(directory, top_n, output_file):
     # Dictionary to store all data
     data = defaultdict(dict)
     characteristics = set()
@@ -67,10 +67,8 @@ def process_csv_files(directory, top_n):
         key=lambda item: price_increases.get(item[0], 0),
         reverse=True
     )
-
-    # Write the final CSV file
-    output_filename = 'stocks_ranking_by_price.csv'
-    with open(output_filename, 'w', newline='') as outfile:
+    
+    with open(output_file, 'w', newline='') as outfile:
         writer = csv.writer(outfile)
         
         # Write header ensuring all characteristics appear
@@ -84,14 +82,26 @@ def process_csv_files(directory, top_n):
                 row.append(char_dict.get(char, ''))  # Ensure empty columns exist
             writer.writerow(row)
 
-    print(f"'{output_filename}' has been created.")
+    print(f"'{output_file}' has been created.")
 
 def main():
     parser = argparse.ArgumentParser(description='Process top N stocks by price increase')
     parser.add_argument('top_n', type=int, help='Number of top stocks to select')
     args = parser.parse_args()
     
-    process_csv_files('./ranking_screens/results', args.top_n)
+        # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Append the correct relative path to the directory
+    directory = os.path.join(script_dir, "stocks_filtering_application", "ipos", "ranking_screens", "results")
+    output_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "stocks_ranking_by_price.csv")
+
+    
+    process_csv_files(directory, args.top_n, output_file)
 
 if __name__ == "__main__":
     main()

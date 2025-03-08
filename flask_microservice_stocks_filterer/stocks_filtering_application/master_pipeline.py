@@ -2,49 +2,56 @@ import os
 import subprocess
 import sys
 import logging
+import argparse
 import time
 import platform
-import argparse
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import ctypes
+import threading
+from datetime import datetime
 from pipeline_status import PipelineStatus
 
 # Get the current script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
-logs_dir = os.path.join(script_dir, "logs")
-os.makedirs(logs_dir, exist_ok=True)
 
-# Define pipeline paths (convert to absolute paths)
+# Define pipelines to run
 PIPELINE_PATHS = [
     os.path.join(script_dir, "minervini_1mo", "stock_screening_pipeline.py"),
     os.path.join(script_dir, "minervini_4mo", "stock_screening_pipeline.py"),
     os.path.join(script_dir, "ipos", "stock_screening_pipeline.py"),
 ]
 
-
-# Define paths
-fetch_data_script = os.path.join(script_dir, "./price_1y_fundamental_2y.py")  # Modify if needed
+# Define fetch data script
+fetch_data_script = os.path.join(script_dir, "price_1y_fundamental_2y.py")
 
 # Set up logging
 def setup_logging():
-    log_file = os.path.join(logs_dir, "master_pipeline.log")
+    logs_dir = os.path.join(script_dir, "logs")
+    os.makedirs(logs_dir, exist_ok=True)
+    log_file = os.path.join(logs_dir, "last_run.log")
+    
     if os.path.exists(log_file):
         os.remove(log_file)
+    
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-        handlers=[logging.FileHandler(log_file), logging.StreamHandler(sys.stdout)]
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(sys.stdout)
+        ]
     )
+    return log_file
 
-# Put computer to sleep
 def put_computer_to_sleep():
+    """Put the computer to sleep based on the operating system."""
     system = platform.system().lower()
     try:
-        if system == "windows":
-            os.system("rundll32.exe powrprof.dll,SetSuspendState 0,1,0")
-        elif system == "darwin":  # macOS
-            os.system("pmset sleepnow")
-        elif system == "linux":
-            os.system("systemctl suspend")
+        if system == 'windows':
+            ctypes.windll.PowrProf.SetSuspendState(0, 1, 0)
+        elif system == 'darwin':  # macOS
+            os.system('pmset sleepnow')
+        elif system == 'linux':
+            os.system('systemctl suspend')
         else:
             logging.error(f"Sleep not supported on {system}")
             return False
@@ -53,67 +60,6 @@ def put_computer_to_sleep():
         logging.error(f"Failed to put computer to sleep: {e}")
         return False
 
-# Run a script and log output
-def run_script(script_path, args=None, status_tracker=None):
-    script_path = os.path.abspath(script_path)  # Ensure absolute path
-    pipeline_dir = os.path.dirname(script_path)  # Get the pipeline folder
-    script_name = os.path.basename(script_path)
-
-    # Check if the script exists
-    if not os.path.exists(script_path):
-        logging.error(f"Pipeline script not found: {script_path}")
-        return 1
-
-    command = [sys.executable, "-u", os.path.basename(script_path)]
-    if args:
-        command.extend(map(str, args))
-
-    logging.info(f"Running {script_path} in {pipeline_dir}")
-
-    # Change to pipeline directory and run script
-    original_cwd = os.getcwd()
-    try:
-        os.chdir(pipeline_dir)
-        process = subprocess.Popen(
-            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True
-        )
-
-        for line in process.stdout:
-            line_stripped = line.strip()
-            logging.info(f"[{script_name}] {line_stripped}")
-            if status_tracker:
-                status_tracker.handle_script_output(line_stripped, script_name)
-                
-        for line in process.stderr:
-            line_stripped = line.strip()
-            logging.error(f"[{script_name} ERROR] {line_stripped}")
-            if status_tracker:
-                status_tracker.handle_script_output(line_stripped, script_name)
-
-        process.wait()
-        return process.returncode
-    finally:
-        os.chdir(original_cwd)  # Move back to original directory
-
-# Run pipelines in parallel with PipelineStatus updates
-def run_pipelines_in_parallel(pipeline_paths, price_increase, top_n, status_tracker):
-    with ThreadPoolExecutor() as executor:
-        futures = []
-        for pipeline_path in pipeline_paths:
-            logging.info(f"Running pipeline: {pipeline_path}")
-            futures.append(
-                executor.submit(run_script, pipeline_path, [price_increase, "--top-n", top_n], status_tracker)
-            )
-
-        for future in as_completed(futures):
-            try:
-                future.result()
-            except Exception as e:
-                logging.error(f"Error running pipeline: {e}")
-
-    status_tracker.update_step("pipelines_completed")
-
-# Parse command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description="Master stock screening pipeline")
     parser.add_argument("price_increase", type=float, help="Minimum price increase percentage")
@@ -122,50 +68,95 @@ def parse_args():
     parser.add_argument("--sleep-after", action="store_true", help="Put computer to sleep after completion")
     return parser.parse_args()
 
+def run_script(script_path, args=None, status_tracker=None):
+    """Run a Python script with optional arguments and capture its output in real-time."""
+    script_name = os.path.basename(script_path)
+    command = [sys.executable, '-u', script_path]
+    if args:
+        command.extend(args)
+
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=0,
+        universal_newlines=True
+    )
+
+    def handle_output(pipe, prefix, is_error=False):
+        """Handle output from a pipe with a prefix."""
+        try:
+            for line in pipe:
+                log_level = logging.ERROR if is_error else logging.INFO
+                logging.log(log_level, f"{prefix}: {line.strip()}")
+                if status_tracker:
+                    status_tracker.handle_script_output(line, script_name)
+        except Exception as e:
+            logging.error(f"Error reading output: {e}")
+
+    stdout_thread = threading.Thread(
+        target=handle_output,
+        args=(process.stdout, f"[{script_name}]"),
+        daemon=True
+    )
+    stderr_thread = threading.Thread(
+        target=handle_output,
+        args=(process.stderr, f"[{script_name} ERROR]", True),
+        daemon=True
+    )
+
+    stdout_thread.start()
+    stderr_thread.start()
+
+    process.wait()
+
+    process.stdout.close()
+    process.stderr.close()
+
+    stdout_thread.join(timeout=1)
+    stderr_thread.join(timeout=1)
+
+    return process.returncode
+
 def main():
-    setup_logging()
+    log_file = setup_logging()
+    logging.info(f"Starting pipeline run. Logs will be saved to: {log_file}")
+    
     args = parse_args()
-
-    logging.info("Starting master stock screening pipeline manager.")
-
-    # Initialize PipelineStatus
+    logging.info(f"Pipeline arguments: {args}")
+    
     status_tracker = PipelineStatus(os.getpid())
-    status_tracker.update_step("starting_pipeline")
-
-    if not PIPELINE_PATHS:
-        logging.error("No pipelines defined. Exiting.")
-        status_tracker.fail_pipeline("No pipelines defined.")
-        sys.exit(1)
-
-    # Fetch stock data if requested
-    if args.fetch_data:
-        logging.info("Fetching stock data...")
-        status_tracker.update_step("fetching_stock_data")
-        if os.path.exists(fetch_data_script):
-            if run_script(fetch_data_script, status_tracker=status_tracker) != 0:
-                logging.error("Stock data fetching failed. Exiting.")
-                status_tracker.fail_pipeline("Stock data fetching failed.")
-                sys.exit(1)
+    
+    try:
+        # Fetch stock data if requested
+        if args.fetch_data:
+            logging.info("Fetching stock data from the API...")
+            status_tracker.update_step("Fetching data")
+            run_script(fetch_data_script, status_tracker=status_tracker)
         else:
-            logging.error(f"Fetch data script not found: {fetch_data_script}")
-            status_tracker.fail_pipeline("Fetch data script not found.")
-            sys.exit(1)
-
-    # Run all pipelines in parallel
-    logging.info("Running all pipelines in parallel...")
-    status_tracker.update_step("running_pipelines")
-    run_pipelines_in_parallel(PIPELINE_PATHS, args.price_increase, args.top_n, status_tracker)
-
-    logging.info("All pipelines completed successfully.")
-
-    # Mark pipeline as completed in the status tracker
-    status_tracker.complete_pipeline()
-
-    # Sleep if requested
-    if args.sleep_after:
-        logging.info("Putting computer to sleep in 5 seconds...")
-        time.sleep(5)
-        put_computer_to_sleep()
+            logging.info("Skipping data fetch, using existing data...")
+        
+        # Run all pipelines
+        status_tracker.update_step("Running pipelines")
+        for pipeline in PIPELINE_PATHS:
+            logging.info(f"Running pipeline: {pipeline}")
+            run_script(pipeline, [str(args.price_increase), '--top-n', str(args.top_n)], status_tracker=status_tracker)
+        
+        logging.info("All pipelines completed.")
+        status_tracker.complete_pipeline()
+    except Exception as e:
+        logging.error(f"Pipeline failed with error: {str(e)}")
+        status_tracker.fail_pipeline(str(e))
+        raise e
+    
+    # Put computer to sleep if requested
+    # if args.sleep_after:
+    #     logging.info("Putting computer to sleep in 5 seconds...")
+    #     time.sleep(5)
+    #     if put_computer_to_sleep():
+    #         logging.info("Sleep command sent successfully")
+    #     else:
+    #         logging.error("Failed to put computer to sleep")
 
 if __name__ == "__main__":
     main()

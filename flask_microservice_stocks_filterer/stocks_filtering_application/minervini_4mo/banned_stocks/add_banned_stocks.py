@@ -66,7 +66,20 @@ def main():
             print(f"Error: Invalid duration for {ticker}. {str(e)}")
             sys.exit(1)
 
-    file_path = './banned_stocks/banned_stocks.csv'
+    import os
+
+    # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Define the banned stocks file path
+    file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "banned_stocks", "banned_stocks.csv")
+
+    # Ensure the directory exists
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
     # Create directory if it doesn't exist
     os.makedirs(os.path.dirname(file_path), exist_ok=True)

@@ -58,6 +58,21 @@ def process_recent_stocks(input_file, output_file, max_months=3):
     print(f"Skipped {skipped_rows} rows due to missing or invalid data.")
 
 # Usage
-input_file = '../stock_api_data/nasdaq_stocks_1_year_price_data.csv'
-output_file = './obligatory_screens/results/filtered_recent_stocks.csv'
+import os
+
+# Get the absolute path of the current script
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Find the absolute path of the "flask_microservice_stocks_filterer" directory
+while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+    script_dir = os.path.dirname(script_dir)
+
+# Append the correct relative path to the input file
+input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+
+# Define the output file
+output_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "obligatory_screens", "results", "trading_for_at_most_3mo.csv")
+
+print(f"Resolved input file path: {input_file}")
+print(f"Resolved output file path: {output_file}")
 process_recent_stocks(input_file, output_file, max_months=3)

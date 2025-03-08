@@ -108,9 +108,8 @@ def main():
     
     run_scripts_in_parallel(ranking_screens)
     
-    if args.top_n:
-        run_script(os.path.join(script_dir, "top_n_stocks_by_price_increase.py"), [str(args.top_n)])
-        run_script(os.path.join(script_dir, "top_n_stocks_by_nr_screeners.py"), [str(args.top_n)])
+    run_script(os.path.join(script_dir, "top_n_stocks_by_price_increase.py"), [str(args.top_n)])
+    run_script(os.path.join(script_dir, "top_n_stocks_by_nr_screeners.py"), [str(args.top_n)])
     
     logging.info("Stock screening pipeline completed successfully.")
 

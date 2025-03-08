@@ -44,12 +44,25 @@ def save_common_stocks(stocks, output_file):
     print(f"Results saved to {os.path.basename(output_file)}")
 
 def main():
-    input_directory = "./obligatory_screens/results"
+    import os
+
+    # Get the absolute path of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+    while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
+        script_dir = os.path.dirname(script_dir)
+
+    # Define the input directory and output file path
+    input_directory = os.path.join(script_dir, "stocks_filtering_application", "ipos", "obligatory_screens", "results")
     output_file = os.path.join(input_directory, "obligatory_passed_stocks.csv")
+
     
     # Get all existing CSV files except the output file
     input_files = [f for f in get_existing_csv_files(input_directory)
                   if os.path.basename(f) != "obligatory_passed_stocks.csv"]
+    
+    common_stocks = find_common_stocks(input_files)
     
     common_stocks = find_common_stocks(input_files)
     save_common_stocks(common_stocks, output_file)
