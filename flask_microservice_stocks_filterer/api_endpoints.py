@@ -11,7 +11,9 @@ import psutil
 from datetime import datetime
 from typing import List, Optional
 from stocks_filtering_application.pipeline_status import PipelineStatus
+
 app = Flask(__name__)
+
 
 def run_stock_screening(
         min_price_increase: float,
@@ -81,34 +83,55 @@ def run_stock_screening(
         "message": "Screening process started",
     }
 
-def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
-    """
-    Add stocks to the banned list with their respective durations
-    """
-    # Modified command to use relative path from stocks_filtering_application
-    command = ["python", "banned_stocks/add_banned_stocks.py"]
-    for ticker, duration in ticker_duration_pairs:
-        command.extend([ticker, str(duration)])
 
-    try:
-        result = subprocess.run(
-            command,
-            capture_output=True,
-            text=True,
-            check=True,
-            cwd="./stocks_filtering_application"  # Set working directory
-        )
-        return {
-            "status": "success",
-            "output": result.stdout,
-            "command": " ".join(command)
-        }
-    except subprocess.CalledProcessError as e:
-        return {
-            "status": "error",
-            "error": e.stderr,
-            "command": " ".join(command)
-        }
+def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
+    paths = [
+        "minervini_1mo/banned_stocks/add_banned_stocks.py",
+        "minervini_4mo/banned_stocks/add_banned_stocks.py",
+        "ipos/banned_stocks/add_banned_stocks.py"
+    ]
+
+    results = []
+
+    for path in paths:
+        command = ["python", path]
+        for ticker, duration in ticker_duration_pairs:
+            command.extend([ticker, str(duration)])
+
+        try:
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                check=True,
+                cwd="./stocks_filtering_application"  # Set working directory
+            )
+            results.append({
+                "path": path,
+                "status": "success",
+                "output": result.stdout,
+                "command": " ".join(command)
+            })
+        except subprocess.CalledProcessError as e:
+            results.append({
+                "path": path,
+                "status": "error",
+                "error": e.stderr,
+                "command": " ".join(command)
+            })
+
+    # Determine overall status
+    overall_status = "success"
+    for result in results:
+        if result["status"] == "error":
+            overall_status = "error"
+            break
+
+    return {
+        "status": overall_status,
+        "results": results
+    }
+
 
 @app.route('/rankings/<path:filename>', methods=['GET'])
 def get_rankings(filename):
@@ -167,6 +190,7 @@ def get_rankings(filename):
             "message": f"Error reading files: {str(e)}"
         }), 500
 
+
 @app.route('/pipeline/status', methods=['GET'])
 def get_pipeline_status():
     """
@@ -192,6 +216,7 @@ def get_pipeline_status():
         }), 404
 
     return jsonify(status)
+
 
 @app.route('/run_screening', methods=['POST'])
 def screen_stocks():
@@ -328,6 +353,7 @@ def stop_pipeline():
         "status": "success",
         "message": "Pipeline stopped successfully"
     })
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

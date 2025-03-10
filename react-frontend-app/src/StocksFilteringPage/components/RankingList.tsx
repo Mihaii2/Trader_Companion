@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useRankingList } from '../hooks/useRankingList';
+import { useBanStock } from '../hooks/useBanStock';
 
 interface RankingListProps {
   filename: string;
@@ -8,8 +9,10 @@ interface RankingListProps {
 
 export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => {
   const { rankings, loading, error } = useRankingList(filename);
+  const { banStocks, isLoading: isBanning, error: banError } = useBanStock();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [bannedStocks, setBannedStocks] = useState<Record<string, boolean>>({});
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -17,6 +20,16 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     } else {
       setSortColumn(column);
       setSortDirection('asc');
+    }
+  };
+
+  const handleBanStock = async (ticker: string, durationWeeks: number) => {
+    try {
+      await banStocks([{ ticker, duration: durationWeeks }]);
+      // Mark the stock as banned in local state to provide immediate visual feedback
+      setBannedStocks(prev => ({ ...prev, [ticker]: true }));
+    } catch (err) {
+      console.error('Failed to ban stock:', err);
     }
   };
 
@@ -80,6 +93,12 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
           )}
         </div>
       </div>
+      
+      {banError && (
+        <div className="p-2 bg-destructive/10 text-destructive text-sm">
+          Error when banning stocks: {banError}
+        </div>
+      )}
 
       <div className="overflow-auto">
         <table className="w-full text-sm border border-border">
@@ -97,13 +116,16 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                   )}
                 </th>
               ))}
+              <th className="px-2 py-1 text-left border-r border-border">Ban Actions</th>
             </tr>
           </thead>
           <tbody>
             {sortedRankings.map((item, rowIndex) => (
               <tr
                 key={item.Symbol}
-                className={`border-b ${rowIndex % 2 === 0 ? 'bg-muted/20' : 'bg-background'}`}
+                className={`border-b ${rowIndex % 2 === 0 ? 'bg-muted/20' : 'bg-background'} ${
+                  bannedStocks[item.Symbol] ? 'opacity-50' : ''
+                }`}
               >
                 {allColumns.map((column) => (
                   <td key={column} className="px-2 py-0.5 border-r border-border">
@@ -112,6 +134,31 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                       : item[column] ?? '-'}
                   </td>
                 ))}
+                <td className="px-2 py-0.5 border-r border-border">
+                  <div className="flex gap-2">
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      onClick={() => handleBanStock(item.Symbol, 1)}
+                      disabled={isBanning || bannedStocks[item.Symbol]}
+                    >
+                      1W
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      onClick={() => handleBanStock(item.Symbol, 4)}
+                      disabled={isBanning || bannedStocks[item.Symbol]}
+                    >
+                      1Mo
+                    </button>
+                    <button
+                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      onClick={() => handleBanStock(item.Symbol, 12)}
+                      disabled={isBanning || bannedStocks[item.Symbol]}
+                    >
+                      3Mo
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

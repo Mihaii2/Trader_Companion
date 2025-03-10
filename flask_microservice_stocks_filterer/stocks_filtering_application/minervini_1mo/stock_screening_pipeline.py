@@ -121,11 +121,11 @@ def main():
     obligatory_screens = [
         os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", f"{name}.py")
         for name in
-        ["above_52week_low", "trending_up", "close_to_52week_high", "minimum_volume_100k", "minimum_price_increase"]
+        ["above_52week_low", "trending_up", "close_to_52week_high", "minimum_volume_100k", "minimum_price_increase", "minimum_5_dollar"]
     ]
     ranking_screens = [
         os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", f"{name}.py")
-        for name in ["good_rsi_against_market", "top_price_increases_1y", "price_spikes", "volume_acceleration"]
+        for name in ["good_rsi_against_market", "top_price_increases_1y", "price_spikes", "volume_acceleration", "top_price_tightness_1w"]
     ]
 
     logging.info("Finding and deleting old CSV files...")

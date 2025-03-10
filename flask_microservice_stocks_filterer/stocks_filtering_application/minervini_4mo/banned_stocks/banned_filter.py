@@ -22,7 +22,7 @@ def read_banned_symbols(file_path):
         for row in csv.DictReader(f):
             banned_dict[row['Symbol']] = {
                 'date': datetime.strptime(row['Date'], '%Y-%m-%d'),
-                'duration': int(row['BanDurationInMonths']) * 30  # Convert months to days
+                'duration': int(row['BanDurationInWeeks']) * 7  # Convert months to days
             }
     return banned_dict
 
@@ -34,12 +34,12 @@ def is_still_banned(ban_info, current_date):
 def write_banned_symbols(file_path, banned_symbols):
     with open(file_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Date', 'Symbol', 'BanDurationInMonths'])
+        writer.writerow(['Date', 'Symbol', 'BanDurationInWeeks'])
         for symbol, ban_info in banned_symbols.items():
             writer.writerow([
                 ban_info['date'].strftime('%Y-%m-%d'),
                 symbol,
-                str(ban_info['duration'] // 30)  # Convert days back to months
+                str(ban_info['duration'] // 7)  # Convert days back to months
             ])
 
 
