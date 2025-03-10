@@ -7,6 +7,7 @@ import time
 import platform
 import ctypes
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pipeline_status import PipelineStatus
 
@@ -23,15 +24,16 @@ PIPELINE_PATHS = [
 # Define fetch data script
 fetch_data_script = os.path.join(script_dir, "price_1y_fundamental_2y.py")
 
+
 # Set up logging
 def setup_logging():
     logs_dir = os.path.join(script_dir, "logs")
     os.makedirs(logs_dir, exist_ok=True)
     log_file = os.path.join(logs_dir, "last_run.log")
-    
+
     if os.path.exists(log_file):
         os.remove(log_file)
-    
+
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s',
@@ -41,6 +43,7 @@ def setup_logging():
         ]
     )
     return log_file
+
 
 def put_computer_to_sleep():
     """Put the computer to sleep based on the operating system."""
@@ -60,6 +63,7 @@ def put_computer_to_sleep():
         logging.error(f"Failed to put computer to sleep: {e}")
         return False
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Master stock screening pipeline")
     parser.add_argument("price_increase", type=float, help="Minimum price increase percentage")
@@ -67,6 +71,7 @@ def parse_args():
     parser.add_argument("--fetch-data", action="store_true", help="Fetch stock data before running pipelines")
     parser.add_argument("--sleep-after", action="store_true", help="Put computer to sleep after completion")
     return parser.parse_args()
+
 
 def run_script(script_path, args=None, status_tracker=None):
     """Run a Python script with optional arguments and capture its output in real-time."""
@@ -118,15 +123,39 @@ def run_script(script_path, args=None, status_tracker=None):
 
     return process.returncode
 
+
+def run_all_pipelines_parallel(price_increase, top_n, status_tracker):
+    """Run all pipelines in parallel using threading."""
+    logging.info("Running all pipelines in parallel...")
+
+    with ThreadPoolExecutor() as executor:
+        futures = {
+            executor.submit(run_script, pipeline, [str(price_increase), '--top-n', str(top_n)],
+                            status_tracker): pipeline
+            for pipeline in PIPELINE_PATHS
+        }
+
+        for future in as_completed(futures):
+            pipeline_name = os.path.basename(futures[future])
+            try:
+                result = future.result()
+                if result == 0:
+                    logging.info(f"{pipeline_name} completed successfully.")
+                else:
+                    logging.error(f"{pipeline_name} failed with exit code {result}.")
+            except Exception as e:
+                logging.error(f"Error in {pipeline_name}: {e}")
+
+
 def main():
     log_file = setup_logging()
     logging.info(f"Starting pipeline run. Logs will be saved to: {log_file}")
-    
+
     args = parse_args()
     logging.info(f"Pipeline arguments: {args}")
-    
+
     status_tracker = PipelineStatus(os.getpid())
-    
+
     try:
         # Fetch stock data if requested
         if args.fetch_data:
@@ -135,28 +164,27 @@ def main():
             run_script(fetch_data_script, status_tracker=status_tracker)
         else:
             logging.info("Skipping data fetch, using existing data...")
-        
-        # Run all pipelines
+
+        # Run pipelines in parallel
         status_tracker.update_step("Running pipelines")
-        for pipeline in PIPELINE_PATHS:
-            logging.info(f"Running pipeline: {pipeline}")
-            run_script(pipeline, [str(args.price_increase), '--top-n', str(args.top_n)], status_tracker=status_tracker)
-        
+        run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
+
         logging.info("All pipelines completed.")
         status_tracker.complete_pipeline()
     except Exception as e:
         logging.error(f"Pipeline failed with error: {str(e)}")
         status_tracker.fail_pipeline(str(e))
         raise e
-    
+
     # Put computer to sleep if requested
-    # if args.sleep_after:
-    #     logging.info("Putting computer to sleep in 5 seconds...")
-    #     time.sleep(5)
-    #     if put_computer_to_sleep():
-    #         logging.info("Sleep command sent successfully")
-    #     else:
-    #         logging.error("Failed to put computer to sleep")
+    if args.sleep_after:
+        logging.info("Putting computer to sleep in 5 seconds...")
+        time.sleep(5)
+        if put_computer_to_sleep():
+            logging.info("Sleep command sent successfully")
+        else:
+            logging.error("Failed to put computer to sleep")
+
 
 if __name__ == "__main__":
     main()

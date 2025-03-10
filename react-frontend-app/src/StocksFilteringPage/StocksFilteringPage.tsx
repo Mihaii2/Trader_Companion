@@ -15,12 +15,12 @@ export const StocksRankingPage: React.FC = () => {
         
         <RankingList 
           filename="minervini_4mo/stocks_ranking_by_price.csv" 
-          title="Minervini Trend 4 Months (Good for Breakouts)" 
+          title="Minervini Trend At least 4 Months (Good for Breakouts)" 
         />
         
         <RankingList 
           filename="minervini_1mo/stocks_ranking_by_price.csv" 
-          title="Minervini Trend 1 Month (Good for Power Plays)" 
+          title="Minervini Trend Between 1 Month and 4 Months (Good for Power Plays)" 
         />
 
         <RankingList 

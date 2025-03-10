@@ -1,5 +1,5 @@
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import sys
 from collections import defaultdict
 
@@ -19,7 +19,10 @@ def process_stocks(input_file, output_file, minimum_percentage, N):
     # Dictionary to store high and low prices for each symbol
     stocks = defaultdict(lambda: {'highs': [], 'lows': []})
     skipped_rows = 0
-    
+
+    # Define the cutoff date for filtering (last year)
+    cutoff_date = datetime.today() - timedelta(days=365)
+
     # Read the CSV file and process the data
     with open(input_file, 'r') as file:
         csv_reader = csv.DictReader(file)
@@ -31,6 +34,10 @@ def process_stocks(input_file, output_file, minimum_percentage, N):
                 high_price = float(row['High'])
                 low_price = float(row['Low'])
                 date = datetime.strptime(date_str, '%Y-%m-%d')
+
+                # Skip data older than the last year
+                if date < cutoff_date:
+                    continue
                 
                 # Skip if prices are invalid
                 if high_price <= 0 or low_price <= 0:
@@ -42,7 +49,7 @@ def process_stocks(input_file, output_file, minimum_percentage, N):
                 skipped_rows += 1
                 continue
             
-            # Store high and low prices
+            # Store high and low prices within the last year
             stocks[symbol]['highs'].append(high_price)
             stocks[symbol]['lows'].append(low_price)
 
@@ -67,7 +74,7 @@ def process_stocks(input_file, output_file, minimum_percentage, N):
 
     print(f"Analysis complete. {len(qualified_stocks)} stocks with minimum {minimum_percentage}% "
           f"increase have been saved to {output_file}.")
-    print(f"Skipped {skipped_rows} rows due to missing or invalid data.")
+    print(f"Skipped {skipped_rows} rows due to missing, invalid, or outdated data.")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -84,8 +91,8 @@ if __name__ == "__main__":
     import os
 
     # Get the absolute path of the current script
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
+
     # Find the absolute path of the "flask_microservice_stocks_filterer" directory
     while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(script_dir) != script_dir:
         script_dir = os.path.dirname(script_dir)
