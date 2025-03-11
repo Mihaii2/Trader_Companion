@@ -137,21 +137,21 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                 <td className="px-2 py-0.5 border-r border-border">
                   <div className="flex gap-2">
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
                       onClick={() => handleBanStock(item.Symbol, 1)}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >
                       1W
                     </button>
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
                       onClick={() => handleBanStock(item.Symbol, 4)}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >
                       1Mo
                     </button>
                     <button
-                      className="bg-red-500 hover:bg-red-600 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
                       onClick={() => handleBanStock(item.Symbol, 12)}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >

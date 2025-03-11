@@ -1,13 +1,11 @@
 {
-  "start_time": 1741646339.8310363,
-  "current_step": "Running pipelines",
-  "steps_completed": [
-    "Running pipelines"
-  ],
+  "start_time": 1741723933.7462409,
+  "current_step": "initializing",
+  "steps_completed": [],
   "current_batch": null,
   "total_batches": null,
   "status": "completed",
-  "last_updated": 1741646598.4120498,
+  "last_updated": 1741723933.7479925,
   "process_pid": null,
-  "end_time": 1741646598.4120488
+  "end_time": 1741723933.7479923
 }

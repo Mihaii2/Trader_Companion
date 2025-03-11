@@ -61,8 +61,8 @@ def run_stock_screening(
     # if skip_obligatory:
     #     command.append("--skip-obligatory")
 
-    # if skip_sentiment:
-    #     command.append("--skip-sentiment")
+    if skip_sentiment:
+        command.append("--skip-sentiment")
 
     if sleep_after:
         command.append("--sleep-after")
@@ -157,12 +157,6 @@ def get_rankings(filename):
                 "message": f"Ranking file {file_path} not found"
             }), 404
 
-        # Check if stock data file exists
-        if not os.path.exists(stock_data_path):
-            return jsonify({
-                "status": "error",
-                "message": "Stock price data file not found. Run the Pipeline with Fetching enabled first."
-            }), 404
 
         # Get modification times for both files
         price_data_timestamp = os.path.getmtime(stock_data_path)

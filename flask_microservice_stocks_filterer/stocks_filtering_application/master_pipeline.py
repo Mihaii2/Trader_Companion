@@ -70,7 +70,18 @@ def parse_args():
     parser.add_argument("--top-n", type=int, default=100, help="Number of top stocks to select")
     parser.add_argument("--fetch-data", action="store_true", help="Fetch stock data before running pipelines")
     parser.add_argument("--sleep-after", action="store_true", help="Put computer to sleep after completion")
+    parser.add_argument("--skip-sentiment", action="store_true", help="Skip sentiment analysis steps")
     return parser.parse_args()
+
+
+def run_sentiment_scripts():
+    sentiment_screens_script = os.path.join(script_dir, "market_sentiment_screens", "sentiment_screens_handler.py")
+    sentiment_graphs_script = os.path.join(script_dir, "sentiment_graphs", "sentiment_graphs_runner.py")
+
+    logging.info("Running sentiment analysis scripts...")
+    run_script(sentiment_screens_script)
+    run_script(sentiment_graphs_script)
+    logging.info("Sentiment analysis scripts completed.")
 
 
 def run_script(script_path, args=None, status_tracker=None):
@@ -166,8 +177,16 @@ def main():
             logging.info("Skipping data fetch, using existing data...")
 
         # Run pipelines in parallel
-        status_tracker.update_step("Running pipelines")
-        run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
+        # status_tracker.update_step("Running pipelines")
+        # run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
+        
+        if not args.skip_sentiment:
+            logging.info("Running sentiment analysis...")
+            status_tracker.update_step("Running sentiment analysis")
+            run_sentiment_scripts()
+        else:
+            logging.info("Skipping sentiment analysis as per user request.")
+
 
         logging.info("All pipelines completed.")
         status_tracker.complete_pipeline()
