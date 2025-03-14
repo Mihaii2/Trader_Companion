@@ -177,8 +177,8 @@ def main():
             logging.info("Skipping data fetch, using existing data...")
 
         # Run pipelines in parallel
-        # status_tracker.update_step("Running pipelines")
-        # run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
+        status_tracker.update_step("Running pipelines")
+        run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
         
         if not args.skip_sentiment:
             logging.info("Running sentiment analysis...")

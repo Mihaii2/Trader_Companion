@@ -47,7 +47,7 @@ output_file1 = os.path.join(script_dir, "stocks_filtering_application", "minervi
 all_stocks_data_file2 = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "quarterly_fundamental_data_2years.csv")
 output_file2 = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_quarterly_fundamental_data_2years.csv")
 
-all_stocks_data_file3 = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+all_stocks_data_file3 = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 output_file3 = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
 
 

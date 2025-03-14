@@ -98,7 +98,7 @@ if __name__ == "__main__":
         script_dir = os.path.dirname(script_dir)
 
     # Append the correct relative path to the input file
-    input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+    input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 
     # Define the output file
     output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "obligatory_screens", "results", "minimum_price_increase.csv")

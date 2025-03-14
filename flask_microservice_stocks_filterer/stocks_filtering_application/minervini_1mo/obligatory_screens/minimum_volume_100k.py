@@ -40,7 +40,7 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
     script_dir = os.path.dirname(script_dir)
 
 # Append the correct relative path to the input file
-input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 
 # Define the output file
 output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "minimum_volume_100k.csv")

@@ -36,7 +36,7 @@ def is_200ma_trending_up(group):
     ma_start = last_month['200MA'].iloc[0]
     ma_end = last_month['200MA'].iloc[-1]
     
-    return ma_end > ma_start and last_month['200MA'].is_monotonic_increasing
+    return ma_end > ma_start
 
 def main():
     import os
@@ -49,7 +49,7 @@ def main():
         script_dir = os.path.dirname(script_dir)
 
     # Define the input and output file paths
-    input_file = os.path.join(script_dir, "stocks_filtering_application", "stock_api_data", "nasdaq_stocks_1_year_price_data.csv")
+    input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
     output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "trending_up_stocks.csv")
 
     # Read the CSV file
