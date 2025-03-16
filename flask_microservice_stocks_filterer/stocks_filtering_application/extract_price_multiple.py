@@ -276,9 +276,9 @@ def chunked_main():
     # Ensure paths are properly resolved
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    input_file = os.path.join(script_dir, "all_tickers.csv")  # File with ticker symbols
+    input_file = os.path.join(script_dir, "stock_tickers", "nasdaq_stocks.csv")  # File with ticker symbols
     output_dir = os.path.join(script_dir, "price_data")  # Directory to store individual ticker CSVs
-    master_output_file = os.path.join(output_dir, "price_data", "all_tickers_historical.csv")  # Final merged output file
+    master_output_file = os.path.join(output_dir, "all_tickers_historical.csv")  # Final merged output file
 
     # Read tickers from input
     with open(input_file, 'r') as f:
@@ -298,7 +298,7 @@ def chunked_main():
     
     # Try to resume from previous run
     try:
-        with open("progress.txt", "r") as f:
+        with open("price_progress.txt", "r") as f:
             current_chunk = int(f.read().strip())
             print(f"Resuming from chunk {current_chunk}")
     except (FileNotFoundError, ValueError):
@@ -316,7 +316,7 @@ def chunked_main():
         print("="*50 + "\n")
         
         # Save current progress
-        with open("progress.txt", "w") as f:
+        with open("price_progress.txt", "w") as f:
             f.write(str(chunk_index))
         
         # Keep track of which tickers we've successfully processed in this chunk
@@ -404,7 +404,7 @@ def chunked_main():
         time.sleep(5)
         
         # Update progress after successful completion
-        with open("progress.txt", "w") as f:
+        with open("price_progress.txt", "w") as f:
             f.write(str(chunk_index + 1))
     
     # After all chunks are processed, merge the CSV files
@@ -412,7 +412,7 @@ def chunked_main():
     
     print("\nAll chunks completed. Exiting.")
     # Clear progress file when done
-    with open("progress.txt", "w") as f:
+    with open("price_progress.txt", "w") as f:
         f.write("0")
 
 if __name__ == "__main__":

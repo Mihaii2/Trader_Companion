@@ -39,7 +39,7 @@ def analyze_stocks(input_file, output_file):
         num_spikes = len(price_spikes)
         
         if num_spikes > 0:
-            results.append({'Symbol': symbol, 'NumberOfSpikes': num_spikes})
+            results.append({'Symbol': symbol, 'Nr_Of_Spikes': num_spikes})
     
     # Create and save the output DataFrame
     output_df = pd.DataFrame(results)

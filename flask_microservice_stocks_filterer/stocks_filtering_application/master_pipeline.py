@@ -22,7 +22,8 @@ PIPELINE_PATHS = [
 ]
 
 # Define fetch data script
-fetch_data_script = os.path.join(script_dir, "price_1y_fundamental_2y.py")
+fetch_data_script = os.path.join(script_dir, "extract_price_multiple.py")
+fetch_fundamentals_script = os.path.join(script_dir, "extract_fundamentals.py")
 
 
 # Set up logging
@@ -170,9 +171,14 @@ def main():
     try:
         # Fetch stock data if requested
         if args.fetch_data:
-            logging.info("Fetching stock data from the API...")
-            status_tracker.update_step("Fetching data")
+            logging.info("Fetching stock price data from the API...")
+            status_tracker.update_step("Fetching price data")
             run_script(fetch_data_script, status_tracker=status_tracker)
+            logging.info("Price data fetch completed.")
+            logging.info("Fetching fundamental data from the API...")
+            status_tracker.update_step("Fetching fundamental data")
+            run_script(fetch_fundamentals_script, status_tracker=status_tracker)
+            logging.info("Fundamental data fetch completed.")
         else:
             logging.info("Skipping data fetch, using existing data...")
 

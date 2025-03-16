@@ -65,68 +65,13 @@ def main():
     qualifying_symbols = []
     
     for symbol, group in grouped:
-        # Print data for 'LX' symbol to debug
-        if symbol == 'LX':
-            print(f"\n{'='*50}")
-            print(f"FOUND SYMBOL LX - ANALYZING DATA")
-            print(f"{'='*50}")
-            
-            # Sort by date
-            group = group.sort_values('Date')
-            
-            # Calculate moving averages
-            group['200MA'] = calculate_ma(group, 200)
-            group['150MA'] = calculate_ma(group, 150)
-            group['50MA'] = calculate_ma(group, 50)
-            
-            # Print key information
-            print(f"Number of data points: {len(group)}")
-            if len(group) < 200:
-                print("ISSUE: Not enough data points (need at least 200)")
-            
-            last_row = group.iloc[-1]
-            print(f"Last data date: {last_row['Date']}")
-            print(f"Close price: {last_row['Close']}")
-            print(f"50-day MA: {last_row['50MA']}")
-            print(f"150-day MA: {last_row['150MA']}")
-            print(f"200-day MA: {last_row['200MA']}")
-            
-            # Print condition checks
-            print("\nChecking conditions:")
-            conditions = [
-                f"150MA > 200MA: {last_row['150MA'] > last_row['200MA']}",
-                f"50MA > 150MA: {last_row['50MA'] > last_row['150MA']}",
-                f"Close > 50MA: {last_row['Close'] > last_row['50MA']}",
-                f"Close > 150MA: {last_row['Close'] > last_row['150MA']}",
-                f"Close > 200MA: {last_row['Close'] > last_row['200MA']}"
-            ]
-            
-            for condition in conditions:
-                print(condition)
-            
-            # Check 200MA trending up
-            last_four_months = group.iloc[-120:]
-            print(f"\n200MA Trend Check:")
-            print(f"Have 120 days of data: {len(last_four_months) >= 120}")
-            
-            if len(last_four_months) >= 120:
-                ma_start = last_four_months['200MA'].iloc[0]
-                ma_end = last_four_months['200MA'].iloc[-1]
-                print(f"Start 200MA (4 months ago): {ma_start}")
-                print(f"End 200MA (current): {ma_end}")
-                print(f"Is increasing: {ma_end > ma_start}")
-                print(f"Is monotonically increasing: {last_four_months['200MA'].is_monotonic_increasing}")
-                
-            # Check if it qualifies
-            qualifies = check_conditions(group)
-            print(f"\nQualifies for trending up: {qualifies}")
-            print(f"{'='*50}\n")
-        else:
-            # Regular processing for other symbols
-            group = group.sort_values('Date')
-            group['200MA'] = calculate_ma(group, 200)
-            group['150MA'] = calculate_ma(group, 150)
-            group['50MA'] = calculate_ma(group, 50)
+        # Sort by date
+        group = group.sort_values('Date')
+        
+        # Calculate moving averages
+        group['200MA'] = calculate_ma(group, 200)
+        group['150MA'] = calculate_ma(group, 150)
+        group['50MA'] = calculate_ma(group, 50)
         
         # Check all conditions
         if check_conditions(group):
@@ -135,12 +80,6 @@ def main():
     # Save the symbols to a new CSV file
     pd.DataFrame({'Symbol': qualifying_symbols}).to_csv(output_file, index=False)
     print(f"Trending up analysis complete. Saved {len(qualifying_symbols)} symbols to {output_file}")
-    
-    # Check if LX is in the results
-    if 'LX' in qualifying_symbols:
-        print("LX is in the qualifying symbols list!")
-    else:
-        print("LX is NOT in the qualifying symbols list.")
 
 if __name__ == "__main__":
     main()
