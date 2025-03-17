@@ -71,12 +71,28 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     return <div className="bg-background rounded-lg shadow-sm p-4">No data available</div>;
   }
 
-  // Ensure the right column order
-  const firstColumns = ['Symbol', 'Price_Increase_Percentage', 'Screeners'];
-  const otherColumns = Object.keys(sortedRankings[0]).filter(
-    (key) => !firstColumns.includes(key)
+  // Get all available columns
+  const allAvailableColumns = Object.keys(sortedRankings[0]);
+  
+  // Define the exact order we want for specific columns
+  const priorityColumns = ['Symbol', 'Price_Increase_Percentage', 'Screeners'];
+  
+  // Add EPS_Quarters and Revenue_Quarters after Screeners if they exist
+  if (allAvailableColumns.includes('EPS_Quarters')) {
+    priorityColumns.push('EPS_Quarters');
+  }
+  
+  if (allAvailableColumns.includes('Revenue_Quarters')) {
+    priorityColumns.push('Revenue_Quarters');
+  }
+  
+  // Add remaining columns that weren't explicitly ordered
+  const remainingColumns = allAvailableColumns.filter(
+    (key) => !priorityColumns.includes(key)
   );
-  const allColumns = [...firstColumns, ...otherColumns];
+  
+  // Final column order
+  const orderedColumns = [...priorityColumns, ...remainingColumns];
 
   return (
     <div className="bg-background rounded-lg shadow-sm">
@@ -104,7 +120,7 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
         <table className="w-full text-sm border border-border">
           <thead>
             <tr className="border-b bg-muted text-muted-foreground">
-              {allColumns.map((column) => (
+              {orderedColumns.map((column) => (
                 <th
                   key={column}
                   className="px-2 py-1 cursor-pointer text-left border-r border-border"
@@ -125,9 +141,9 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                 key={item.Symbol}
                 className={`border-b ${rowIndex % 2 === 0 ? 'bg-muted/20' : 'bg-background'} ${
                   bannedStocks[item.Symbol] ? 'opacity-50' : ''
-                }`}
+                } hover:bg-primary/20 hover:shadow-sm transition-all duration-150`}
               >
-                {allColumns.map((column) => (
+                {orderedColumns.map((column) => (
                   <td key={column} className="px-2 py-0.5 border-r border-border">
                     {typeof item[column] === 'number'
                       ? Math.round(item[column]) // Convert numbers to integers

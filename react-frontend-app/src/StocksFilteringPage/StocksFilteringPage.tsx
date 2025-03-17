@@ -14,11 +14,6 @@ export const StocksRankingPage: React.FC = () => {
       <div className="space-y-8 mt-8">
         
         <RankingList 
-          filename="minervini_4mo/stocks_ranking_by_price.csv" 
-          title="Minervini Trend At least 4 Months (Good for Breakouts)" 
-        />
-        
-        <RankingList 
           filename="minervini_1mo/stocks_ranking_by_price.csv" 
           title="Minervini Trend Between 1 Month and 4 Months (Good for Power Plays)" 
         />
@@ -26,6 +21,11 @@ export const StocksRankingPage: React.FC = () => {
         <RankingList 
           filename="ipos/stocks_ranking_by_price.csv" 
           title="IPO's" 
+        />
+
+        <RankingList 
+          filename="minervini_4mo/stocks_ranking_by_price.csv" 
+          title="Minervini Trend At least 4 Months (Good for Breakouts)" 
         />
       </div>
     </div>

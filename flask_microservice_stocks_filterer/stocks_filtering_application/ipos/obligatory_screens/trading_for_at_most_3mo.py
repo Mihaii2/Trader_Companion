@@ -75,4 +75,4 @@ output_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "
 
 print(f"Resolved input file path: {input_file}")
 print(f"Resolved output file path: {output_file}")
-process_recent_stocks(input_file, output_file, max_months=3)
+process_recent_stocks(input_file, output_file, max_months=8)

@@ -51,6 +51,7 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     Over_10_pct_Avg_Surprise: false,
     Under_30k_Shares: false,
     Spikes_On_Volume: false,
+    Started_Off_Correction: false,
   };
 
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);

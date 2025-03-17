@@ -49,7 +49,8 @@ const DROPDOWN_FIELDS = [
   'Quarters_With_75pct_Surprise',
   'Over_10_pct_Avg_Surprise',
   'Under_30k_Shares',
-  'Spikes_On_Volume'
+  'Spikes_On_Volume',
+  'Started_Off_Correction'
 ] as const
 
 const formatLabel = (fieldName: string): string => {

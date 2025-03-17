@@ -38,6 +38,7 @@ class Trades(models.Model):
     Over_10_pct_Avg_Surprise = models.BooleanField()
     Under_30k_Shares = models.BooleanField(default=False)
     Spikes_On_Volume = models.BooleanField(default=False)
+    Started_Off_Correction = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.Ticker} - {self.Entry_Date}"

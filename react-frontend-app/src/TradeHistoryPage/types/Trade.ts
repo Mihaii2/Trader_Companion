@@ -37,4 +37,5 @@ export interface Trade {
   Under_30k_Shares: boolean;
   Case: string;
   Spikes_On_Volume: boolean;
+  Started_Off_Correction: boolean;
 }
