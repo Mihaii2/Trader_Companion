@@ -32,13 +32,16 @@ def is_200ma_trending_up(group):
     if len(last_four_months) < 120:
         return False  # Not enough data
     
-    # Check if 200MA is trending up over 4 months
-    ma_start = last_four_months['200MA'].iloc[0]
-    ma_end = last_four_months['200MA'].iloc[-1]
+    # Assuming approximately 20 trading days per month
+    # Get the 200MA values at each month marker (from 4 months ago to current)
+    m4_ago = last_four_months['200MA'].iloc[-80]      # 4 months ago
+    m3_ago = last_four_months['200MA'].iloc[-60]     # 3 months ago
+    m2_ago = last_four_months['200MA'].iloc[-40]     # 2 months ago
+    m1_ago = last_four_months['200MA'].iloc[-20]     # 1 month ago
+    current = last_four_months['200MA'].iloc[-1]    # Current
     
-    return ma_end > ma_start
-
-
+    # Check if each month's 200MA is higher than the previous month
+    return m3_ago > m4_ago and m2_ago > m3_ago and m1_ago > m2_ago and current > m1_ago
 
 def main():
     import os

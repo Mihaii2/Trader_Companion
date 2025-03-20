@@ -10,6 +10,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pipeline_status import PipelineStatus
+import psutil
 
 # Get the current script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -23,7 +24,7 @@ PIPELINE_PATHS = [
 
 # Define fetch data script
 fetch_data_script = os.path.join(script_dir, "extract_price_multiple.py")
-fetch_fundamentals_script = os.path.join(script_dir, "extract_fundamentals.py")
+# fetch_fundamentals_script = os.path.join(script_dir, "extract_fundamental_multiple.py")
 
 
 # Set up logging
@@ -158,8 +159,23 @@ def run_all_pipelines_parallel(price_increase, top_n, status_tracker):
             except Exception as e:
                 logging.error(f"Error in {pipeline_name}: {e}")
 
+def kill_ib_processes():
+    """Kill all Python processes related to IB API."""
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            # Look for python processes with IB-related arguments
+            if proc.info['name'] in ['python', 'python.exe']:
+                cmdline = ' '.join(proc.info['cmdline'] if proc.info['cmdline'] else [])
+                if any(term in cmdline for term in ['ibapi', 'extract_price', 'extract_fundamental']):
+                    print(f"Killing process {proc.pid}: {cmdline}")
+                    proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
 def main():
+    kill_ib_processes()
+    print("IB process cleanup complete")
+    
     log_file = setup_logging()
     logging.info(f"Starting pipeline run. Logs will be saved to: {log_file}")
 
@@ -175,10 +191,6 @@ def main():
             status_tracker.update_step("Fetching price data")
             run_script(fetch_data_script, status_tracker=status_tracker)
             logging.info("Price data fetch completed.")
-            logging.info("Fetching fundamental data from the API...")
-            status_tracker.update_step("Fetching fundamental data")
-            run_script(fetch_fundamentals_script, status_tracker=status_tracker)
-            logging.info("Fundamental data fetch completed.")
         else:
             logging.info("Skipping data fetch, using existing data...")
 
@@ -186,12 +198,12 @@ def main():
         status_tracker.update_step("Running pipelines")
         run_all_pipelines_parallel(args.price_increase, args.top_n, status_tracker)
         
-        if not args.skip_sentiment:
-            logging.info("Running sentiment analysis...")
-            status_tracker.update_step("Running sentiment analysis")
-            run_sentiment_scripts()
-        else:
-            logging.info("Skipping sentiment analysis as per user request.")
+        # if not args.skip_sentiment:
+        #     logging.info("Running sentiment analysis...")
+        #     status_tracker.update_step("Running sentiment analysis")
+        #     run_sentiment_scripts()
+        # else:
+        #     logging.info("Skipping sentiment analysis as per user request.")
 
 
         logging.info("All pipelines completed.")

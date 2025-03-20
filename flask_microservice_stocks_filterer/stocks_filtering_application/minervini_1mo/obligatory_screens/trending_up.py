@@ -26,17 +26,19 @@ def check_conditions(group):
     return all(conditions)
 
 def is_200ma_trending_up(group):
-    # Get the last 30 days of data
-    last_month = group.iloc[-30:]
+    # Reduce to last 30 trading days
+    last_four_months = group.iloc[-30:]
     
-    if len(last_month) < 30:
+    if len(last_four_months) < 30:
         return False  # Not enough data
     
-    # Check if 200MA is trending up in the last month
-    ma_start = last_month['200MA'].iloc[0]
-    ma_end = last_month['200MA'].iloc[-1]
+    # Assuming approximately 20 trading days per month
+    m1_ago = last_four_months['200MA'].iloc[-20]     # 1 month ago
+    current = last_four_months['200MA'].iloc[-1]    # Current
     
-    return ma_end > ma_start
+    # Check if each month's 200MA is higher than the previous month
+    return  current > m1_ago
+
 
 def main():
     import os
@@ -52,6 +54,8 @@ def main():
     input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
     output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "trending_up_stocks.csv")
 
+    print(f"Resolved input file path: {input_file}")
+    print(f"Resolved output file path: {output_file}")
     # Read the CSV file
     df = pd.read_csv(input_file, parse_dates=['Date'])
     

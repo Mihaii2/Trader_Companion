@@ -13,6 +13,8 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [bannedStocks, setBannedStocks] = useState<Record<string, boolean>>({});
+  const [lastClickedRow, setLastClickedRow] = useState<string | null>(null);
+  const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -31,6 +33,10 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     } catch (err) {
       console.error('Failed to ban stock:', err);
     }
+  };
+
+  const handleRowClick = (symbol: string) => {
+    setLastClickedRow(symbol);
   };
 
   const sortedRankings = useMemo(() => {
@@ -123,8 +129,11 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
               {orderedColumns.map((column) => (
                 <th
                   key={column}
-                  className="px-2 py-1 cursor-pointer text-left border-r border-border"
+                  className={`px-2 py-1 cursor-pointer text-left border-r border-border transition-colors duration-150 
+                    ${hoveredColumn === column ? 'bg-secondary/30' : ''}`}
                   onClick={() => handleSort(column)}
+                  onMouseEnter={() => setHoveredColumn(column)}
+                  onMouseLeave={() => setHoveredColumn(null)}
                 >
                   {column.replace(/_/g, ' ')}{' '}
                   {sortColumn === column && (
@@ -132,43 +141,69 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                   )}
                 </th>
               ))}
-              <th className="px-2 py-1 text-left border-r border-border">Ban Actions</th>
+              <th 
+                className={`px-2 py-1 text-left border-r border-border transition-colors duration-150
+                  ${hoveredColumn === 'actions' ? 'bg-secondary/30' : ''}`}
+                onMouseEnter={() => setHoveredColumn('actions')}
+                onMouseLeave={() => setHoveredColumn(null)}
+              >
+                Ban Actions
+              </th>
             </tr>
           </thead>
           <tbody>
             {sortedRankings.map((item, rowIndex) => (
               <tr
                 key={item.Symbol}
-                className={`border-b ${rowIndex % 2 === 0 ? 'bg-muted/20' : 'bg-background'} ${
-                  bannedStocks[item.Symbol] ? 'opacity-50' : ''
-                } hover:bg-primary/20 hover:shadow-sm transition-all duration-150`}
+                className={`border-b 
+                  ${rowIndex % 2 === 0 ? 'bg-muted/20' : 'bg-background'} 
+                  ${bannedStocks[item.Symbol] ? 'opacity-50' : ''} 
+                  ${lastClickedRow === item.Symbol ? 'bg-primary/20' : ''} 
+                  hover:bg-primary/20 hover:shadow-sm transition-all duration-150`}
+                onClick={() => handleRowClick(item.Symbol)}
               >
                 {orderedColumns.map((column) => (
-                  <td key={column} className="px-2 py-0.5 border-r border-border">
+                  <td 
+                    key={column} 
+                    className={`px-2 py-0.5 border-r border-border transition-colors duration-150
+                      ${hoveredColumn === column ? 'bg-secondary/20' : ''}`}
+                  >
                     {typeof item[column] === 'number'
                       ? Math.round(item[column]) // Convert numbers to integers
                       : item[column] ?? '-'}
                   </td>
                 ))}
-                <td className="px-2 py-0.5 border-r border-border">
+                <td 
+                  className={`px-2 py-0.5 border-r border-border transition-colors duration-150
+                    ${hoveredColumn === 'actions' ? 'bg-secondary/20' : ''}`}
+                >
                   <div className="flex gap-2">
                     <button
                       className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
-                      onClick={() => handleBanStock(item.Symbol, 1)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when clicking the button
+                        handleBanStock(item.Symbol, 1);
+                      }}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >
                       1W
                     </button>
                     <button
                       className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
-                      onClick={() => handleBanStock(item.Symbol, 4)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when clicking the button
+                        handleBanStock(item.Symbol, 4);
+                      }}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >
                       1Mo
                     </button>
                     <button
                       className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
-                      onClick={() => handleBanStock(item.Symbol, 12)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when clicking the button
+                        handleBanStock(item.Symbol, 12);
+                      }}
                       disabled={isBanning || bannedStocks[item.Symbol]}
                     >
                       3Mo

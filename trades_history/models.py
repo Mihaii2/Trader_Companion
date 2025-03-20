@@ -8,6 +8,7 @@ class Trades(models.Model):
     Exit_Date = models.DateField(null=True, blank=True)
     Entry_Price = models.FloatField()
     Exit_Price = models.FloatField(null=True, blank=True)
+    Return = models.FloatField(null=True, blank=True, default=0)
     Pattern = models.CharField(max_length=100)
     Days_In_Pattern_Before_Entry = models.IntegerField()
     Price_Tightness_1_Week_Before = models.FloatField()
@@ -42,3 +43,9 @@ class Trades(models.Model):
 
     def __str__(self):
         return f"{self.Ticker} - {self.Entry_Date}"
+
+class Balance(models.Model):
+    balance = models.FloatField(default=1000.0)
+
+    def __str__(self):
+        return f"Current Balance: ${self.balance}"

@@ -1,13 +1,26 @@
 {
-  "start_time": 1742172290.4517522,
+  "start_time": 1742432953.7084215,
   "current_step": "Running pipelines",
   "steps_completed": [
+    "Fetching price data",
     "Running pipelines"
   ],
   "current_batch": null,
   "total_batches": null,
   "status": "completed",
-  "last_updated": 1742172387.7790647,
+  "last_updated": 1742437210.7681625,
   "process_pid": null,
-  "end_time": 1742172387.7790644
+  "errors": [
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-03-20 04:20:07,410 - ERROR - [obligatory_screen_data_filter.py ERROR] FileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\Victus\\\\PycharmProjects\\\\Stocks_Screener_V2\\\\flask_microservice_stocks_filterer\\\\stocks_filtering_application\\\\fundamental_data\\\\all_tickers_fundamentals.csv'",
+      "timestamp": 1742437207.4113996
+    },
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-03-20 04:20:07,685 - ERROR - [obligatory_screen_data_filter.py ERROR] FileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\Victus\\\\PycharmProjects\\\\Stocks_Screener_V2\\\\flask_microservice_stocks_filterer\\\\stocks_filtering_application\\\\fundamental_data\\\\all_tickers_fundamentals.csv'",
+      "timestamp": 1742437207.6862493
+    }
+  ],
+  "end_time": 1742437210.7681618
 }

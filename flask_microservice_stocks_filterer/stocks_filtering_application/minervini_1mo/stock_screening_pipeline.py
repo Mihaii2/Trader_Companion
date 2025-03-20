@@ -125,7 +125,7 @@ def main():
     ]
     ranking_screens = [
         os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", f"{name}.py")
-        for name in ["good_rsi_against_market", "top_price_increases_1y", "price_spikes", "volume_acceleration", "top_price_tightness_1w", "top_rsi", "revenue_acceleration", "eps_acceleration", "mvp"]
+        for name in ["good_rsi_against_market", "top_price_increases_1y", "price_spikes", "volume_acceleration", "top_price_tightness_1w", "top_rsi", "mvp"]
     ]
 
     logging.info("Finding and deleting old CSV files...")

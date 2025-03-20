@@ -233,6 +233,19 @@ def merge_csv_files(directory, output_file):
         print(f"Merged all fundamental data into {output_file}")
     else:
         print("No data files found to merge.")
+        
+def cleanup_ticker_files(directory):
+    """Delete all individual ticker CSV files after merging."""
+    count = 0
+    for filename in os.listdir(directory):
+        if filename.endswith("_fundamentals.csv") and filename != "all_tickers_fundamentals.csv":
+            file_path = os.path.join(directory, filename)
+            try:
+                os.remove(file_path)
+                count += 1
+            except Exception as e:
+                print(f"Error removing {filename}: {e}")
+    print(f"Deleted {count} individual ticker files")
 
 def chunked_main():
     # Ensure paths are properly resolved
@@ -240,7 +253,7 @@ def chunked_main():
     
     input_file = os.path.join(script_dir, "stock_tickers", "nasdaq_stocks.csv")  # File with ticker symbols
     output_dir = os.path.join(script_dir, "fundamental_data")  # Directory to store individual ticker CSVs
-    master_output_file = os.path.join(script_dir, "all_tickers_fundamentals.csv")  # Final merged output file
+    master_output_file = os.path.join(script_dir, "fundamental_data", "all_tickers_fundamentals.csv")  # Final merged output file
     
     # Read tickers from input
     with open(input_file, 'r') as f:
@@ -371,6 +384,9 @@ def chunked_main():
     
     # After all chunks are processed, merge the CSV files
     merge_csv_files(output_dir, master_output_file)
+    
+    # Clean up individual files
+    cleanup_ticker_files(output_dir)
     
     print("\nAll chunks completed. Exiting.")
     # Clear progress file when done

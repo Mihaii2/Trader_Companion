@@ -36,6 +36,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Entry_Date: 'w-32',
     Exit_Date: 'w-32',
     Entry_Price: 'w-20',
+    Return: 'w-20',
     Exit_Price: 'w-20',
     Pattern: 'w-28',
     Days_In_Pattern_Before_Entry: 'w-14',

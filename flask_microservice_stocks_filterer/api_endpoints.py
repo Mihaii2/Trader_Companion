@@ -132,6 +132,19 @@ def add_banned_stocks(ticker_duration_pairs: List[tuple]) -> dict:
         "results": results
     }
 
+def kill_ib_processes():
+    """Kill all Python processes related to IB API."""
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            # Look for python processes with IB-related arguments
+            if proc.info['name'] in ['python', 'python.exe']:
+                cmdline = ' '.join(proc.info['cmdline'] if proc.info['cmdline'] else [])
+                if any(term in cmdline for term in ['ibapi', 'extract_price', 'extract_fundamental']):
+                    print(f"Killing process {proc.pid}: {cmdline}")
+                    proc.kill()
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
 
 @app.route('/rankings/<path:filename>', methods=['GET'])
 def get_rankings(filename):
@@ -342,6 +355,8 @@ def stop_pipeline():
 
     # Update status to completed regardless of whether a process was running
     PipelineStatus.complete_pipeline()
+    
+    kill_ib_processes()
 
     return jsonify({
         "status": "success",

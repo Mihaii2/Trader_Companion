@@ -4,6 +4,7 @@ import { YearlyStatistics } from './components/YearlyStatistics';
 import { TradeFilterer } from './components/TradeFilterer';
 import { useTradeStats } from './hooks/useTradeStats';
 import { Trade } from '@/TradeHistoryPage/types/Trade';
+import { RiskPoolStats } from './components/RiskPoolStats';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const TradingStatsPage: React.FC = () => {
@@ -20,6 +21,8 @@ export const TradingStatsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
+
+      <RiskPoolStats />
       
       <Card>
         <CardContent>

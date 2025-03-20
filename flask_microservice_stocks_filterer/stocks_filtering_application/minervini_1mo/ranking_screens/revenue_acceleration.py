@@ -42,7 +42,9 @@ def analyze_revenue_acceleration(input_file, output_file):
                 # Break the loop if acceleration stops
                 break
         
-        results.append({'Symbol': symbol, 'Revenue_Quarters': consecutive_acceleration})
+        # Only add to results if there's at least 1 quarter with acceleration
+        if consecutive_acceleration > 0:
+            results.append({'Symbol': symbol, 'Revenue_Quarters': consecutive_acceleration})
     
     # Create and save the output DataFrame
     output_df = pd.DataFrame(results)

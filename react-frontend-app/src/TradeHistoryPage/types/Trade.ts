@@ -8,6 +8,7 @@ export interface Trade {
   Exit_Date: string | null;
   Entry_Price: number;
   Exit_Price: number | null;
+  Return: number | null;
   Pattern: string;
   Days_In_Pattern_Before_Entry: number;
   Price_Tightness_1_Week_Before: number;

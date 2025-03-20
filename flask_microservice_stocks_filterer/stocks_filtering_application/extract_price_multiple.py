@@ -253,6 +253,14 @@ def merge_csv_files(directory, output_file):
     """Merge all individual CSV files into one master CSV file."""
     all_data = []
     
+    # Delete the existing output file if it exists
+    if os.path.exists(output_file):
+        try:
+            os.remove(output_file)
+            print(f"Deleted existing file: {output_file}")
+        except Exception as e:
+            print(f"Error deleting existing file {output_file}: {e}")
+    
     for filename in os.listdir(directory):
         if filename.endswith("_historical.csv"):
             file_path = os.path.join(directory, filename)
@@ -271,6 +279,19 @@ def merge_csv_files(directory, output_file):
         print(f"Merged all historical data into {output_file}")
     else:
         print("No data files found to merge.")
+        
+def cleanup_ticker_files(directory):
+    """Delete all individual ticker CSV files after merging."""
+    count = 0
+    for filename in os.listdir(directory):
+        if filename.endswith("_historical.csv") and filename != "all_tickers_historical.csv":
+            file_path = os.path.join(directory, filename)
+            try:
+                os.remove(file_path)
+                count += 1
+            except Exception as e:
+                print(f"Error removing {filename}: {e}")
+    print(f"Deleted {count} individual ticker files")
 
 def chunked_main():
     # Ensure paths are properly resolved
@@ -409,6 +430,9 @@ def chunked_main():
     
     # After all chunks are processed, merge the CSV files
     merge_csv_files(output_dir, master_output_file)
+    
+    # Clean up individual files
+    cleanup_ticker_files(output_dir)
     
     print("\nAll chunks completed. Exiting.")
     # Clear progress file when done
