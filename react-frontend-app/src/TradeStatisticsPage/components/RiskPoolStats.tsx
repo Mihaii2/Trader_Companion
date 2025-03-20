@@ -5,7 +5,7 @@ import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Percent, Wallet, Edit, AlertTriangle, BarChart } from "lucide-react";
+import { DollarSign, Percent, Wallet, Edit, BarChart } from "lucide-react";
 
 const StatCard = ({ 
   label, 
@@ -34,7 +34,6 @@ export const RiskPoolStats: React.FC = () => {
   const [currentBalance, setCurrentBalance] = useState<number>(1000);
   const [riskPool, setRiskPool] = useState<number>(5);
   const [winRate, setWinRate] = useState<number>(0);
-  const [goodTrading, setGoodTrading] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [editingBalance, setEditingBalance] = useState<boolean>(false);
   const [tempBalance, setTempBalance] = useState<string>('1000');
@@ -261,7 +260,6 @@ export const RiskPoolStats: React.FC = () => {
         setCurrentBalance(accountSize);
         setRiskPool(currentRiskPool);
         setWinRate(currentWinRate);
-        setGoodTrading(tradingWell);
         
         // Log full calculation details to console
         console.log("Risk Pool Calculation Log:");
@@ -326,12 +324,6 @@ export const RiskPoolStats: React.FC = () => {
       value: `${(winRate * 100).toFixed(2)}%`,
       icon: BarChart,
       valueColor: winRate >= 0.375 ? "text-green-500" : "text-amber-500"
-    },
-    {
-      label: "Trading Status",
-      value: goodTrading ? "Trading Well" : "Trading Poorly",
-      icon: AlertTriangle,
-      valueColor: goodTrading ? "text-green-500" : "text-red-500"
     }
   ];
 

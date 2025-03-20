@@ -5,7 +5,6 @@ import os
 import logging
 import shutil
 import sys
-import concurrent.futures
 from pathlib import Path
 from datetime import datetime, timedelta
 from selenium import webdriver
@@ -43,7 +42,7 @@ def resolve_project_paths():
     # Define all the necessary paths
     project_paths = {
         'base_dir': base_dir,
-        'html_pages': os.path.join(script_dir, "html_pages"),
+        'html_pages': os.path.join(base_dir, "stocks_filtering_application", "fundamental_data", "html_pages"),
         'tickers_file': os.path.join(base_dir, "stocks_filtering_application", "stock_tickers", "nasdaq_stocks.csv"),
         'last_run_dir': os.path.join(base_dir, "stocks_filtering_application", "fundamental_data", "last_run"),
         'last_activity_file': os.path.join(script_dir, "last_activity.txt"),  # Track last activity
@@ -239,7 +238,7 @@ def setup_webdriver(use_proxy=False, proxy=None):
 # Function to save page source as an HTML file
 def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_count=0, max_retries=3):
     try:
-        url = f"https://stockanalysis.com/stocks/{ticker.lower()}/financials/?p=quarterly"
+        url = f"https://stockanalysis.com/stocks/{ticker.lower()}/financials"
         
         # Clear cookies before each request
         driver.delete_all_cookies()
@@ -247,20 +246,54 @@ def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_c
         # Load the page with retry logic
         driver.get(url)
         
-        # Wait for page load with more specific condition - REDUCED TIMEOUT FROM 10 TO 7 SECONDS
+        # After the driver.get(url) line and before the WebDriverWait
+        # Make sure Quarterly button is active or click it if not
+        try:
+            # Wait for the nav menu to be present
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "nav ul.navmenu.submenu"))
+            )
+            
+            # Find all buttons in the submenu
+            submenu_buttons = driver.find_elements(By.CSS_SELECTOR, "nav ul.navmenu.submenu li button")
+            
+            # Look for the "Quarterly" button specifically
+            quarterly_button = None
+            for button in submenu_buttons:
+                if button.text.strip() == "Quarterly":
+                    quarterly_button = button
+                    break
+            
+            if quarterly_button:
+                # Check if it's already active
+                if "active" not in quarterly_button.get_attribute("class"):
+                    # Click the button and wait
+                    quarterly_button.click()
+                    time.sleep(1.5)  # Increased wait time
+                    logger.info(f"Clicked Quarterly button for {ticker}")
+                else:
+                    logger.info(f"Quarterly button already active for {ticker}")
+            else:
+                logger.info(f"No Quarterly button found for {ticker}, proceeding with default view")
+                # Continue with the default view instead of warning
+                
+        except Exception as e:
+            logger.info(f"Could not interact with Quarterly button for {ticker}, proceeding with default view: {e}")
+        
+        # Wait for page load with more specific condition
         try:
             # Wait for a specific element that indicates the page is fully loaded
-            WebDriverWait(driver, 7).until(
+            WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "table.sa-table"))
             )
         except TimeoutException:
             # If the specific element doesn't appear, fall back to document.readyState
-            WebDriverWait(driver, 3).until(  # REDUCED TIMEOUT FROM 5 TO 3 SECONDS
+            WebDriverWait(driver, 5).until(
                 lambda d: d.execute_script("return document.readyState") == "complete"
             )
         
-        # Introduce random human-like behavior - REDUCED INTENSITY
-        simulate_human_behavior(driver, reduced=True)
+        # Introduce random human-like behavior
+        simulate_human_behavior(driver)
         
         # Check if the page contains "A timeout occurred" message
         page_source = driver.page_source
@@ -270,7 +303,7 @@ def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_c
                 # Don't save the page, restart driver and retry
                 driver.quit()
                 new_driver = setup_webdriver(False)  # Create a new driver instance
-                time.sleep(random.uniform(2, 5))  # REDUCED WAIT FROM 5-10 TO 2-5 SECONDS
+                time.sleep(random.uniform(5, 10))  # Longer wait before retry
                 return save_page_source(new_driver, ticker, html_pages_dir, last_activity_file, retry_count + 1, max_retries)
             logger.error(f"Failed to load page for {ticker} after {max_retries} retries: Timeout message detected")
             return False
@@ -289,45 +322,58 @@ def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_c
     except TimeoutException as e:
         if retry_count < max_retries:
             logger.warning(f"Timeout for {ticker}, retrying ({retry_count+1}/{max_retries})...")
-            time.sleep(random.uniform(2, 5))  # REDUCED WAIT FROM 5-10 TO 2-5 SECONDS
+            time.sleep(random.uniform(5, 10))  # Longer wait before retry
             return save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_count + 1, max_retries)
         logger.error(f"Failed to load page for {ticker} after {max_retries} retries: {e}")
         return False
         
     except Exception as e:
         logger.error(f"Error saving page source for {ticker}: {e}")
+        
+        # Check for the specific connection error and force driver rotation
+        if "NewConnectionError" in str(e) or "Failed to establish a new connection" in str(e) or "No connection could be made" in str(e):
+            logger.warning(f"Connection broken for {ticker}, creating new WebDriver instance...")
+            try:
+                # Quit the current driver
+                if driver:
+                    driver.quit()
+            except:
+                pass  # Ignore errors when quitting the driver
+                
+            # Create a new driver
+            time.sleep(5)  # Allow time for cleanup
+            try:
+                # Since we don't have access to the use_proxies variable here, 
+                # just create a fresh driver without proxy
+                new_driver = setup_webdriver(False, None)
+                # Return the new driver to the calling function
+                return save_page_source(new_driver, ticker, html_pages_dir, last_activity_file, retry_count, max_retries)
+            except Exception as driver_error:
+                logger.error(f"Failed to create new WebDriver: {driver_error}")
+                # Fall through to retry logic
+        
+        # Original retry logic
         if retry_count < max_retries:
             logger.warning(f"Retrying {ticker} ({retry_count+1}/{max_retries})...")
-            time.sleep(random.uniform(2, 5))  # REDUCED WAIT FROM 5-10 TO 2-5 SECONDS
+            time.sleep(random.uniform(5, 10))
             return save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_count + 1, max_retries)
         return False
 
 
-# Function to simulate human-like behavior, with reduced intensity option
-def simulate_human_behavior(driver, reduced=False):
-    if reduced:
-        # Less intensive scrolling with shorter waits
-        scroll_amount = random.randint(200, 500)
-        driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
-        time.sleep(random.uniform(0.3, 0.7))  # REDUCED WAIT TIMES
-        
-        # Shorter or no second scrolling
-        if random.random() > 0.5:  # Only do this 50% of the time
-            driver.execute_script(f"window.scrollBy(0, {random.randint(100, 300)})")
-            time.sleep(random.uniform(0.2, 0.4))  # REDUCED WAIT TIMES
-    else:
-        # Original behavior
-        scroll_amount = random.randint(300, 700)
-        driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
-        time.sleep(random.uniform(0.5, 1.5))
-        
-        # Scroll back up a bit
-        driver.execute_script(f"window.scrollBy(0, {-random.randint(100, 300)})")
-        time.sleep(random.uniform(0.3, 0.7))
-        
-        # More random scrolling
-        driver.execute_script(f"window.scrollBy(0, {random.randint(200, 500)})")
-        time.sleep(random.uniform(0.5, 1))
+# Function to simulate human-like behavior
+def simulate_human_behavior(driver):
+    # Random scrolling
+    scroll_amount = random.randint(300, 700)
+    driver.execute_script(f"window.scrollBy(0, {scroll_amount})")
+    time.sleep(random.uniform(0.5, 1.5))
+    
+    # Scroll back up a bit
+    driver.execute_script(f"window.scrollBy(0, {-random.randint(100, 300)})")
+    time.sleep(random.uniform(0.3, 0.7))
+    
+    # More random scrolling
+    driver.execute_script(f"window.scrollBy(0, {random.randint(200, 500)})")
+    time.sleep(random.uniform(0.5, 1))
 
 # Function to estimate and print the remaining time
 def print_remaining_time(start_time, tickers_processed, total_tickers, successful_scrapes):
@@ -344,14 +390,14 @@ def print_remaining_time(start_time, tickers_processed, total_tickers, successfu
     logger.info(f"Average time per ticker: {average_time_per_ticker:.2f} seconds")
     logger.info(f"Success rate: {successful_scrapes/max(tickers_processed, 1)*100:.2f}%")
 
-# Function to implement optimized wait time for rate limiting
+# Function to implement exponential backoff for rate limiting
 def get_wait_time(consecutive_failures):
     if consecutive_failures == 0:
-        # Normal case - REDUCED WAIT TIME FROM 3-7 TO 1.5-4 SECONDS
-        return random.uniform(1.5, 4)
+        # Normal case - random wait between 3-7 seconds
+        return random.uniform(3, 7)
     else:
-        # Exponential backoff with jitter - CAPPED AT 45 SECONDS INSTEAD OF 60
-        base_wait = min(45, 5 * (2 ** consecutive_failures))  # Cap at 45 seconds
+        # Exponential backoff with jitter
+        base_wait = min(60, 5 * (2 ** consecutive_failures))  # Cap at 60 seconds
         jitter = random.uniform(0, 0.5 * base_wait)  # Add up to 50% jitter
         return base_wait + jitter
 
@@ -398,8 +444,8 @@ def rotate_driver(current_driver, use_proxies):
         except Exception as e:
             logger.warning(f"Error closing driver: {e}")
             
-        # Add a pause to ensure cleanup - REDUCED FROM 5 TO 3 SECONDS
-        time.sleep(3)
+        # Add a pause to ensure cleanup
+        time.sleep(5)
         
         # Kill any orphaned chromedriver processes
         try:
@@ -425,7 +471,7 @@ def rotate_driver(current_driver, use_proxies):
         except Exception as e:
             if attempt < max_attempts - 1:
                 logger.warning(f"Failed to create new driver (attempt {attempt+1}/{max_attempts}): {e}")
-                time.sleep(5 * (attempt + 1))  # REDUCED FROM 10 TO 5 SECONDS PER ATTEMPT
+                time.sleep(10 * (attempt + 1))  # Increasing delay for each attempt
             else:
                 logger.error(f"All {max_attempts} attempts to create driver failed")
                 raise
@@ -458,58 +504,7 @@ def validate_existing_files(html_pages_dir):
     
     return timeout_files
 
-# Function to process a batch of tickers with one driver
-def process_ticker_batch(batch, paths, use_proxies, max_consecutive_failures):
-    driver = setup_webdriver(use_proxies, get_random_proxy() if use_proxies else None)
-    successful_scrapes = 0
-    consecutive_failures = 0
-    
-    try:
-        for ticker in batch:
-            # Skip already processed tickers
-            if is_ticker_scraped(ticker, paths['html_pages']):
-                continue
-                
-            # Try to save the page source
-            for attempt in range(3):  # Retry each ticker up to 3 times
-                try:
-                    # Check if we need to rotate the driver due to consecutive failures
-                    if consecutive_failures >= max_consecutive_failures:
-                        logger.warning(f"Rotating driver after {consecutive_failures} consecutive failures")
-                        driver = rotate_driver(driver, use_proxies)
-                        consecutive_failures = 0
-                    
-                    success = save_page_source(driver, ticker, paths['html_pages'], paths['last_activity_file'])
-                    
-                    if success:
-                        successful_scrapes += 1
-                        consecutive_failures = 0
-                        break  # Break out of retry loop on success
-                    else:
-                        consecutive_failures += 1
-                        if attempt < 2:  # Only wait between retries, not after the last attempt
-                            wait_time = get_wait_time(consecutive_failures)
-                            time.sleep(wait_time)
-                except Exception as e:
-                    logger.error(f"Error processing ticker {ticker}: {e}")
-                    consecutive_failures += 1
-                    if attempt < 2:
-                        time.sleep(get_wait_time(consecutive_failures))
-            
-            # Wait between tickers (successful or not)
-            time.sleep(get_wait_time(0))  # Always use base wait time between different tickers
-            
-    finally:
-        # Always make sure to quit the driver
-        if driver:
-            try:
-                driver.quit()
-            except:
-                pass
-    
-    return successful_scrapes
-
-# Main function to execute the process with parallel processing
+# Main function to execute the process
 def main():
     # Resolve project paths
     paths = resolve_project_paths()
@@ -519,7 +514,6 @@ def main():
     max_consecutive_failures = 5  # Max failures before driver rotation
     tickers_per_driver = 50  # Number of tickers to process before rotating driver
     max_inactivity_minutes = 30  # Maximum time without activity before restarting
-    num_workers = 2  # Number of parallel workers
     
     # Initialize last activity timestamp
     update_last_activity(paths['last_activity_file'])
@@ -552,63 +546,112 @@ def main():
     logger.info(f"Starting scraper for {len(pending_tickers)} pending tickers out of {total_tickers} total")
     logger.info(f"Already processed {len(processed_tickers)} tickers")
     logger.info(f"Current time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    logger.info(f"Using {num_workers} concurrent workers")
     
     start_time = time.time()
+    driver = setup_webdriver(use_proxies, get_random_proxy() if use_proxies else None)
     
-    # Divide tickers into batches for parallel processing
-    # If we have 2 workers and 100 tickers, we want to alternate rather than give
-    # worker 1 tickers 1-50 and worker 2 tickers 51-100
-    num_tickers = len(pending_tickers)
-    batches = [[] for _ in range(num_workers)]
+    successful_scrapes = 0
+    consecutive_failures = 0
     
-    # Distribute tickers in round-robin fashion
-    for i, ticker in enumerate(pending_tickers):
-        batch_index = i % num_workers
-        batches[batch_index].append(ticker)
-    
-    # Process batches in parallel
-    total_successful = 0
-    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_workers) as executor:
-        # Submit all batches for processing
-        future_to_batch = {
-            executor.submit(
-                process_ticker_batch, 
-                batch, 
-                paths, 
-                use_proxies, 
-                max_consecutive_failures
-            ): i for i, batch in enumerate(batches)
-        }
-        
-        # Process results as they complete
-        for future in concurrent.futures.as_completed(future_to_batch):
-            batch_index = future_to_batch[future]
+    try:
+        i = 0
+        while i < len(pending_tickers):
+            ticker = pending_tickers[i]
             try:
-                batch_successful = future.result()
-                total_successful += batch_successful
-                logger.info(f"Batch {batch_index+1} completed with {batch_successful} successful scrapes")
+                # Check for inactivity stall
+                if check_activity_stalled(paths['last_activity_file'], max_inactivity_minutes):
+                    logger.warning(f"Detected activity stall. Restarting the scraper...")
+                    
+                    # Restart the script
+                    logger.info("Restarting the script...")
+                    os.execv(sys.executable, ['python'] + sys.argv)
+                    return  # This line won't execute, but added for clarity
+                
+                # Check if this ticker was already scraped (file exists)
+                if is_ticker_scraped(ticker, paths['html_pages']):
+                    logger.info(f"Ticker {ticker} already has HTML file, skipping")
+                    i += 1
+                    # Update last activity even when skipping
+                    update_last_activity(paths['last_activity_file'])
+                    continue
+                
+                # Check if we need to rotate the driver
+                # if i > 0 and i % tickers_per_driver == 0:
+                #     logger.info(f"Rotating driver after {tickers_per_driver} tickers")
+                #     driver = rotate_driver(driver, use_proxies)
+                
+                # Check if we need to rotate the driver due to consecutive failures
+                if consecutive_failures >= max_consecutive_failures:
+                    logger.warning(f"Rotating driver after {consecutive_failures} consecutive failures")
+                    driver = rotate_driver(driver, use_proxies)
+                    consecutive_failures = 0
+                
+                # Save the page source
+                success = save_page_source(driver, ticker, paths['html_pages'], paths['last_activity_file'])
+                
+                if success:
+                    successful_scrapes += 1
+                    consecutive_failures = 0
+                    i += 1  # Only increment if successful or skipped
+                else:
+                    consecutive_failures += 1
+                    # Important: Don't increment i on failure, so we'll retry the same ticker
+                
+                # Dynamic wait time based on consecutive failures
+                wait_time = get_wait_time(consecutive_failures)
+                logger.info(f"Waiting {wait_time:.2f} seconds before next request")
+                time.sleep(wait_time)
+                
+                # Print remaining time estimation
+                if i > 0 and i % 10 == 0:
+                    print_remaining_time(start_time, i, len(pending_tickers), successful_scrapes)
+                    
+            except KeyboardInterrupt:
+                raise
+                
             except Exception as e:
-                logger.error(f"Batch {batch_index+1} raised an exception: {e}")
+                logger.error(f"Unexpected error processing ticker {ticker}: {e}")
+                consecutive_failures += 1
+                # Don't increment i on exception, retry the same ticker
+                
+                if "NewConnectionError" in str(e) or "Failed to establish a new connection" in str(e) or "No connection could be made" in str(e):
+                    logger.warning("Detected connection failure, forcing driver rotation...")
+                    driver = rotate_driver(driver, use_proxies)
+                    consecutive_failures = 0
+                    time.sleep(15)  # Longer wait after connection issues
+                
+                # If we've had too many failures in a row, create a fresh driver
+                if consecutive_failures >= max_consecutive_failures:
+                    logger.warning(f"Too many consecutive failures, restarting driver...")
+                    driver = rotate_driver(driver, use_proxies)
+                    consecutive_failures = 0
+                
+                continue
+        
+        # Final stats
+        elapsed_time = time.time() - start_time
+        hours, remainder = divmod(elapsed_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        
+        logger.info(f"Scraping completed in {int(hours)}h {int(minutes)}m {int(seconds)}s")
+        logger.info(f"Processed {len(pending_tickers)} tickers with {successful_scrapes} successful scrapes")
+        if len(pending_tickers) > 0:
+            logger.info(f"Success rate: {successful_scrapes/len(pending_tickers)*100:.2f}%")
+        
+        # Check if all tickers are processed
+        processed_tickers = get_processed_tickers(paths['html_pages'])
+        remaining_tickers = [t for t in all_tickers if t not in processed_tickers]
+        
+        if not remaining_tickers:
+            logger.info("All tickers processed! Moving files to last_run directory")
+            move_files_to_last_run(paths['html_pages'], paths['last_run_dir'])
     
-    # Final stats
-    elapsed_time = time.time() - start_time
-    hours, remainder = divmod(elapsed_time, 3600)
-    minutes, seconds = divmod(remainder, 60)
+    except KeyboardInterrupt:
+        logger.info("Scraping interrupted by user")
     
-    logger.info(f"Scraping completed in {int(hours)}h {int(minutes)}m {int(seconds)}s")
-    logger.info(f"Processed {len(pending_tickers)} tickers with {total_successful} successful scrapes")
-    if len(pending_tickers) > 0:
-        logger.info(f"Success rate: {total_successful/len(pending_tickers)*100:.2f}%")
-    
-    # Check if all tickers are processed
-    processed_tickers = get_processed_tickers(paths['html_pages'])
-    remaining_tickers = [t for t in all_tickers if t not in processed_tickers]
-    
-    if not remaining_tickers:
-        logger.info("All tickers processed! Moving files to last_run directory")
-        move_files_to_last_run(paths['html_pages'], paths['last_run_dir'])
+    finally:
+        if driver:
+            driver.quit()
 
 # Wrapper function to handle automatic restarts
 def run_with_auto_restart():
