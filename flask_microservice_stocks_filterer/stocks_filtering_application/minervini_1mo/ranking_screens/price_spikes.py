@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
-import os
 
-def analyze_earnings_acceleration(input_file, output_file):
+def analyze_stocks(input_file, output_file):
     # Read the CSV file
     df = pd.read_csv(input_file, parse_dates=['Date'])
     
@@ -13,40 +12,37 @@ def analyze_earnings_acceleration(input_file, output_file):
     results = []
     
     for symbol, group in grouped:
-        # Sort by date in descending order (most recent first)
+        # Sort by date in descending order
         group = group.sort_values('Date', ascending=False)
         
-        # Initialize counter for consecutive quarters with acceleration
-        consecutive_acceleration = 0
+        # Get data for the last 2 months
+        two_months_ago = group['Date'].max() - timedelta(days=60)
+        recent_data = group[group['Date'] > two_months_ago]
         
-        # Need at least 2 quarters to calculate acceleration
-        if len(group) < 2:
+        if len(recent_data) < 2:  # Skip if not enough data
             continue
         
-        # Iterate through quarters to check for acceleration
-        for i in range(len(group) - 1):
-            current_eps = group.iloc[i]['Eps']
-            previous_eps = group.iloc[i + 1]['Eps']
-            
-            # Skip if either EPS value is NaN or negative
-            if pd.isna(current_eps) or pd.isna(previous_eps) or previous_eps <= 0:
-                break
-            
-            # Calculate percentage increase
-            percent_increase = (current_eps - previous_eps) / previous_eps * 100
-            
-            # Check if there's at least 10% increase
-            if percent_increase >= 10:
-                consecutive_acceleration += 1
-            else:
-                # Break the loop if acceleration stops
-                break
+        # Calculate average volume
+        avg_volume = recent_data['Volume'].mean()
         
-        results.append({'Symbol': symbol, 'EPS_Quarters': consecutive_acceleration})
+        # Calculate average price increase on up days
+        up_days = recent_data[recent_data['Close'] > recent_data['Open']]
+        avg_price_increase = (up_days['Close'] - up_days['Open']).mean()
+        
+        # Identify price spikes
+        price_spikes = recent_data[
+            (recent_data['Close'] > recent_data['Open']) &  # Up day
+            (recent_data['Close'] - recent_data['Open'] > 3 * avg_price_increase) &  # Price spike
+            (recent_data['Volume'] > 3 * avg_volume)  # High volume
+        ]
+        
+        num_spikes = len(price_spikes)
+        
+        if num_spikes > 0:
+            results.append({'Symbol': symbol, 'Nr_Of_Spikes': num_spikes})
     
     # Create and save the output DataFrame
     output_df = pd.DataFrame(results)
-    output_df = output_df.sort_values('EPS_Quarters', ascending=False)
     output_df.to_csv(output_file, index=False)
     print(f"Analysis complete. Results saved to {output_file}")
 
@@ -61,7 +57,7 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
     script_dir = os.path.dirname(script_dir)
 
 # Append the correct relative path to the input and output files
-input_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "passed_stocks_input_data", "filtered_quarterly_fundamental_data.csv")
-output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results", "earnings_acceleration.csv")
+input_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results", "price_spikes.csv")
 
-analyze_earnings_acceleration(input_file, output_file)
+analyze_stocks(input_file, output_file)

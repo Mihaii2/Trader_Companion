@@ -159,8 +159,8 @@ def get_rankings(filename):
     """
 
     file_path = os.path.join('./stocks_filtering_application', filename)
-    stock_data_path = os.path.join('./stocks_filtering_application', 'stock_api_data',
-                                   'nasdaq_stocks_1_year_price_data.csv')
+    stock_data_path = os.path.join('./stocks_filtering_application', 'price_data',
+                                   'all_tickers_historical.csv')
 
     try:
         # Check if ranking file exists

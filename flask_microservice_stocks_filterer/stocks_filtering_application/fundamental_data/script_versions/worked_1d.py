@@ -238,47 +238,13 @@ def setup_webdriver(use_proxy=False, proxy=None):
 # Function to save page source as an HTML file
 def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_count=0, max_retries=3):
     try:
-        url = f"https://stockanalysis.com/stocks/{ticker.lower()}/financials"
+        url = f"https://stockanalysis.com/stocks/{ticker.lower()}/financials/?p=quarterly"
         
         # Clear cookies before each request
         driver.delete_all_cookies()
         
         # Load the page with retry logic
         driver.get(url)
-        
-        # After the driver.get(url) line and before the WebDriverWait
-        # Make sure Quarterly button is active or click it if not
-        try:
-            # Wait for the nav menu to be present
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "nav ul.navmenu.submenu"))
-            )
-            
-            # Find all buttons in the submenu
-            submenu_buttons = driver.find_elements(By.CSS_SELECTOR, "nav ul.navmenu.submenu li button")
-            
-            # Look for the "Quarterly" button specifically
-            quarterly_button = None
-            for button in submenu_buttons:
-                if button.text.strip() == "Quarterly":
-                    quarterly_button = button
-                    break
-            
-            if quarterly_button:
-                # Check if it's already active
-                if "active" not in quarterly_button.get_attribute("class"):
-                    # Click the button and wait
-                    quarterly_button.click()
-                    time.sleep(1.5)  # Increased wait time
-                    logger.info(f"Clicked Quarterly button for {ticker}")
-                else:
-                    logger.info(f"Quarterly button already active for {ticker}")
-            else:
-                logger.info(f"No Quarterly button found for {ticker}, proceeding with default view")
-                # Continue with the default view instead of warning
-                
-        except Exception as e:
-            logger.info(f"Could not interact with Quarterly button for {ticker}, proceeding with default view: {e}")
         
         # Wait for page load with more specific condition
         try:
@@ -329,30 +295,6 @@ def save_page_source(driver, ticker, html_pages_dir, last_activity_file, retry_c
         
     except Exception as e:
         logger.error(f"Error saving page source for {ticker}: {e}")
-        
-        # Check for the specific connection error and force driver rotation
-        if "NewConnectionError" in str(e) or "Failed to establish a new connection" in str(e) or "No connection could be made" in str(e):
-            logger.warning(f"Connection broken for {ticker}, creating new WebDriver instance...")
-            try:
-                # Quit the current driver
-                if driver:
-                    driver.quit()
-            except:
-                pass  # Ignore errors when quitting the driver
-                
-            # Create a new driver
-            time.sleep(5)  # Allow time for cleanup
-            try:
-                # Since we don't have access to the use_proxies variable here, 
-                # just create a fresh driver without proxy
-                new_driver = setup_webdriver(False, None)
-                # Return the new driver to the calling function
-                return save_page_source(new_driver, ticker, html_pages_dir, last_activity_file, retry_count, max_retries)
-            except Exception as driver_error:
-                logger.error(f"Failed to create new WebDriver: {driver_error}")
-                # Fall through to retry logic
-        
-        # Original retry logic
         if retry_count < max_retries:
             logger.warning(f"Retrying {ticker} ({retry_count+1}/{max_retries})...")
             time.sleep(random.uniform(5, 10))

@@ -45,31 +45,31 @@ def print_rsi_calculation_steps(symbol: str, prices: pd.Series, period: int = 14
     Prints detailed steps of RSI calculation for a specific symbol.
     Handles edge cases for RSI calculation.
     """
-    print(f"\n----- DETAILED RSI CALCULATION FOR {symbol} -----")
-    print(f"Period used for calculation: {period} days")
+    # print(f"\n----- DETAILED RSI CALCULATION FOR {symbol} -----")
+    # print(f"Period used for calculation: {period} days")
     
     # Calculate deltas
     delta = prices.diff()
-    print("\nStep 1: Calculate price deltas (day-to-day change)")
-    print(delta.head(period+5).to_string())
+    # print("\nStep 1: Calculate price deltas (day-to-day change)")
+    # print(delta.head(period+5).to_string())
     
     # Calculate gains and losses
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
-    print("\nStep 2: Separate gains and losses")
-    print("Gains:")
-    print(gain.head(period+5).to_string())
-    print("\nLosses:")
-    print(loss.head(period+5).to_string())
+    # print("\nStep 2: Separate gains and losses")
+    # print("Gains:")
+    # print(gain.head(period+5).to_string())
+    # print("\nLosses:")
+    # print(loss.head(period+5).to_string())
     
     # Calculate average gains and losses
     avg_gain = gain.rolling(window=period).mean()
     avg_loss = loss.rolling(window=period).mean()
-    print(f"\nStep 3: Calculate average gains and losses over {period} days")
-    print("Average Gains:")
-    print(avg_gain.head(period+5).to_string())
-    print("\nAverage Losses:")
-    print(avg_loss.head(period+5).to_string())
+    # print(f"\nStep 3: Calculate average gains and losses over {period} days")
+    # print("Average Gains:")
+    # print(avg_gain.head(period+5).to_string())
+    # print("\nAverage Losses:")
+    # print(avg_loss.head(period+5).to_string())
     
     # Calculate RS and RSI with proper handling of edge cases
     rs_values = []
@@ -97,22 +97,22 @@ def print_rsi_calculation_steps(symbol: str, prices: pd.Series, period: int = 14
     
     rsi = pd.Series(rsi_values, index=rs.index)
     
-    print("\nStep 4: Calculate Relative Strength (RS = Avg Gain / Avg Loss)")
-    print("Note: Infinity means all gains and no losses (RSI will be 100)")
+    # print("\nStep 4: Calculate Relative Strength (RS = Avg Gain / Avg Loss)")
+    # print("Note: Infinity means all gains and no losses (RSI will be 100)")
     rs_display = rs.copy()
     rs_display = rs_display.replace([np.inf, -np.inf], ['Infinity', 'NegInfinity'])
-    print(rs_display.head(period+5).to_string())
+    # print(rs_display.head(period+5).to_string())
     
-    print("\nStep 5: Calculate RSI = 100 - (100 / (1 + RS))")
-    print("Note: When RS is Infinity, RSI is set to 100")
-    print(rsi.head(period+5).to_string())
+    # print("\nStep 5: Calculate RSI = 100 - (100 / (1 + RS))")
+    # print("Note: When RS is Infinity, RSI is set to 100")
+    # print(rsi.head(period+5).to_string())
     
     # After period+5 rows, just show a summary
-    if len(rsi) > period+5:
-        print("\nRSI values for remaining days (summary):")
-        print(rsi.iloc[period+5:].describe().to_string())
+    # if len(rsi) > period+5:
+    #     print("\nRSI values for remaining days (summary):")
+    #     print(rsi.iloc[period+5:].describe().to_string())
     
-    print("----- END OF RSI CALCULATION -----\n")
+    # print("----- END OF RSI CALCULATION -----\n")
     
     return rsi
 
@@ -137,11 +137,11 @@ def main():
     # ------------------------------------------------------------------------------
     # 2) READ CSV & FORCE PARSE THE "Date" COLUMN AS A NAIVE DATETIME
     # ------------------------------------------------------------------------------
-    print(f"Reading CSV from: {input_file}")
+    # print(f"Reading CSV from: {input_file}")
     df = pd.read_csv(input_file)
 
-    print("\nDEBUG: Checking initial columns in df:", df.columns.tolist())
-    print("DEBUG: Head of df:\n", df.head(), "\n")
+    # print("\nDEBUG: Checking initial columns in df:", df.columns.tolist())
+    # print("DEBUG: Head of df:\n", df.head(), "\n")
 
     # Force-parse date strings (including time zones) to naive datetimes
     df["Date"] = pd.to_datetime(df["Date"], errors="coerce", utc=True)
@@ -150,8 +150,8 @@ def main():
     # Drop any rows with no valid Date
     initial_count = len(df)
     df = df.dropna(subset=["Date"])
-    print(f"DEBUG: Dropped {initial_count - len(df)} rows due to invalid 'Date'.")
-    print("DEBUG: df shape after date parsing:", df.shape)
+    # print(f"DEBUG: Dropped {initial_count - len(df)} rows due to invalid 'Date'.")
+    # print("DEBUG: df shape after date parsing:", df.shape)
 
     # ------------------------------------------------------------------------------
     # 3) FILTER TO THE LAST ~3 MONTHS
@@ -159,7 +159,7 @@ def main():
     last_date_in_stocks = df["Date"].max()
     three_months_ago = last_date_in_stocks - pd.DateOffset(months=3)
     df = df[df["Date"] >= three_months_ago].copy()
-    print(f"DEBUG: After filtering to last 3 months (>= {three_months_ago.date()}), df shape: {df.shape}")
+    # print(f"DEBUG: After filtering to last 3 months (>= {three_months_ago.date()}), df shape: {df.shape}")
 
     # ------------------------------------------------------------------------------
     # 4) SORT & CALCULATE STOCK RSI USING GROUPBY TRANSFORM
@@ -168,7 +168,7 @@ def main():
     
     # Check if ROOT exists in the dataset
     if "ROOT" in df["Symbol"].unique():
-        print("\n*** ROOT found in dataset! Will track detailed RSI calculation ***")
+        # print("\n*** ROOT found in dataset! Will track detailed RSI calculation ***")
         # Create a separate variable for ROOT data
         lth_data = df[df["Symbol"] == "ROOT"].copy()
         lth_data = lth_data.sort_values(by="Date")
@@ -179,11 +179,11 @@ def main():
         # Apply normal calculation for all symbols
         df["StockRSI"] = df.groupby("Symbol")["Close"].transform(compute_rsi)
     else:
-        print("\n*** ROOT not found in dataset! Will proceed with normal calculations ***")
+        # print("\n*** ROOT not found in dataset! Will proceed with normal calculations ***")
         df["StockRSI"] = df.groupby("Symbol")["Close"].transform(compute_rsi)
 
-    print("DEBUG: Checking if StockRSI is filled or mostly NaN:")
-    print(df["StockRSI"].describe())  # quick stats
+    # print("DEBUG: Checking if StockRSI is filled or mostly NaN:")
+    # print(df["StockRSI"].describe())  # quick stats
 
     # ------------------------------------------------------------------------------
     # 5) FETCH MARKET DATA FROM YFINANCE & CALCULATE MARKET RSI
@@ -191,7 +191,7 @@ def main():
     market_symbol = "^GSPC"  # S&P 500
     market_ticker = yf.Ticker(market_symbol)
 
-    print(f"\nFetching market data for {market_symbol} from {three_months_ago.date()} to {last_date_in_stocks.date()}")
+    # print(f"\nFetching market data for {market_symbol} from {three_months_ago.date()} to {last_date_in_stocks.date()}")
     
     # Make sure to fetch daily data with no gaps
     market_data = market_ticker.history(
@@ -201,7 +201,7 @@ def main():
     )
     
     # Print the last 30 days of raw market data from yfinance
-    print("\n----- LAST 30 DAYS OF RAW MARKET DATA FROM YFINANCE -----")
+    # print("\n----- LAST 30 DAYS OF RAW MARKET DATA FROM YFINANCE -----")
     # Sort by date in descending order and take last 30 days
     last_30_days = market_data.sort_index(ascending=False).head(30)
     # Reset index to make Date a regular column for better display
@@ -209,16 +209,16 @@ def main():
     # Print with full details
     pd.set_option('display.max_columns', None)  # Show all columns
     pd.set_option('display.width', 1000)  # Wide display
-    print(display_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']].to_string(index=False))
-    print("-----------------------------------------------------\n")
+    # print(display_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']].to_string(index=False))
+    # print("-----------------------------------------------------\n")
     # Reset display options
     pd.reset_option('display.max_columns')
     pd.reset_option('display.width')
     
     # Check if we have enough market data
-    print(f"DEBUG: Fetched {len(market_data)} days of market data")
+    # print(f"DEBUG: Fetched {len(market_data)} days of market data")
     if len(market_data) < 5:
-        print("WARNING: Very little market data returned. Trying alternative method...")
+        # print("WARNING: Very little market data returned. Trying alternative method...")
         # Try an alternative approach - fetch a longer period and then filter
         extended_start = three_months_ago - pd.DateOffset(days=30)  # Go back an extra month
         market_data = market_ticker.history(
@@ -226,26 +226,26 @@ def main():
             end=(last_date_in_stocks + pd.DateOffset(days=1)).strftime("%Y-%m-%d"),
             interval="1d"
         )
-        print(f"DEBUG: Fetched {len(market_data)} days of market data with extended range")
+        # print(f"DEBUG: Fetched {len(market_data)} days of market data with extended range")
         market_data = market_data[market_data.index >= pd.Timestamp(three_months_ago)]
-        print(f"DEBUG: After filtering to our date range: {len(market_data)} days")
+        # print(f"DEBUG: After filtering to our date range: {len(market_data)} days")
 
     market_data.reset_index(inplace=True)
     market_data.rename(columns={"Date": "MarketDate"}, inplace=True)
 
     # Debug the fetched dates
-    print("\nDEBUG: Range of fetched market dates:")
-    print(f"First date: {market_data['MarketDate'].min()}")
-    print(f"Last date: {market_data['MarketDate'].max()}")
-    print(f"Total dates: {market_data['MarketDate'].nunique()}")
+    # print("\nDEBUG: Range of fetched market dates:")
+    # print(f"First date: {market_data['MarketDate'].min()}")
+    # print(f"Last date: {market_data['MarketDate'].max()}")
+    # print(f"Total dates: {market_data['MarketDate'].nunique()}")
     
     # Check for missing dates
     all_dates = pd.date_range(start=market_data['MarketDate'].min(), end=market_data['MarketDate'].max())
     missing_dates = set(all_dates) - set(market_data['MarketDate'])
     if missing_dates:
-        print(f"WARNING: Found {len(missing_dates)} missing dates in market data")
-        print(f"Missing dates (first 5): {sorted(list(missing_dates))[:5]}")
-        # If missing dates are weekends/holidays, this is normal
+        # print(f"WARNING: Found {len(missing_dates)} missing dates in market data")
+        # print(f"Missing dates (first 5): {sorted(list(missing_dates))[:5]}")
+        pass  # If missing dates are weekends/holidays, this is normal
 
     # Ensure naive datetimes
     market_data["MarketDate"] = pd.to_datetime(market_data["MarketDate"], errors="coerce", utc=True)
@@ -256,10 +256,10 @@ def main():
     market_data.sort_values("MarketDate", inplace=True)
 
     # Compute MarketRSI with detailed calculation for reference
-    print("\n----- MARKET RSI CALCULATION (S&P 500) -----")
+    # print("\n----- MARKET RSI CALCULATION (S&P 500) -----")
     market_data["MarketRSI"] = print_rsi_calculation_steps(market_symbol, market_data["Close"])
-    print("DEBUG: market_data head:\n", market_data.head(), "\n")
-    print("DEBUG: market_data MarketRSI describe:\n", market_data["MarketRSI"].describe(), "\n")
+    # print("DEBUG: market_data head:\n", market_data.head(), "\n")
+    # print("DEBUG: market_data MarketRSI describe:\n", market_data["MarketRSI"].describe(), "\n")
 
     # ------------------------------------------------------------------------------
     # 6) MERGE STOCK DATA & MARKET DATA ON DATE - FIXED APPROACH
@@ -274,9 +274,9 @@ def main():
     # market_data["MarketRSI"] = market_data["MarketRSI"].ffill().bfill()
 
     # Print to debug
-    print("\nDEBUG: Market data with preserved NaN values:")
-    print(market_data[["Date", "Close", "MarketRSI"]].head().to_string())
-    print(market_data[["Date", "Close", "MarketRSI"]].tail().to_string())
+    # print("\nDEBUG: Market data with preserved NaN values:")
+    # print(market_data[["Date", "Close", "MarketRSI"]].head().to_string())
+    # print(market_data[["Date", "Close", "MarketRSI"]].tail().to_string())
 
     # This is a critical step: Create a date-based lookup function that handles weekends/holidays
     # For any given date, find the most recent valid market date (for weekends/holidays)
@@ -338,15 +338,16 @@ def main():
     merged = df.copy()
 
     # Verify the data is properly populated
-    print("\nDEBUG: Sample of stock data with mapped market data:")
+    # print("\nDEBUG: Sample of stock data with mapped market data:")
     sample_symbols = df["Symbol"].unique()[:3]  # Take first 3 symbols
     for symbol in sample_symbols:
         symbol_data = merged[merged["Symbol"] == symbol].head(3)
-        print(f"\nSample data for {symbol}:")
-        print(symbol_data[["Date", "Close", "StockRSI", "Close_Market", "MarketRSI"]].to_string())
+        # print(f"\nSample data for {symbol}:")
+        # print(symbol_data[["Date", "Close", "StockRSI", "Close_Market", "MarketRSI"]].to_string())
+        pass
 
-    print("\nDEBUG: merged shape:", merged.shape)
-    print("DEBUG: merged columns:", merged.columns.tolist())
+    # print("\nDEBUG: merged shape:", merged.shape)
+    # print("DEBUG: merged columns:", merged.columns.tolist())
 
     # ------------------------------------------------------------------------------
     # 7) CALCULATE RSI_vs_Market (only when both RSIs are available)
@@ -363,9 +364,9 @@ def main():
         lth_merged = merged[merged["Symbol"] == "ROOT"].copy()
         lth_merged = lth_merged.sort_values("Date")
         
-        print("\n----- ROOT RSI VS MARKET DETAILS -----")
-        print("Date | ROOT Price | ROOT RSI | Market Price | Market RSI | RSI_vs_Market")
-        print("--------------------------------------------------------------------------")
+        # print("\n----- ROOT RSI VS MARKET DETAILS -----")
+        # print("Date | ROOT Price | ROOT RSI | Market Price | Market RSI | RSI_vs_Market")
+        # print("--------------------------------------------------------------------------")
         for _, row in lth_merged.iterrows():
             # Handle any remaining NaN values for display
             stock_rsi = row['StockRSI'] if not pd.isna(row['StockRSI']) else 'N/A'
@@ -379,16 +380,19 @@ def main():
             rsi_diff_fmt = f"{rsi_diff:.2f}" if isinstance(rsi_diff, (int, float)) else rsi_diff
             market_price_fmt = f"${market_price:.2f}" if isinstance(market_price, (int, float)) else market_price
             
-            print(f"{row['Date'].strftime('%Y-%m-%d')} | ${row['Close']:.2f} | {stock_rsi_fmt} | {market_price_fmt} | {market_rsi_fmt} | {rsi_diff_fmt}")
+            # print(f"{row['Date'].strftime('%Y-%m-%d')} | ${row['Close']:.2f} | {stock_rsi_fmt} | {market_price_fmt} | {market_rsi_fmt} | {rsi_diff_fmt}")
+            pass
         
         # Calculate summary statistics only on valid numeric values
         valid_diff = lth_merged["RSI_vs_Market"].dropna()
         if not valid_diff.empty:
-            print("\nSummary statistics for ROOT RSI vs Market:")
-            print(valid_diff.describe().to_string())
+            # print("\nSummary statistics for ROOT RSI vs Market:")
+            # print(valid_diff.describe().to_string())
+            pass
         else:
-            print("\nNo valid RSI_vs_Market values to compute statistics.")
-        print("--------------------------------------------------------------------------\n")
+            # print("\nNo valid RSI_vs_Market values to compute statistics.")
+            pass
+        # print("--------------------------------------------------------------------------\n")
 
     # Group by Symbol to find indices of the max / min rows for RSI_vs_Market
     groupobj = merged.groupby("Symbol")["RSI_vs_Market"]
@@ -408,7 +412,7 @@ def main():
 
     # If no valid rows for either max or min, we stop
     if len(idx_series_max) == 0 and len(idx_series_min) == 0:
-        print("WARNING: No valid rows found for any symbol (all RSI_vs_Market are NaN). Exiting early.")
+        # print("WARNING: No valid rows found for any symbol (all RSI_vs_Market are NaN). Exiting early.")
         return
 
     # ------------------------------------------------------------------------------
@@ -423,7 +427,8 @@ def main():
     # Print ROOT best day if it exists
     if "ROOT" in best_days["Symbol"].values:
         lth_best = best_days[best_days["Symbol"] == "ROOT"]
-        print(f"ROOT MAX RSI vs Market: {lth_best['Max_Market_RSI_Diff_3M'].values[0]:.2f}")
+        # print(f"ROOT MAX RSI vs Market: {lth_best['Max_Market_RSI_Diff_3M'].values[0]:.2f}")
+        pass
     
     max_output_file = os.path.join(
         script_dir,
@@ -434,7 +439,7 @@ def main():
         "max_rsi_vs_market_3mo.csv"
     )
     best_days.to_csv(max_output_file, index=False)
-    print(f"Saved MAX RSI difference to: {max_output_file}")
+    # print(f"Saved MAX RSI difference to: {max_output_file}")
 
     # Get the rows for each symbol's min RSI_vs_Market
     worst_days = merged.loc[idx_series_min, ["Symbol", "RSI_vs_Market"]].copy()
@@ -445,7 +450,8 @@ def main():
     # Print ROOT worst day if it exists
     if "ROOT" in worst_days["Symbol"].values:
         lth_worst = worst_days[worst_days["Symbol"] == "ROOT"]
-        print(f"ROOT MIN RSI vs Market: {lth_worst['Min_Market_RSI_Diff_3M'].values[0]:.2f}")
+        # print(f"ROOT MIN RSI vs Market: {lth_worst['Min_Market_RSI_Diff_3M'].values[0]:.2f}")
+        pass
     
     min_output_file = os.path.join(
         script_dir,
@@ -456,9 +462,9 @@ def main():
         "min_rsi_vs_market_3mo.csv"
     )
     worst_days.to_csv(min_output_file, index=False)
-    print(f"Saved MIN RSI difference to: {min_output_file}")
+    # print(f"Saved MIN RSI difference to: {min_output_file}")
 
-    print("\nDone!")
+    # print("\nDone!")
 
 if __name__ == "__main__":
     main()

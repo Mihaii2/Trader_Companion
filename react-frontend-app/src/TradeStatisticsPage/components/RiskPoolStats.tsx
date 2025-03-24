@@ -68,7 +68,7 @@ export const RiskPoolStats: React.FC = () => {
         fetchedTrades.forEach((trade: Trade, index: number) => {
           // Constants
           const thresholdPct = 0.005; // 0.5%
-          const maxRiskPoolPct = 0.06; // 6%
+          const maxRiskPoolPct = 0.05; // 5%
           
           const isWinningTrade = trade.Return !== null && trade.Return > 0;
           
@@ -191,7 +191,7 @@ export const RiskPoolStats: React.FC = () => {
             // Cap risk pool at maximum percentage
             const maxRiskPool = accountSize * maxRiskPoolPct;
             if (currentRiskPool > maxRiskPool) {
-              logs.push(`Risk Pool Capped: $${currentRiskPool.toFixed(2)} → $${maxRiskPool.toFixed(2)} (6% limit)`);
+              logs.push(`Risk Pool Capped: $${currentRiskPool.toFixed(2)} → $${maxRiskPool.toFixed(2)} (5% limit)`);
               currentRiskPool = maxRiskPool;
             }
           } else if (!isWinningTrade && trade.Return !== null) {

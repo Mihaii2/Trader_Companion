@@ -41,12 +41,12 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
 # Define the file paths dynamically
 stocks_to_screen_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "banned_stocks", "stocks_not_banned.csv")
 
-all_stocks_data_file2 = os.path.join(script_dir, "stocks_filtering_application", "fundamental_data", "all_tickers_fundamentals.csv")
-output_file2 = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_quarterly_fundamental_data.csv")
+# all_stocks_data_file2 = os.path.join(script_dir, "stocks_filtering_application", "fundamental_data", "all_tickers_fundamentals.csv")
+# output_file2 = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_quarterly_fundamental_data.csv")
 
 all_stocks_data_file3 = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 output_file3 = os.path.join(script_dir, "stocks_filtering_application", "minervini_4mo", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
 
 
-filter_stock_data(stocks_to_screen_file, all_stocks_data_file2, output_file2)
+# filter_stock_data(stocks_to_screen_file, all_stocks_data_file2, output_file2)
 filter_stock_data(stocks_to_screen_file, all_stocks_data_file3, output_file3)

@@ -77,6 +77,9 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     return <div className="bg-background rounded-lg shadow-sm p-4">No data available</div>;
   }
 
+  // Get total count of stocks
+  const totalStocks = sortedRankings.length;
+
   // Get all available columns
   const allAvailableColumns = Object.keys(sortedRankings[0]);
   
@@ -103,18 +106,21 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
   return (
     <div className="bg-background rounded-lg shadow-sm">
       <div className="p-4 border-b border-border flex justify-between items-start">
-        <div className="text-lg font-semibold">
-          {title || 'Stock Rankings'}
-        </div>
-        <div className="text-sm text-muted-foreground text-right">
-          {rankings?.rankings_created_at && (
-            <p>Current Ranking List Last Update: {new Date(rankings.rankings_created_at).toLocaleString()}</p>
-          )}
-          {rankings?.stock_data_created_at && (
-            <p>Stock Data Last Update: {new Date(rankings.stock_data_created_at).toLocaleString()}</p>
-          )}
-        </div>
+      <div className="text-lg font-semibold flex items-center gap-2">
+        <span className="text-base px-2 py-0.5 rounded-md bg-primary/20">
+          {totalStocks} Stocks
+        </span>
+        {title || 'Stock Rankings'}
       </div>
+      <div className="text-sm text-muted-foreground text-right">
+        {rankings?.rankings_created_at && (
+          <p>Current Ranking List Last Update: {new Date(rankings.rankings_created_at).toLocaleString()}</p>
+        )}
+        {rankings?.stock_data_created_at && (
+          <p>Stock Data Last Update: {new Date(rankings.stock_data_created_at).toLocaleString()}</p>
+        )}
+      </div>
+    </div>
       
       {banError && (
         <div className="p-2 bg-destructive/10 text-destructive text-sm">

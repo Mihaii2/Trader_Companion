@@ -31,16 +31,15 @@ df_filtered = df[df['Date'] >= one_year_ago]
 # Group by symbol and calculate price increase
 price_increases = df_filtered.groupby('Symbol').apply(calculate_price_increase)
 
-# Sort price increases in descending order and get top 100
-top_100 = price_increases.sort_values(ascending=False).head(100)
+top = price_increases.sort_values(ascending=False)
 
 # Create a DataFrame with the results
 result_df = pd.DataFrame({
-    'Symbol': top_100.index,
-    'Price_Increase_Percentage': top_100.values
+    'Symbol': top.index,
+    'Price_Increase_Percentage': top.values
 })
 
 # Write the results to the output CSV file
 result_df.to_csv(output_file, index=False)
 
-print(f"Top 100 stocks by price increase (last 1 year) have been saved to {output_file}")
+print(f"Top stocks by price increase (last 1 year) have been saved to {output_file}")
