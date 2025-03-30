@@ -80,11 +80,11 @@ for symbol in df_filtered['Symbol'].unique():
 # Create a DataFrame with the results
 result_df = pd.DataFrame({
     'Symbol': list(max_rsi_values.keys()),
-    'Max_RSI_3M': list(max_rsi_values.values())
+    'RSI_3M': list(max_rsi_values.values())
 })
 
 # Sort by maximum RSI in descending order
-result_df = result_df.sort_values('Max_RSI_3M', ascending=False)
+result_df = result_df.sort_values('RSI_3M', ascending=False)
 
 # Write the results to the output CSV file
 result_df.to_csv(output_file, index=False)

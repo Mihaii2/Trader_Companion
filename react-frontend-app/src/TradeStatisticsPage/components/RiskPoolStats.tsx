@@ -48,7 +48,7 @@ export const RiskPoolStats: React.FC = () => {
         ]);
         
         // Filter trades that have status "Exited"
-        const fetchedTrades = tradesResponse.data.filter((trade: Trade) => trade.Status === "Exited");
+        const fetchedTrades = tradesResponse.data;
         setInitialBalance(balance);
         setCurrentBalance(balance);
         setTempBalance(balance.toString());

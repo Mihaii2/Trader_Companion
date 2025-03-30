@@ -30,8 +30,10 @@ export interface Trade {
   Strong_annual_EPS: boolean;
   Signs_Acceleration_Will_Continue: boolean;
   Sudden_Growth_Change: boolean;
-  Strong_Quarterly_And_Yearly_Sales: boolean;
-  Positive_Analysts_Revisions: boolean;
+  Strong_Quarterly_Sales: boolean;
+  Strong_Yearly_Sales: boolean;
+  Positive_Analysts_EPS_Revisions: boolean;
+  Positive_Analysts_Price_Revisions: boolean;
   Ownership_Pct_Change_Past_Earnings: boolean;
   Quarters_With_75pct_Surprise: boolean;
   Over_10_pct_Avg_Surprise: boolean;

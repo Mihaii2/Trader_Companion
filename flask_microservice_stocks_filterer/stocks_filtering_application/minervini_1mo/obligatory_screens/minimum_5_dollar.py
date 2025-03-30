@@ -33,12 +33,12 @@ def process_stocks(input_file, output_file):
             stocks[symbol]['prices'].append(close_price)
             stocks[symbol]['dates'].append(date)
 
-    # Find stocks with the last closing price at least $5
+    # Find stocks with the last closing price at least $10
     qualified_stocks = []
     for symbol, data in stocks.items():
         if data['prices'] and data['dates']:
             last_price = data['prices'][-1]
-            if last_price >= 5:
+            if last_price >= 10:
                 qualified_stocks.append(symbol)
 
     # Write the qualified stocks to a new CSV file
@@ -62,7 +62,7 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
 input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 
 # Define the output file
-output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "last_price_above_5.csv")
+output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "last_price_above_10.csv")
 
 print(f"Resolved input file path: {input_file}")
 print(f"Resolved output file path: {output_file}")
