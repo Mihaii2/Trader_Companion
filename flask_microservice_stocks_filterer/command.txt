@@ -1,1 +1,1 @@
-python master_pipeline.py 50 --top-n 500 --skip-sentiment
+python master_pipeline.py 50 --fetch-data --top-n 500

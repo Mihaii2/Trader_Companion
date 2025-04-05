@@ -1,20 +1,21 @@
 {
-  "start_time": 1743848744.8350196,
+  "start_time": 1743865934.6528177,
   "current_step": "Running pipelines",
   "steps_completed": [
+    "Fetching price data",
     "Running pipelines"
   ],
   "current_batch": null,
   "total_batches": null,
   "status": "completed",
-  "last_updated": 1743848887.4262352,
+  "last_updated": 1743869885.9972687,
   "process_pid": null,
   "errors": [
     {
       "script": "stock_screening_pipeline.py",
-      "error": "2025-04-05 13:27:31,828 - ERROR - [mvp.py ERROR] FileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\Victus\\\\PycharmProjects\\\\Stocks_Screener_V2\\\\flask_microservice_stocks_filterer\\\\stocks_filtering_application\\\\minervini_4mo\\\\ipos\\\\passed_stocks_input_data\\\\filtered_price_data.csv'",
-      "timestamp": 1743848851.8289726
+      "error": "2025-04-05 19:17:36,220 - ERROR - [mvp.py ERROR] FileNotFoundError: [Errno 2] No such file or directory: 'C:\\\\Users\\\\Victus\\\\PycharmProjects\\\\Stocks_Screener_V2\\\\flask_microservice_stocks_filterer\\\\stocks_filtering_application\\\\minervini_4mo\\\\ipos\\\\passed_stocks_input_data\\\\filtered_price_data.csv'",
+      "timestamp": 1743869856.2210393
     }
   ],
-  "end_time": 1743848887.426235
+  "end_time": 1743869885.9972684
 }
