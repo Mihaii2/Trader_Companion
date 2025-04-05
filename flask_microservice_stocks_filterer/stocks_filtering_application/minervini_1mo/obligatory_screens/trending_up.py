@@ -33,7 +33,7 @@ def is_200ma_trending_up(group):
         return False  # Not enough data
     
     # Assuming approximately 20 trading days per month
-    m1_ago = last_four_months['200MA'].iloc[-20]     # 1 month ago
+    m1_ago = last_four_months['200MA'].iloc[-22]     # 1 month ago
     current = last_four_months['200MA'].iloc[-1]    # Current
     
     # Check if each month's 200MA is higher than the previous month

@@ -33,7 +33,7 @@ def process_stocks(input_file, output_file):
             stocks[symbol]['prices'].append(close_price)
             stocks[symbol]['dates'].append(date)
 
-    # Find stocks that are at least 25% above their 52-week low
+    # Find stocks that are at least 30% above their 52-week low
     qualified_stocks = []
     for symbol, data in stocks.items():
         prices = data['prices']
@@ -53,7 +53,7 @@ def process_stocks(input_file, output_file):
             low_52_week = min(prices_52_weeks)
             current_price = prices[-1]
             
-            if current_price >= low_52_week * 1.25:
+            if current_price >= low_52_week * 1.30:
                 qualified_stocks.append(symbol)
 
     # Write the qualified stocks to a new CSV file

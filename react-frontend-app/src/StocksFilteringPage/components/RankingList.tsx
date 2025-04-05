@@ -9,10 +9,11 @@ interface RankingListProps {
 
 export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => {
   const { rankings, loading, error } = useRankingList(filename);
-  const { banStocks, isLoading: isBanning, error: banError } = useBanStock();
+  const { banStocks, error: banError } = useBanStock();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [bannedStocks, setBannedStocks] = useState<Record<string, boolean>>({});
+  const [pendingBans, setPendingBans] = useState<Record<string, boolean>>({});
   const [lastClickedRow, setLastClickedRow] = useState<string | null>(null);
   const [hoveredColumn, setHoveredColumn] = useState<string | null>(null);
 
@@ -26,12 +27,35 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
   };
 
   const handleBanStock = async (ticker: string, durationWeeks: number) => {
+    // Mark the stock as pending ban immediately for UI feedback
+    setPendingBans(prev => ({ ...prev, [ticker]: true }));
+    
     try {
-      await banStocks([{ ticker, duration: durationWeeks }]);
-      // Mark the stock as banned in local state to provide immediate visual feedback
-      setBannedStocks(prev => ({ ...prev, [ticker]: true }));
+      // Fire off the ban request without awaiting its completion
+      banStocks([{ ticker, duration: durationWeeks }])
+        .then(() => {
+          // When the request completes successfully, update banned status
+          setBannedStocks(prev => ({ ...prev, [ticker]: true }));
+        })
+        .catch((err) => {
+          console.error('Failed to ban stock:', err);
+        })
+        .finally(() => {
+          // Always remove from pending state when request finishes
+          setPendingBans(prev => {
+            const updated = { ...prev };
+            delete updated[ticker];
+            return updated;
+          });
+        });
     } catch (err) {
-      console.error('Failed to ban stock:', err);
+      console.error('Failed to initiate ban stock request:', err);
+      // Remove from pending if we couldn't even start the request
+      setPendingBans(prev => {
+        const updated = { ...prev };
+        delete updated[ticker];
+        return updated;
+      });
     }
   };
 
@@ -209,34 +233,43 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                 >
                   <div className="flex gap-2">
                     <button
-                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent row click when clicking the button
-                        handleBanStock(item.Symbol, 1);
-                      }}
-                      disabled={isBanning || bannedStocks[item.Symbol]}
-                    >
-                      1W
-                    </button>
-                    <button
-                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      className={`text-white w-full text-xs font-medium py-0.5 px-2 rounded
+                        ${pendingBans[item.Symbol] 
+                          ? 'bg-blue-500/40' 
+                          : 'bg-red-500/40 hover:bg-red-600/80'}`}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent row click when clicking the button
                         handleBanStock(item.Symbol, 4);
                       }}
-                      disabled={isBanning || bannedStocks[item.Symbol]}
+                      disabled={bannedStocks[item.Symbol]}
                     >
-                      1Mo
+                      {pendingBans[item.Symbol] ? '...' : '1Mo'}
                     </button>
                     <button
-                      className="bg-red-500/40 hover:bg-red-600/80 text-white w-full text-xs font-medium py-0.5 px-2 rounded"
+                      className={`text-white w-full text-xs font-medium py-0.5 px-2 rounded
+                        ${pendingBans[item.Symbol] 
+                          ? 'bg-blue-500/40' 
+                          : 'bg-red-500/40 hover:bg-red-600/80'}`}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent row click when clicking the button
-                        handleBanStock(item.Symbol, 12);
+                        handleBanStock(item.Symbol, 24);
                       }}
-                      disabled={isBanning || bannedStocks[item.Symbol]}
+                      disabled={bannedStocks[item.Symbol]}
                     >
-                      3Mo
+                      {pendingBans[item.Symbol] ? '...' : '6Mo'}
+                    </button>
+                    <button
+                      className={`text-white w-full text-xs font-medium py-0.5 px-2 rounded
+                        ${pendingBans[item.Symbol] 
+                          ? 'bg-blue-500/40' 
+                          : 'bg-red-500/40 hover:bg-red-600/80'}`}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent row click when clicking the button
+                        handleBanStock(item.Symbol, 48);
+                      }}
+                      disabled={bannedStocks[item.Symbol]}
+                    >
+                      {pendingBans[item.Symbol] ? '...' : '1Y'}
                     </button>
                   </div>
                 </td>
