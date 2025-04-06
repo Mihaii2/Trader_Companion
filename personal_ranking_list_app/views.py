@@ -3,6 +3,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from decimal import Decimal
+
 
 from .models import (
     UserPageState,
@@ -59,13 +61,59 @@ class StockPickViewSet(viewsets.ModelViewSet):
         """Helper method to update the total score of a stock pick using ORM"""
         from django.db.models import Sum
 
-        # Calculate the sum using ORM
-        total_score = stock_pick.stock_characteristics.aggregate(Sum('score'))['score__sum'] or 0
+        # Calculate the sum of characteristic scores using ORM
+        characteristics_score = stock_pick.stock_characteristics.aggregate(Sum('score'))['score__sum'] or 0
+
+        # Convert to Decimal if needed (or make both values float)
+        if isinstance(characteristics_score, Decimal) and not isinstance(stock_pick.personal_opinion_score, Decimal):
+            personal_score = Decimal(str(stock_pick.personal_opinion_score))
+        else:
+            personal_score = stock_pick.personal_opinion_score
+
+        # Add the personal opinion score to the total
+        total_score = characteristics_score + personal_score
 
         # Update the stock_pick total_score
         stock_pick.total_score = total_score
         stock_pick.save(update_fields=['total_score'])
         return stock_pick
+
+    @action(detail=True, methods=['post'])
+    def update_personal_score(self, request, pk=None):
+        """Update the personal opinion score for a stock pick"""
+        stock_pick = self.get_object()
+
+        if 'personal_opinion_score' not in request.data:
+            return Response(
+                {"personal_opinion_score": ["This field is required."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        personal_score = request.data['personal_opinion_score']
+
+        try:
+            # Convert to float to ensure it's a valid number
+            personal_score = float(personal_score)
+        except (ValueError, TypeError):
+            return Response(
+                {"personal_opinion_score": ["Must be a valid number."]},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        with transaction.atomic():
+            # Update the personal opinion score
+            stock_pick.personal_opinion_score = personal_score
+            stock_pick.save(update_fields=['personal_opinion_score'])
+
+            # Update the total score
+            self.update_total_score(stock_pick)
+
+        # Refresh the object to get the latest data
+        stock_pick.refresh_from_db()
+
+        # Return the updated stock pick
+        serializer = self.get_serializer(stock_pick)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def add_characteristic(self, request, pk=None):

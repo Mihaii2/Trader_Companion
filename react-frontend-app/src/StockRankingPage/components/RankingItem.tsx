@@ -43,6 +43,8 @@ export const RankingItem: React.FC<Props> = ({
   const [globalCharacteristics, setGlobalCharacteristics] = useState<GlobalCharacteristic[]>([]);
   const [isEditingScore, setIsEditingScore] = useState<number | null>(null);
   const [editedScore, setEditedScore] = useState<number>(0);
+  const [isEditingPersonalScore, setIsEditingPersonalScore] = useState(false);
+  const [personalScore, setPersonalScore] = useState<number>(initialStock.personal_opinion_score || 0);
   const [isSaving, setIsSaving] = useState(false);
   
   // Track pending characteristic changes
@@ -52,6 +54,7 @@ export const RankingItem: React.FC<Props> = ({
   useEffect(() => {
     setStock(initialStock);
     setCaseText(initialStock.case_text || '');
+    setPersonalScore(initialStock.personal_opinion_score || 0);
   }, [initialStock]);
 
   // Fetch global characteristics when component mounts or expands
@@ -233,6 +236,46 @@ export const RankingItem: React.FC<Props> = ({
     }
   };
 
+  // Handle personal opinion score updates
+  const handleStartEditPersonalScore = () => {
+    setIsEditingPersonalScore(true);
+  };
+
+  const handleSavePersonalScore = async () => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+      
+      // Optimistically update the score
+      const scoreDiff = personalScore - (stock.personal_opinion_score || 0);
+      const updatedStock = {
+        ...stock,
+        personal_opinion_score: personalScore,
+        total_score: stock.total_score + scoreDiff
+      };
+      
+      setStock(updatedStock);
+      onUpdate(updatedStock);
+      
+      const response = await stockPicksApi.updatePersonalScore(stock.id, personalScore);
+      
+      // Update with the actual server response
+      setStock(response.data);
+      onUpdate(response.data);
+      setIsEditingPersonalScore(false);
+    } catch (err) {
+      console.error('Error updating personal opinion score:', err);
+      setError('Failed to update personal opinion score');
+      
+      // Revert optimistic update on error
+      const response = await stockPicksApi.getStockPick(stock.id);
+      setStock(response.data);
+      onUpdate(response.data);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Check if a characteristic is selected (considering both actual state and pending changes)
   const isCharacteristicSelected = (characteristicId: number) => {
     // If there's a pending change, use that
@@ -265,6 +308,16 @@ export const RankingItem: React.FC<Props> = ({
                 </Badge>
               ))}
             </div>
+            {stock.personal_opinion_score > 0 && (
+              <Badge variant="outline" className="bg-green-100/70 dark:bg-green-900/70">
+                Personal: +{stock.personal_opinion_score}
+              </Badge>
+            )}
+            {stock.personal_opinion_score < 0 && (
+              <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70">
+                Personal: {stock.personal_opinion_score}
+              </Badge>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
@@ -383,6 +436,59 @@ export const RankingItem: React.FC<Props> = ({
                     </div>
                   );
                 })}
+              </div>
+            </div>
+            
+            {/* Personal Opinion Score - More compact layout */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Personal Opinion Score:</span>
+                {isEditingPersonalScore ? (
+                  <>
+                    <Input
+                      type="number"
+                      value={personalScore}
+                      onChange={(e) => setPersonalScore(Number(e.target.value))}
+                      className="w-20 h-8"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSavePersonalScore();
+                      }}
+                      disabled={isSubmitting}
+                      className="h-8"
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Save
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Badge 
+                      variant={personalScore === 0 ? "secondary" : personalScore > 0 ? "outline" : "destructive"}
+                      className={personalScore > 0 ? "bg-green-100/70 dark:bg-green-900/70 px-2" : "px-2"}
+                    >
+                      {personalScore > 0 ? `+${personalScore}` : personalScore}
+                    </Badge>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartEditPersonalScore();
+                      }}
+                      disabled={isSubmitting}
+                      className="h-8"
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
   

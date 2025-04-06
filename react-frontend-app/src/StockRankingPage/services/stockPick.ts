@@ -1,4 +1,3 @@
-// services/stockPick.ts
 import axios from 'axios';
 import { StockPick } from '../types';
 import { API_CONFIG } from '@/config';
@@ -37,5 +36,9 @@ export const stockPicksApi = {
     
   // Remove a single characteristic
   removeCharacteristic: (stockPickId: number, data: {characteristic_id: number}) =>
-    api.post(`/stock-picks/${stockPickId}/remove_characteristic/`, data)
+    api.post(`/stock-picks/${stockPickId}/remove_characteristic/`, data),
+    
+  // Update personal opinion score
+  updatePersonalScore: (stockPickId: number, score: number) =>
+    api.post(`/stock-picks/${stockPickId}/update_personal_score/`, { personal_opinion_score: score })
 };

@@ -23,6 +23,7 @@ class StockPick(models.Model):
     ranking_box = models.ForeignKey(RankingBox, on_delete=models.CASCADE, related_name='stock_picks')
     symbol = models.CharField(max_length=10)  # Stock symbol/ticker
     total_score = models.DecimalField(max_digits=5, decimal_places=2)
+    personal_opinion_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     case_text = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     characteristics = models.ManyToManyField(

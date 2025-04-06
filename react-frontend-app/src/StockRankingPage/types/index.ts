@@ -1,4 +1,3 @@
-// src/types/index.ts
 export interface GlobalCharacteristic {
   id: number;
   name: string;
@@ -17,6 +16,7 @@ export interface StockPick {
   id: number;
   symbol: string;
   total_score: number;
+  personal_opinion_score: number;
   ranking_box: number;
   case_text: string;
   characteristics: StockCharacteristic[];

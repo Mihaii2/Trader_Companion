@@ -38,11 +38,13 @@ class StockPickSerializer(serializers.ModelSerializer):
     )
     ranking_box = serializers.PrimaryKeyRelatedField(queryset=RankingBox.objects.all())
     total_score = serializers.FloatField()
+    personal_opinion_score = serializers.FloatField(required=False, default=0)
     case_text = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = StockPick
-        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'case_text', 'created_at', 'characteristics']
+        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'personal_opinion_score',
+                  'case_text', 'created_at', 'characteristics']
 
 
 class RankingBoxSerializer(serializers.ModelSerializer):
