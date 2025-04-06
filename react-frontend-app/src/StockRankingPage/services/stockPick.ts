@@ -10,20 +10,32 @@ const api = axios.create({
 // Stock Picks API
 export const stockPicksApi = {
   getAllStockPicks: () =>
-    api.get<StockPick[]>('/stock-picks/'),
+    api.get('/stock-picks/'),
   
   getStockPicksByBox: (boxId: number) =>
-    api.get<StockPick[]>(`/stock-picks/?ranking_box=${boxId}`),
+    api.get(`/stock-picks/?ranking_box=${boxId}`),
   
   getStockPick: (id: number) =>
-    api.get<StockPick>(`/stock-picks/${id}/`),
+    api.get(`/stock-picks/${id}/`),
   
-  createStockPick: (data: { ranking_box: number; symbol: string; total_score: number }) =>
-    api.post<StockPick>('/stock-picks/', data),
+  createStockPick: (data: { ranking_box: number; symbol: string; total_score: number; case_text?: string }) =>
+    api.post('/stock-picks/', data),
   
   updateStockPick: (id: number, data: Partial<StockPick>) =>
-    api.put<StockPick>(`/stock-picks/${id}/`, data),
+    api.put(`/stock-picks/${id}/`, data),
   
   deleteStockPick: (id: number) =>
-    api.delete(`/stock-picks/${id}/`)
+    api.delete(`/stock-picks/${id}/`),
+    
+  // Set all characteristics at once
+  setCharacteristics: (stockPickId: number, characteristics: Array<{characteristic_id: number, score: number}>) =>
+    api.post(`/stock-picks/${stockPickId}/set_characteristics/`, { characteristics }),
+    
+  // Add or update a single characteristic
+  addCharacteristic: (stockPickId: number, data: {characteristic_id: number, score?: number}) =>
+    api.post(`/stock-picks/${stockPickId}/add_characteristic/`, data),
+    
+  // Remove a single characteristic
+  removeCharacteristic: (stockPickId: number, data: {characteristic_id: number}) =>
+    api.post(`/stock-picks/${stockPickId}/remove_characteristic/`, data)
 };

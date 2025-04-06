@@ -1,27 +1,48 @@
-# serializers.py
 import json
-
 from rest_framework import serializers
-from .models import RankingBox, StockPick, StockCharacteristic, UserPageState
+from .models import (
+    RankingBox,
+    StockPick,
+    UserPageState,
+    GlobalCharacteristic,
+    StockPickCharacteristic
+)
 
 
-class StockCharacteristicSerializer(serializers.ModelSerializer):
-    score = serializers.FloatField()  # Explicitly define as FloatField
+class GlobalCharacteristicSerializer(serializers.ModelSerializer):
+    default_score = serializers.FloatField()
 
     class Meta:
-        model = StockCharacteristic
-        fields = ['id', 'stock_pick', 'name', 'description', 'score', 'created_at']
+        model = GlobalCharacteristic
+        fields = ['id', 'name', 'default_score', 'created_at']
+
+
+class StockPickCharacteristicSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source='characteristic.name')
+    characteristic_id = serializers.PrimaryKeyRelatedField(
+        source='characteristic',
+        queryset=GlobalCharacteristic.objects.all()
+    )
+    score = serializers.FloatField()
+
+    class Meta:
+        model = StockPickCharacteristic
+        fields = ['id', 'characteristic_id', 'name', 'score']
 
 
 class StockPickSerializer(serializers.ModelSerializer):
-    characteristics = StockCharacteristicSerializer(many=True, read_only=True)
+    characteristics = StockPickCharacteristicSerializer(
+        source='stock_characteristics',
+        many=True,
+        read_only=True
+    )
     ranking_box = serializers.PrimaryKeyRelatedField(queryset=RankingBox.objects.all())
-    total_score = serializers.FloatField()  # Explicitly define as FloatField
-    case_text = serializers.CharField(required=False, allow_blank=True)  # Add this line
+    total_score = serializers.FloatField()
+    case_text = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = StockPick
-        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'case_text', 'created_at', 'characteristics']  # Add case_text to fields
+        fields = ['id', 'ranking_box', 'symbol', 'total_score', 'case_text', 'created_at', 'characteristics']
 
 
 class RankingBoxSerializer(serializers.ModelSerializer):

@@ -8,6 +8,7 @@ import { useStockOperations } from './hooks/useStockPickOperations';
 import { useDragDrop } from './hooks/useDragDrop';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import GlobalCharacteristicsManager from './components/GlobalCharacteristicsManager';
 
 export const PersonalRankingPage: React.FC = () => {
   const { 
@@ -94,6 +95,7 @@ export const PersonalRankingPage: React.FC = () => {
           ))}
         </div>
       </div>
+      <GlobalCharacteristicsManager />
     </div>
   );
 };

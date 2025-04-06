@@ -1,12 +1,22 @@
-# views.py
+from django.db import models, transaction
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from personal_ranking_list_app.models import UserPageState, StockCharacteristic, StockPick, RankingBox
-from personal_ranking_list_app.serializers import UserPageStateSerializer, StockCharacteristicSerializer, \
-    StockPickSerializer, RankingBoxSerializer
+from .models import (
+    UserPageState,
+    StockPick,
+    RankingBox,
+    GlobalCharacteristic,
+    StockPickCharacteristic
+)
+from .serializers import (
+    UserPageStateSerializer,
+    StockPickSerializer,
+    RankingBoxSerializer,
+    GlobalCharacteristicSerializer
+)
 
 
 class RankingBoxViewSet(viewsets.ModelViewSet):
@@ -20,59 +30,150 @@ class RankingBoxViewSet(viewsets.ModelViewSet):
         serializer = StockPickSerializer(stock_picks, many=True)
         return Response(serializer.data)
 
+
+class GlobalCharacteristicViewSet(viewsets.ModelViewSet):
+    queryset = GlobalCharacteristic.objects.all()
+    serializer_class = GlobalCharacteristicSerializer
+
+    @action(detail=True, methods=['get'])
+    def stock_picks(self, request, pk=None):
+        """Get all stock picks that have this characteristic"""
+        characteristic = self.get_object()
+        stock_picks = characteristic.stock_picks.all()
+        serializer = StockPickSerializer(stock_picks, many=True)
+        return Response(serializer.data)
+
+
 class StockPickViewSet(viewsets.ModelViewSet):
     queryset = StockPick.objects.all()
     serializer_class = StockPickSerializer
 
     def get_queryset(self):
-        queryset = StockPick.objects.all()
+        queryset = StockPick.objects.all().prefetch_related('stock_characteristics__characteristic')
         ranking_box_id = self.request.query_params.get('ranking_box', None)
         if ranking_box_id is not None:
             queryset = queryset.filter(ranking_box_id=ranking_box_id)
         return queryset
 
-    def create(self, request, *args, **kwargs):
-        if 'ranking_box' not in request.data:
+    def update_total_score(self, stock_pick):
+        """Helper method to update the total score of a stock pick using ORM"""
+        from django.db.models import Sum
+
+        # Calculate the sum using ORM
+        total_score = stock_pick.stock_characteristics.aggregate(Sum('score'))['score__sum'] or 0
+
+        # Update the stock_pick total_score
+        stock_pick.total_score = total_score
+        stock_pick.save(update_fields=['total_score'])
+        return stock_pick
+
+    @action(detail=True, methods=['post'])
+    def add_characteristic(self, request, pk=None):
+        """Add a characteristic to a stock pick"""
+        stock_pick = self.get_object()
+
+        if 'characteristic_id' not in request.data:
             return Response(
-                {"ranking_box": ["This field is required."]},
+                {"characteristic_id": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
 
-class StockCharacteristicViewSet(viewsets.ModelViewSet):
-    queryset = StockCharacteristic.objects.all()
-    serializer_class = StockCharacteristicSerializer
+        characteristic_id = request.data['characteristic_id']
+        characteristic = get_object_or_404(GlobalCharacteristic, pk=characteristic_id)
 
-    def get_queryset(self):
-        queryset = StockCharacteristic.objects.all()
-        stock_pick_id = self.request.query_params.get('stock_pick', None)
-        if stock_pick_id is not None:
-            queryset = queryset.filter(stock_pick_id=stock_pick_id)
-        return queryset
+        # Get score from request or use default
+        score = request.data.get('score', characteristic.default_score)
 
-    def create(self, request, *args, **kwargs):
-        if 'stock_pick' not in request.data:
+        with transaction.atomic():
+            # Check if characteristic already exists for this stock
+            existing = stock_pick.stock_characteristics.filter(characteristic=characteristic).first()
+
+            if existing:
+                # Update existing
+                existing.score = score
+                existing.save(update_fields=['score'])
+            else:
+                # Create new
+                StockPickCharacteristic.objects.create(
+                    stockpick=stock_pick,
+                    characteristic=characteristic,
+                    score=score
+                )
+
+            # Update total score
+            self.update_total_score(stock_pick)
+
+        # Refresh the object to get the latest data
+        stock_pick.refresh_from_db()
+
+        # Return the updated stock pick
+        serializer = self.get_serializer(stock_pick)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def remove_characteristic(self, request, pk=None):
+        """Remove a characteristic from a stock pick"""
+        stock_pick = self.get_object()
+
+        if 'characteristic_id' not in request.data:
             return Response(
-                {"stock_pick": ["This field is required."]},
+                {"characteristic_id": ["This field is required."]},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers
-        )
+
+        characteristic_id = request.data['characteristic_id']
+
+        with transaction.atomic():
+            # Delete the characteristic
+            deleted_count, _ = stock_pick.stock_characteristics.filter(characteristic_id=characteristic_id).delete()
+
+            if deleted_count == 0:
+                return Response(
+                    {"detail": "Characteristic not found for this stock pick"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Update total score
+            self.update_total_score(stock_pick)
+
+        # Refresh the object to get the latest data
+        stock_pick.refresh_from_db()
+
+        # Return the updated stock pick
+        serializer = self.get_serializer(stock_pick)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def set_characteristics(self, request, pk=None):
+        """Set characteristics for a stock pick"""
+        stock_pick = self.get_object()
+        characteristics_data = request.data.get('characteristics', [])
+
+        with transaction.atomic():
+            # Delete existing characteristics
+            stock_pick.stock_characteristics.all().delete()
+
+            # Create new characteristics
+            for char_data in characteristics_data:
+                characteristic = get_object_or_404(GlobalCharacteristic, pk=char_data['characteristic_id'])
+                score = char_data.get('score', characteristic.default_score)
+
+                StockPickCharacteristic.objects.create(
+                    stockpick=stock_pick,
+                    characteristic=characteristic,
+                    score=score
+                )
+
+            # Update total score
+            self.update_total_score(stock_pick)
+
+        # Refresh the object to get the latest data
+        stock_pick.refresh_from_db()
+
+        # Return updated stock pick
+        serializer = self.get_serializer(stock_pick)
+        return Response(serializer.data)
+
 
 class UserPageStateViewSet(viewsets.ModelViewSet):
     queryset = UserPageState.objects.all()

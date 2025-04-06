@@ -10,24 +10,24 @@ const api = axios.create({
 // Stock Characteristics API
 export const stockCharacteristicsApi = {
   getAllCharacteristics: () =>
-    api.get<StockCharacteristic[]>('/stock-characteristics/'),
+    api.get('/stock-characteristics/'),
   
   getCharacteristicsByStockPick: (stockPickId: number) =>
-    api.get<StockCharacteristic[]>(`/stock-characteristics/?stock_pick=${stockPickId}`),
+    api.get(`/stock-characteristics/?stock_pick=${stockPickId}`),
   
   getCharacteristic: (id: number) =>
-    api.get<StockCharacteristic>(`/stock-characteristics/${id}/`),
+    api.get(`/stock-characteristics/${id}/`),
   
   createCharacteristic: (data: {
     stock_pick: number;
     name: string;
-    description: string;
     score: number;
+    global_characteristic_id?: number;
   }) =>
-    api.post<StockCharacteristic>('/stock-characteristics/', data),
+    api.post('/stock-characteristics/', data),
   
   updateCharacteristic: (id: number, data: Partial<StockCharacteristic>) =>
-    api.put<StockCharacteristic>(`/stock-characteristics/${id}/`, data),
+    api.put(`/stock-characteristics/${id}/`, data),
   
   deleteCharacteristic: (id: number) =>
     api.delete(`/stock-characteristics/${id}/`)
