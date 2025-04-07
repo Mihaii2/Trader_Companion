@@ -9,7 +9,8 @@ export const useRankingBoxes = () => {
   const [rankingBoxes, setRankingBoxes] = useState<RankingBox[]>([]);
   const [pageState, setPageState] = useState<UserPageState>({
     column_count: 3,
-    ranking_boxes_order: []
+    ranking_boxes_order: [],
+    updated_at: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

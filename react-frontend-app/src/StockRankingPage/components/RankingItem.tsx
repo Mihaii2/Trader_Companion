@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { StockPick, GlobalCharacteristic } from '../types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, X, Edit, Check } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Edit, Check, MoreHorizontal } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +30,42 @@ interface Props {
   onRemove: () => void;
 }
 
+// Define manually ordered characteristic names
+// Add your preferred characteristics in the desired order here
+const ORDERED_CHARACTERISTICS = [
+  "Earnings Surprises",
+  "Strong Against Market",
+  "Ugly Correction",
+  "Good Stage 2 Volume",
+  "TBA",
+  "MVP",
+  "Power Play",
+  "Fast Rebounder",
+  "Looks Late Stage",
+  "Early Stage",
+  "Bad Liquidity",
+  "Earnings Dump",
+  "IPO 10 Years",
+  "Low PE",
+  "Good Yearly Sales",
+  "Good Yearly Margins",
+  "Good Yearly EPS",
+  "Good Q Revenue",
+  "Good Q Margins",
+  "Good Q EPS",
+  "Code 33",
+  "Last Q 20pct",
+  "EPS Breakout",
+  "Sudden Growth Change",
+  "Good ROE",
+  "Under 30k Shares",
+  "Analyst Upgrades",
+  "Good Guidance",
+  "Over 10pct Avg surprise",
+  "Q with 75pct Surprise",
+  "Good Ownership Past Q",
+];
+
 export const RankingItem: React.FC<Props> = ({
   stock: initialStock,
   onUpdate,
@@ -46,9 +82,18 @@ export const RankingItem: React.FC<Props> = ({
   const [isEditingPersonalScore, setIsEditingPersonalScore] = useState(false);
   const [personalScore, setPersonalScore] = useState<number>(initialStock.personal_opinion_score || 0);
   const [isSaving, setIsSaving] = useState(false);
+  // Properly type the visible characteristics array
+  const [visibleCharacteristics, setVisibleCharacteristics] = useState<StockPick['characteristics']>([]);
+  const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
   
   // Track pending characteristic changes
   const [pendingCharacteristics, setPendingCharacteristics] = useState<Record<number, boolean>>({});
+  
+  // Add a saveTimeout ref to debounce saving
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Ref for the characteristics container
+  const charContainerRef = useRef<HTMLDivElement>(null);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -57,12 +102,127 @@ export const RankingItem: React.FC<Props> = ({
     setPersonalScore(initialStock.personal_opinion_score || 0);
   }, [initialStock]);
 
+  // Calculate which characteristics should be visible based on container height
+  // Use useCallback to memoize the function and prevent unnecessary re-renders
+  const calculateVisibleCharacteristics = useCallback(() => {
+    if (!charContainerRef.current) return;
+
+    // Get all characteristics and sort by score (descending)
+    const sortedChars = [...stock.characteristics].sort((a, b) => b.score - a.score);
+    
+    const container = charContainerRef.current;
+    // Clone the container for testing
+    const testContainer = container.cloneNode(true) as HTMLDivElement;
+    testContainer.style.position = 'absolute';
+    testContainer.style.visibility = 'hidden';
+    testContainer.style.width = `${container.offsetWidth}px`;
+    testContainer.innerHTML = '';
+    document.body.appendChild(testContainer);
+    
+    // Calculate how many badges we can fit before creating more than 2 rows
+    const maxHeight = 28; // Approximate height for 1 row (adjust as needed)
+    let visibleCount = 0;
+    const totalChars = sortedChars.length;
+    
+    // Always add at least one characteristic if available
+    if (totalChars === 0) {
+      setVisibleCharacteristics([]);
+      setHasHiddenCharacteristics(false);
+      document.body.removeChild(testContainer);
+      return;
+    }
+    
+    for (let i = 0; i < totalChars; i++) {
+      const badge = document.createElement('div');
+      badge.className = 'inline-block px-2 py-0.5 m-0.5 text-xs font-medium rounded-full';
+      badge.textContent = sortedChars[i].name;
+      testContainer.appendChild(badge);
+      
+      if (testContainer.offsetHeight > maxHeight) {
+        // We've gone too far, remove this badge
+        testContainer.removeChild(badge);
+        
+        // If we have more chars and this isn't the first one
+        if (i < totalChars - 1 && i > 0) {
+          visibleCount = i;
+          setHasHiddenCharacteristics(true);
+        } else {
+          visibleCount = Math.max(1, i);
+          setHasHiddenCharacteristics(i < totalChars - 1);
+        }
+        break;
+      }
+      
+      // If we've added all badges and still fit
+      if (i === totalChars - 1) {
+        visibleCount = totalChars;
+        setHasHiddenCharacteristics(false);
+      }
+    }
+    
+    // Clean up
+    document.body.removeChild(testContainer);
+    
+    // If we need to add the "more" indicator, reserve space for it
+    if (visibleCount < totalChars) {
+      const moreTestContainer = container.cloneNode(true) as HTMLDivElement;
+      moreTestContainer.style.position = 'absolute';
+      moreTestContainer.style.visibility = 'hidden';
+      moreTestContainer.style.width = `${container.offsetWidth}px`;
+      moreTestContainer.innerHTML = '';
+      document.body.appendChild(moreTestContainer);
+      
+      // Add visible badges
+      for (let i = 0; i < visibleCount; i++) {
+        const badge = document.createElement('div');
+        badge.className = 'inline-block px-2 py-0.5 m-0.5 text-xs font-medium rounded-full';
+        badge.textContent = sortedChars[i].name;
+        moreTestContainer.appendChild(badge);
+      }
+      
+      // Add the "more" badge
+      const moreBadge = document.createElement('div');
+      moreBadge.className = 'inline-block px-2 py-0.5 m-0.5 text-xs font-medium rounded-full';
+      moreBadge.textContent = '...';
+      moreTestContainer.appendChild(moreBadge);
+      
+      // Check if adding "more" badge pushes to third row
+      if (moreTestContainer.offsetHeight > maxHeight && visibleCount > 1) {
+        visibleCount--;
+      }
+      
+      document.body.removeChild(moreTestContainer);
+    }
+    
+    // Update state with visible characteristics
+    setVisibleCharacteristics(sortedChars.slice(0, visibleCount));
+    setHasHiddenCharacteristics(visibleCount < totalChars);
+  }, [stock.characteristics]);
+
   // Fetch global characteristics when component mounts or expands
   useEffect(() => {
     if (isExpanded) {
       fetchGlobalCharacteristics();
     }
   }, [isExpanded]);
+
+  // Check visible characteristics on stock change or window resize
+  useEffect(() => {
+    calculateVisibleCharacteristics();
+    window.addEventListener('resize', calculateVisibleCharacteristics);
+    return () => {
+      window.removeEventListener('resize', calculateVisibleCharacteristics);
+    };
+  }, [calculateVisibleCharacteristics]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Fetch global characteristics from API
   const fetchGlobalCharacteristics = async () => {
@@ -75,25 +235,50 @@ export const RankingItem: React.FC<Props> = ({
     }
   };
 
-  // Handle case text changes
-  const handleDetailsTextChange = async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // Handle case text changes - use debounce to prevent API calls on every keystroke
+  // Update the handleDetailsTextChange function to use the latest stock state
+  const handleDetailsTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newCaseText = e.target.value;
     setCaseText(newCaseText);
     
-    try {
-      setIsSaving(true);
-      const updatedStock = await stockPicksApi.updateStockPick(stock.id, { 
-        case_text: newCaseText 
-      });
-      // Update the local state with the response data
-      setStock(updatedStock.data);
-      onUpdate(updatedStock.data);
-    } catch (err) {
-      console.error('Error saving case text:', err);
-      setError('Failed to save case text');
-    } finally {
-      setIsSaving(false);
+    // Update local stock state immediately for UI responsiveness
+    setStock(prevStock => ({
+      ...prevStock,
+      case_text: newCaseText
+    }));
+    
+    // Clear any existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+    
+    // Set a new timeout to save after typing stops
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsSaving(true);
+        // Get the CURRENT stock state at the time of saving, not the closure value
+        const currentStock = { ...stock };
+        
+        // Include all required fields from the current stock object
+        const updatedStock = await stockPicksApi.updateStockPick(currentStock.id, { 
+          case_text: newCaseText,
+          ranking_box: currentStock.ranking_box,
+          symbol: currentStock.symbol,
+          total_score: currentStock.total_score,
+          // Make sure to include the current personal_opinion_score
+          personal_opinion_score: currentStock.personal_opinion_score
+        });
+        
+        // Update the local state with the response data
+        setStock(updatedStock.data);
+        onUpdate(updatedStock.data);
+      } catch (err) {
+        console.error('Error saving case text:', err);
+        setError('Failed to save case text');
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000); // Wait 1 second after typing stops before saving
   };
 
   // Toggle a characteristic on/off
@@ -291,6 +476,26 @@ export const RankingItem: React.FC<Props> = ({
     return stock.characteristics.find(c => c.characteristic_id === characteristicId);
   };
 
+  // Sort global characteristics based on the ORDERED_CHARACTERISTICS list
+  const getSortedGlobalCharacteristics = () => {
+    return [...globalCharacteristics].sort((a, b) => {
+      const indexA = ORDERED_CHARACTERISTICS.indexOf(a.name);
+      const indexB = ORDERED_CHARACTERISTICS.indexOf(b.name);
+      
+      // If both are not in the list, maintain original order
+      if (indexA === -1 && indexB === -1) return 0;
+      
+      // If only a is not in the list, b comes first
+      if (indexA === -1) return 1;
+      
+      // If only b is not in the list, a comes first
+      if (indexB === -1) return -1;
+      
+      // If both are in the list, sort by their position in the list
+      return indexA - indexB;
+    });
+  };
+
   return (
     <Card className="rounded-sm">
       <CardContent className="p-0 pl-1 rounded-sm">
@@ -300,21 +505,30 @@ export const RankingItem: React.FC<Props> = ({
         >
           <div className="flex items-center gap-1">
             <Badge variant="default" className="font-semibold">{stock.symbol}</Badge>
-            <Badge variant="secondary">Score: {stock.total_score}</Badge>
-            <div className="flex gap-1 flex-wrap">
-              {stock.characteristics.map((char) => (
+            <Badge variant="secondary" className="whitespace-nowrap">Score: {stock.total_score}</Badge>
+            
+            {/* Characteristics container with ref for measuring */}
+            <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
+              {visibleCharacteristics.map((char) => (
                 <Badge key={char.id} variant="outline">
                   {char.name}
                 </Badge>
               ))}
+              
+              {hasHiddenCharacteristics && (
+                <Badge variant="outline" className="flex items-center">
+                  <MoreHorizontal className="h-3 w-3 mr-0.5" />
+                </Badge>
+              )}
             </div>
+            
             {stock.personal_opinion_score > 0 && (
-              <Badge variant="outline" className="bg-green-100/70 dark:bg-green-900/70">
+              <Badge variant="outline" className="bg-green-100/70 dark:bg-green-900/70 whitespace-nowrap">
                 Personal: +{stock.personal_opinion_score}
               </Badge>
             )}
             {stock.personal_opinion_score < 0 && (
-              <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70">
+              <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70 whitespace-nowrap">
                 Personal: {stock.personal_opinion_score}
               </Badge>
             )}
@@ -370,9 +584,9 @@ export const RankingItem: React.FC<Props> = ({
             <div className="mb-4">
               <h3 className="text-sm font-medium mb-1">Characteristics</h3>
               
-              {/* Compact Grid of Global Characteristics */}
+              {/* Compact Grid of Global Characteristics - sorted by predefined order */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5">
-                {globalCharacteristics.map(globalChar => {
+                {getSortedGlobalCharacteristics().map(globalChar => {
                   const isSelected = isCharacteristicSelected(globalChar.id);
                   const selectedChar = isSelected ? getCharacteristicById(globalChar.id) : null;
                   
@@ -502,7 +716,6 @@ export const RankingItem: React.FC<Props> = ({
                 className="mt-1"
                 rows={4}
                 style={{ resize: 'vertical' }}
-                disabled={isSaving}
               />
               {isSaving && <p className="text-xs text-muted-foreground mt-1">Saving...</p>}
             </div>
