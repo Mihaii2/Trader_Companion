@@ -78,6 +78,14 @@ const ORDERED_CHARACTERISTICS = [
   "Cyclical",
 ];
 
+// Define priority characteristics that should always be displayed first if present
+// Replace these with your preferred characteristics list
+const PRIORITY_CHARACTERISTICS = [
+  "Leader",
+  "Cyclical",
+  "Top Competitor",
+];
+
 export const RankingItem: React.FC<Props> = ({
   stock: initialStock,
   onUpdate,
@@ -96,6 +104,7 @@ export const RankingItem: React.FC<Props> = ({
   const [isSaving, setIsSaving] = useState(false);
   // Properly type the visible characteristics array
   const [visibleCharacteristics, setVisibleCharacteristics] = useState<StockPick['characteristics']>([]);
+  const [priorityCharacteristics, setPriorityCharacteristics] = useState<StockPick['characteristics']>([]);
   const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
   
   // Track pending characteristic changes
@@ -112,6 +121,12 @@ export const RankingItem: React.FC<Props> = ({
     setStock(initialStock);
     setCaseText(initialStock.case_text || '');
     setPersonalScore(initialStock.personal_opinion_score || 0);
+    
+    // Extract priority characteristics that exist in this stock
+    const priorityChars = initialStock.characteristics.filter(
+      char => PRIORITY_CHARACTERISTICS.includes(char.name)
+    );
+    setPriorityCharacteristics(priorityChars);
   }, [initialStock]);
 
   // Calculate which characteristics should be visible based on container height
@@ -120,7 +135,14 @@ export const RankingItem: React.FC<Props> = ({
     if (!charContainerRef.current) return;
 
     // Get all characteristics and sort by score (descending)
-    const sortedChars = [...stock.characteristics].sort((a, b) => b.score - a.score);
+    // Filter out priority characteristics as they'll be shown separately
+    const priorityCharNames = PRIORITY_CHARACTERISTICS.filter(name => 
+      stock.characteristics.some(c => c.name === name)
+    );
+    
+    const sortedChars = [...stock.characteristics]
+      .filter(char => !priorityCharNames.includes(char.name))
+      .sort((a, b) => b.score - a.score);
     
     const container = charContainerRef.current;
     // Clone the container for testing
@@ -131,12 +153,17 @@ export const RankingItem: React.FC<Props> = ({
     testContainer.innerHTML = '';
     document.body.appendChild(testContainer);
     
+    // First add all priority characteristic badges
+    const priorityBadges = document.createElement('div');
+    priorityBadges.style.display = 'inline-block';
+    testContainer.appendChild(priorityBadges);
+    
     // Calculate how many badges we can fit before creating more than 2 rows
     const maxHeight = 28; // Approximate height for 1 row (adjust as needed)
     let visibleCount = 0;
     const totalChars = sortedChars.length;
     
-    // Always add at least one characteristic if available
+    // If we have no non-priority characteristics, early return
     if (totalChars === 0) {
       setVisibleCharacteristics([]);
       setHasHiddenCharacteristics(false);
@@ -184,6 +211,11 @@ export const RankingItem: React.FC<Props> = ({
       moreTestContainer.innerHTML = '';
       document.body.appendChild(moreTestContainer);
       
+      // Add the priority badges first
+      const priorityBadges = document.createElement('div');
+      priorityBadges.style.display = 'inline-block';
+      moreTestContainer.appendChild(priorityBadges);
+      
       // Add visible badges
       for (let i = 0; i < visibleCount; i++) {
         const badge = document.createElement('div');
@@ -220,12 +252,19 @@ export const RankingItem: React.FC<Props> = ({
 
   // Check visible characteristics on stock change or window resize
   useEffect(() => {
+    // First, extract priority characteristics
+    const priorityChars = stock.characteristics.filter(
+      char => PRIORITY_CHARACTERISTICS.includes(char.name)
+    );
+    setPriorityCharacteristics(priorityChars);
+    
+    // Then calculate remaining visible characteristics
     calculateVisibleCharacteristics();
     window.addEventListener('resize', calculateVisibleCharacteristics);
     return () => {
       window.removeEventListener('resize', calculateVisibleCharacteristics);
     };
-  }, [calculateVisibleCharacteristics]);
+  }, [calculateVisibleCharacteristics, stock.characteristics]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -519,7 +558,18 @@ export const RankingItem: React.FC<Props> = ({
             <Badge variant="default" className="font-semibold">{stock.symbol}</Badge>
             <Badge variant="secondary" className="whitespace-nowrap">Score: {stock.total_score}</Badge>
             
-            {/* Characteristics container with ref for measuring */}
+            {/* Priority Characteristics - shown with yellow text */}
+            {priorityCharacteristics.length > 0 && priorityCharacteristics.map((char) => (
+              <Badge 
+                key={char.id} 
+                variant="outline" 
+                className="text-yellow-600 dark:text-yellow-400 whitespace-nowrap"
+              >
+                {char.name}
+              </Badge>
+            ))}
+            
+            {/* Regular Characteristics container with ref for measuring */}
             <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
               {visibleCharacteristics.map((char) => (
                 <Badge key={char.id} variant="outline">
@@ -603,8 +653,10 @@ export const RankingItem: React.FC<Props> = ({
                   const selectedChar = isSelected ? getCharacteristicById(globalChar.id) : null;
                   
                   return (
-                    <div key={globalChar.id} className="flex items-center justify-between border p-0.5 rounded min-h-[28px]">
-
+                    <div 
+                      key={globalChar.id} 
+                      className="flex items-center justify-between border p-0.5 rounded min-h-[28px]"
+                    >
                       <div className="flex items-center gap-1">
                         <Checkbox 
                           checked={isSelected}
