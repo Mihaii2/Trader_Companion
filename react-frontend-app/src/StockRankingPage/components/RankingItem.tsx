@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, X, Edit, Check, MoreHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Edit, Check, MoreHorizontal, Download } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,9 +56,9 @@ const ORDERED_CHARACTERISTICS = [
   "Good Q Revenue",
   "Good Q Margins",
   "Good Q EPS",
-  "Signs Acceleration will Continue",
   "Sales Deceleration",
   "EPS Deceleration",
+  "Not Much Taxes",
   "Code 33",
   "Rolling 2Q Code 33",
   "Last Q 20pct EPS",
@@ -67,15 +67,18 @@ const ORDERED_CHARACTERISTICS = [
   "Good ROE",
   "Bad Inventory&Receivables",
   "Earnings Red Flags",
-  "Upward Revisions",
-  "Downward Revisions",
   "Over 10pct Avg surprise",
   "Q with 75pct Surprise",
+  "Upward Revisions",
+  "Downward Revisions",
   "Good Ownership Past Q",
+  "Bad Ownership Past Q",
   "Good Guidance",
+  "Signs Acceleration will Continue",
   "Top Competitor",
   "Industry Leader",
   "Cyclical",
+  
 ];
 
 // Define priority characteristics that should always be displayed first if present
@@ -547,6 +550,46 @@ export const RankingItem: React.FC<Props> = ({
     });
   };
 
+  // Generate and download characteristics JSON
+  const handleDownloadJson = () => {
+    try {
+      // Create an object to map each characteristic to its checked status
+      const characteristicsStatus: Record<string, boolean> = {};
+      
+      // Add entries for all global characteristics
+      globalCharacteristics.forEach(gc => {
+        const isChecked = isCharacteristicSelected(gc.id);
+        characteristicsStatus[gc.name] = isChecked;
+      });
+      
+      // Create the data object to download
+      const downloadData = {
+        symbol: stock.symbol,
+        total_score: stock.total_score,
+        personal_opinion_score: stock.personal_opinion_score,
+        details: detailsText,
+        characteristics: characteristicsStatus
+      };
+      
+      // Convert to JSON
+      const jsonData = JSON.stringify(downloadData, null, 2);
+      
+      // Create and trigger download
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${stock.symbol}_characteristics.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error downloading JSON:', err);
+      setError('Failed to download characteristics data');
+    }
+  };
+
   return (
     <Card className="rounded-sm">
       <CardContent className="p-0 pl-1 rounded-sm">
@@ -644,7 +687,21 @@ export const RankingItem: React.FC<Props> = ({
             )}
             
             <div className="mb-4">
-              <h3 className="text-sm font-medium mb-1">Characteristics</h3>
+              <div className="flex justify-between items-center mb-1">
+                <h3 className="text-sm font-medium">Characteristics</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 py-0 flex items-center gap-1"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadJson();
+                  }}
+                >
+                  <Download className="h-3 w-3" />
+                  <span className="text-xs">Download</span>
+                </Button>
+              </div>
               
               {/* Compact Grid of Global Characteristics - sorted by predefined order */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5">
