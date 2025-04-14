@@ -35,9 +35,9 @@ interface Props {
 const ORDERED_CHARACTERISTICS = [
   "Earnings Surprises",
   "Strong Against Market",
-  "Ugly Correction",
+  "Spike Down On Volume",
   "Good Stage 2 Volume",
-  "TBA",
+  "Spikes On Volume",
   "Shakeouts",
   "Volatile",
   "MVP",
@@ -69,7 +69,9 @@ const ORDERED_CHARACTERISTICS = [
   "Earnings Red Flags",
   "Over 10pct Avg surprise",
   "Q with 75pct Surprise",
+  "Sales Surprises",
   "Upward Revisions",
+  "Sales Upward Revisions",
   "Downward Revisions",
   "Good Ownership Past Q",
   "Bad Ownership Past Q",
@@ -78,6 +80,7 @@ const ORDERED_CHARACTERISTICS = [
   "Top Competitor",
   "Industry Leader",
   "Cyclical",
+  "Turnaround",
   
 ];
 
@@ -87,6 +90,7 @@ const PRIORITY_CHARACTERISTICS = [
   "Leader",
   "Cyclical",
   "Top Competitor",
+  "Turnaround",
 ];
 
 export const RankingItem: React.FC<Props> = ({

@@ -109,20 +109,23 @@ export const RiskPoolStats: React.FC = () => {
           // Formula for reducing risk pool when below threshold
           const calculateReducedRiskPool = (
             currentRiskPool: number,
-            lossAmount: number,
-            k: number = 20
+            lossAmount: number
           ): number => {
-            const reduction = lossAmount * currentRiskPool / (currentRiskPool + k);
+            const reductionFactor = 0.2;
+            const lossProportion = Math.min(lossAmount / currentRiskPool, 1.0);
+            const reduction = currentRiskPool * reductionFactor * lossProportion;
             return currentRiskPool - reduction;
           };
+          
 
           // Formula for increasing risk pool when below threshold
           const calculateIncreasedRiskPool = (
             currentRiskPool: number,
-            winAmount: number,
-            k: number = 20
+            winAmount: number
           ): number => {
-            const increase = winAmount * currentRiskPool / (currentRiskPool + k);
+            const increaseFactor = 0.2;
+            const winProportion = Math.min(winAmount / currentRiskPool, 1.0);
+            const increase = currentRiskPool * increaseFactor * winProportion;
             return currentRiskPool + increase;
           };
 
