@@ -615,7 +615,17 @@ export const RankingItem: React.FC<Props> = ({
                 {char.name}
               </Badge>
             ))}
-            
+
+            {/* Demand Reason Badge - shown with green text right after priority characteristics */}
+            {stock.demand_reason && (
+              <Badge 
+                variant="outline" 
+                className="text-green-600 dark:text-green-400 whitespace-nowrap"
+              >
+                {stock.demand_reason}
+              </Badge>
+            )}
+
             {/* Regular Characteristics container with ref for measuring */}
             <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
               {visibleCharacteristics.map((char) => (
@@ -777,6 +787,59 @@ export const RankingItem: React.FC<Props> = ({
                 })}
               </div>
             </div>
+            {/* Demand Reason - More compact layout */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Demand Reason:</span>
+                <div className="flex-1">
+                  <Input
+                    value={stock.demand_reason || ''}
+                    onChange={async (e) => {
+                      const newDemandReason = e.target.value;
+                      // Update local state immediately
+                      setStock(prevStock => ({
+                        ...prevStock,
+                        demand_reason: newDemandReason
+                      }));
+                      
+                      // Clear any existing timeout
+                      if (saveTimeoutRef.current) {
+                        clearTimeout(saveTimeoutRef.current);
+                      }
+                      
+                      // Set a new timeout to save after typing stops
+                      saveTimeoutRef.current = setTimeout(async () => {
+                        try {
+                          setIsSaving(true);
+                          
+                          // Update demand reason in backend
+                          const updatedStock = await stockPicksApi.updateStockPick(stock.id, {
+                            demand_reason: newDemandReason,
+                            ranking_box: stock.ranking_box,
+                            symbol: stock.symbol,
+                            total_score: stock.total_score,
+                            personal_opinion_score: stock.personal_opinion_score,
+                            case_text: stock.case_text
+                          });
+                          
+                          // Update with server response
+                          setStock(updatedStock.data);
+                          onUpdate(updatedStock.data);
+                        } catch (err) {
+                          console.error('Error saving demand reason:', err);
+                          setError('Failed to save demand reason');
+                        } finally {
+                          setIsSaving(false);
+                        }
+                      }, 1000);
+                    }}
+                    placeholder="Enter demand reason..."
+                    className="h-8"
+                  />
+                </div>
+              </div>
+            </div>
+            
             
             {/* Personal Opinion Score - More compact layout */}
             <div className="mb-4">

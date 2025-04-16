@@ -24,6 +24,7 @@ class StockPick(models.Model):
     symbol = models.CharField(max_length=10)  # Stock symbol/ticker
     total_score = models.DecimalField(max_digits=5, decimal_places=2)
     personal_opinion_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    demand_reason = models.TextField(blank=True, default='')  # Add this new field
     case_text = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     characteristics = models.ManyToManyField(
