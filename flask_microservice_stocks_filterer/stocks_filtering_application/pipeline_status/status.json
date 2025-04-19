@@ -1,12 +1,14 @@
 {
-  "start_time": 1744758277.7074885,
-  "current_step": "Fetching price data",
+  "start_time": 1744988193.1360536,
+  "current_step": "Running pipelines",
   "steps_completed": [
-    "Fetching price data"
+    "Fetching price data",
+    "Running pipelines"
   ],
   "current_batch": null,
   "total_batches": null,
-  "status": "running",
-  "last_updated": 1744758277.7084632,
-  "process_pid": 63348
+  "status": "completed",
+  "last_updated": 1744992321.240018,
+  "process_pid": null,
+  "end_time": 1744992321.2400174
 }

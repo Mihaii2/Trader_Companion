@@ -109,41 +109,23 @@ export const useTradeStats = (filters: ExtendedFilters) => {
   }, [filteredTrades, selectedMonths]);
 
   const yearlyStats = useMemo((): YearlyStats => {
-    // DEBUG: Log selected months
-    console.log('DEBUG - Selected Months:', Array.from(selectedMonths));
-    
     const selectedTrades = filteredTrades.filter(trade => {
       const month = format(parseISO(trade.Exit_Date), 'MMM yy');
       return selectedMonths.has(month);
     });
-  
-    // DEBUG: Log selected trades count
-    console.log('DEBUG - Selected Trades Count:', selectedTrades.length);
     
     const gains = selectedTrades.filter(t => t.Exit_Price > t.Entry_Price);
     const losses = selectedTrades.filter(t => t.Exit_Price < t.Entry_Price);
-  
-    // DEBUG: Log gains and losses counts
-    console.log('DEBUG - Gains Count:', gains.length, 'Losses Count:', losses.length);
     
     const totalGain = gains.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
     const totalLoss = losses.reduce((acc, t) => acc + (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100, 0);
-  
-    // DEBUG: Log total gain and loss values
-    console.log('DEBUG - Total Gain:', totalGain.toFixed(2), 'Total Loss:', totalLoss.toFixed(2));
     
     const avgGain = gains.length ? totalGain / gains.length : 0;
     const avgLoss = losses.length ? totalLoss / losses.length : 0;
     
-    // DEBUG: Log average gain and loss
-    console.log('DEBUG - Avg Gain:', avgGain.toFixed(2), 'Avg Loss:', avgLoss.toFixed(2));
-    
     // For compounding returns, use the expected growth rate formula
     const winRate = selectedTrades.length ? gains.length / selectedTrades.length : 0;
     const lossRate = selectedTrades.length ? losses.length / selectedTrades.length : 0;
-    
-    // DEBUG: Log win rate and loss rate
-    console.log('DEBUG - Win Rate:', winRate.toFixed(4), 'Loss Rate:', lossRate.toFixed(4));
     
     // Calculate expected growth rate (log mean)
     let expectedGrowthRate = 0;
@@ -152,45 +134,27 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       const winComponent = winRate * Math.log(1 + avgGain/100);
       const lossComponent = lossRate * Math.log(1 + avgLoss/100);
       expectedGrowthRate = winComponent + lossComponent;
-      
-      // DEBUG: Log detailed growth rate calculations
-      console.log('DEBUG - Win Component:', winComponent.toFixed(6));
-      console.log('DEBUG - Loss Component:', lossComponent.toFixed(6));
-      console.log('DEBUG - Expected Growth Rate (log):', expectedGrowthRate.toFixed(6));
     }
     
     // Expected growth per trade (with compounding effect)
     const expectedGrowthPerTrade = (Math.exp(expectedGrowthRate) - 1) * 100;
     
-    // DEBUG: Log expected growth per trade
-    console.log('DEBUG - Expected Growth Per Trade:', expectedGrowthPerTrade.toFixed(4), '%');
-    
     // Position sizing calculations
     const positionSize125 = 0.125; // 12.5% position sizing
     const positionSize25 = 0.25;   // 25% position sizing
     
-    // Calculate expected returns with 12.5% position sizing
+    // Calculate expected returns with different position sizing
     const expectedReturnOn10Trades_125 = (Math.exp(expectedGrowthRate * positionSize125 * 10) - 1) * 100;
     const expectedReturnOn50Trades_125 = (Math.exp(expectedGrowthRate * positionSize125 * 50) - 1) * 100;
-    
-    // DEBUG: Log 12.5% position sizing calculations
-    console.log('DEBUG - Expected Return (12.5%, 10 trades):', expectedReturnOn10Trades_125.toFixed(4), '%');
-    console.log('DEBUG - Expected Return (12.5%, 50 trades):', expectedReturnOn50Trades_125.toFixed(4), '%');
-    
-    // Calculate expected returns with 25% position sizing
     const expectedReturnOn10Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 10) - 1) * 100;
     const expectedReturnOn50Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 50) - 1) * 100;
-    
-    // DEBUG: Log 25% position sizing calculations
-    console.log('DEBUG - Expected Return (25%, 10 trades):', expectedReturnOn10Trades_25.toFixed(4), '%');
-    console.log('DEBUG - Expected Return (25%, 50 trades):', expectedReturnOn50Trades_25.toFixed(4), '%');
   
     return {
       winningPercentage: selectedTrades.length ? winRate * 100 : 0,
       averageGain: avgGain,
       averageLoss: avgLoss,
       winLossRatio: avgLoss !== 0 ? Math.abs(avgGain / avgLoss) : 0,
-      expectedValuePerTrade: expectedGrowthPerTrade, // Using the geometric growth rate
+      expectedValuePerTrade: expectedGrowthPerTrade,
       expectedReturnOn10Trades_125: expectedReturnOn10Trades_125,
       expectedReturnOn50Trades_125: expectedReturnOn50Trades_125,
       expectedReturnOn10Trades_25: expectedReturnOn10Trades_25,
@@ -198,7 +162,6 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     };
   }, [filteredTrades, selectedMonths]);
   
-
   const toggleMonth = (month: string) => {
     setSelectedMonths(prev => {
       const newSet = new Set(prev);
@@ -211,5 +174,13 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     });
   };
 
-  return { monthlyStats, yearlyStats, loading, toggleMonth };
+  // Now also returning filteredTrades and selectedMonths for the distribution component
+  return { 
+    monthlyStats, 
+    yearlyStats, 
+    loading, 
+    toggleMonth, 
+    filteredTrades,
+    selectedMonths 
+  };
 };

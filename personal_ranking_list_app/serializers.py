@@ -39,14 +39,14 @@ class StockPickSerializer(serializers.ModelSerializer):
     ranking_box = serializers.PrimaryKeyRelatedField(queryset=RankingBox.objects.all())
     total_score = serializers.FloatField()
     personal_opinion_score = serializers.FloatField(required=False, default=0)
-    demand_reason = serializers.CharField(required=False, allow_blank=True)  # Add this new field
-    case_text = serializers.CharField(required=False, allow_blank=True)
+    demand_reason = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    case_text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    note = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     class Meta:
         model = StockPick
         fields = ['id', 'ranking_box', 'symbol', 'total_score', 'personal_opinion_score',
-                  'demand_reason', 'case_text', 'created_at', 'characteristics']  # Add demand_reason to fields
-
+                  'demand_reason', 'case_text', 'note', 'created_at', 'characteristics']  # Include note in fields
 
 class RankingBoxSerializer(serializers.ModelSerializer):
     stock_picks = StockPickSerializer(many=True, read_only=True)

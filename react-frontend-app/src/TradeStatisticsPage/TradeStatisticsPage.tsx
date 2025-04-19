@@ -5,11 +5,12 @@ import { TradeFilterer } from './components/TradeFilterer';
 import { useTradeStats } from './hooks/useTradeStats';
 import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { RiskPoolStats } from './components/RiskPoolStats';
+import { TradeDistribution } from './components/TradeDistribution';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export const TradingStatsPage: React.FC = () => {
   const [filters, setFilters] = useState<Partial<Trade>>({});
-  const { monthlyStats, yearlyStats, loading, toggleMonth } = useTradeStats(filters);
+  const { monthlyStats, yearlyStats, loading, toggleMonth, filteredTrades, selectedMonths } = useTradeStats(filters);
 
   if (loading) {
     return (
@@ -21,7 +22,6 @@ export const TradingStatsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-
       <RiskPoolStats />
       
       <Card>
@@ -32,6 +32,12 @@ export const TradingStatsPage: React.FC = () => {
           />
         </CardContent>
       </Card>
+
+      {/* New Trade Distribution Component */}
+      <TradeDistribution 
+        filteredTrades={filteredTrades} 
+        selectedMonths={selectedMonths}
+      />
 
       <Card>
         <CardHeader>
@@ -50,7 +56,6 @@ export const TradingStatsPage: React.FC = () => {
           <TradeFilterer filters={filters} onFilterChange={setFilters} />
         </CardContent>
       </Card>
-
     </div>
   );
 };

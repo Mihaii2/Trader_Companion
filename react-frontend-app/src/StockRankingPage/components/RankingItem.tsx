@@ -53,6 +53,7 @@ const ORDERED_CHARACTERISTICS = [
   "Good Yearly Sales",
   "Good Yearly Margins",
   "Good Yearly EPS",
+  "EPS Breakout Year",
   "Good Q Revenue",
   "Good Q Margins",
   "Good Q EPS",
@@ -62,7 +63,6 @@ const ORDERED_CHARACTERISTICS = [
   "Code 33",
   "Rolling 2Q Code 33",
   "Last Q 20pct EPS",
-  "EPS Breakout Year",
   "Sudden Growth Change",
   "Good ROE",
   "Bad Inventory&Receivables",
@@ -113,6 +113,8 @@ export const RankingItem: React.FC<Props> = ({
   const [visibleCharacteristics, setVisibleCharacteristics] = useState<StockPick['characteristics']>([]);
   const [priorityCharacteristics, setPriorityCharacteristics] = useState<StockPick['characteristics']>([]);
   const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
+  const [note, setNote] = useState<string>(initialStock.note || '');
+
   
   // Track pending characteristic changes
   const [pendingCharacteristics, setPendingCharacteristics] = useState<Record<number, boolean>>({});
@@ -128,6 +130,7 @@ export const RankingItem: React.FC<Props> = ({
     setStock(initialStock);
     setCaseText(initialStock.case_text || '');
     setPersonalScore(initialStock.personal_opinion_score || 0);
+    setNote(initialStock.note || '');
     
     // Extract priority characteristics that exist in this stock
     const priorityChars = initialStock.characteristics.filter(
@@ -572,6 +575,8 @@ export const RankingItem: React.FC<Props> = ({
         total_score: stock.total_score,
         personal_opinion_score: stock.personal_opinion_score,
         details: detailsText,
+        demand_reason: stock.demand_reason,
+        note: note, // Add this line
         characteristics: characteristicsStatus
       };
       
@@ -615,6 +620,16 @@ export const RankingItem: React.FC<Props> = ({
                 {char.name}
               </Badge>
             ))}
+
+            {/* Note Badge - shown with blue text before demand reason */}
+            {stock.note && (
+              <Badge 
+                variant="outline" 
+                className="text-blue-600 dark:text-blue-400 whitespace-nowrap"
+              >
+                {stock.note}
+              </Badge>
+            )}
 
             {/* Demand Reason Badge - shown with green text right after priority characteristics */}
             {stock.demand_reason && (
@@ -699,6 +714,61 @@ export const RankingItem: React.FC<Props> = ({
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            {/* Note field - Add this after the Demand Reason section (around line 624) */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Note:</span>
+                <div className="flex-1">
+                  <Input
+                    value={note || ''}
+                    onChange={async (e) => {
+                      const newNote = e.target.value;
+                      // Update local state immediately
+                      setNote(newNote);
+                      setStock(prevStock => ({
+                        ...prevStock,
+                        note: newNote
+                      }));
+                      
+                      // Clear any existing timeout
+                      if (saveTimeoutRef.current) {
+                        clearTimeout(saveTimeoutRef.current);
+                      }
+                      
+                      // Set a new timeout to save after typing stops
+                      saveTimeoutRef.current = setTimeout(async () => {
+                        try {
+                          setIsSaving(true);
+                          
+                          // Update note in backend
+                          const updatedStock = await stockPicksApi.updateStockPick(stock.id, {
+                            note: newNote,
+                            demand_reason: stock.demand_reason,
+                            ranking_box: stock.ranking_box,
+                            symbol: stock.symbol,
+                            total_score: stock.total_score,
+                            personal_opinion_score: stock.personal_opinion_score,
+                            case_text: stock.case_text
+                          });
+                          
+                          // Update with server response
+                          setStock(updatedStock.data);
+                          onUpdate(updatedStock.data);
+                        } catch (err) {
+                          console.error('Error saving note:', err);
+                          setError('Failed to save note');
+                        } finally {
+                          setIsSaving(false);
+                        }
+                      }, 1000);
+                    }}
+                    placeholder="Enter note..."
+                    className="h-8"
+                  />
+                </div>
+              </div>
+            </div>
             
             <div className="mb-4">
               <div className="flex justify-between items-center mb-1">

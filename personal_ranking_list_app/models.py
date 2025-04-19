@@ -20,12 +20,13 @@ class GlobalCharacteristic(models.Model):
 
 
 class StockPick(models.Model):
-    ranking_box = models.ForeignKey(RankingBox, on_delete=models.CASCADE, related_name='stock_picks')
-    symbol = models.CharField(max_length=10)  # Stock symbol/ticker
-    total_score = models.DecimalField(max_digits=5, decimal_places=2)
-    personal_opinion_score = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    demand_reason = models.TextField(blank=True, default='')  # Add this new field
-    case_text = models.TextField(blank=True, default='')
+    ranking_box = models.ForeignKey(RankingBox, related_name='stock_picks', on_delete=models.CASCADE)
+    symbol = models.CharField(max_length=10)
+    total_score = models.FloatField(default=0)
+    personal_opinion_score = models.FloatField(default=0)
+    demand_reason = models.CharField(max_length=100, blank=True, null=True)
+    case_text = models.TextField(blank=True, null=True)
+    note = models.TextField(blank=True, null=True)  # Add this new field
     created_at = models.DateTimeField(auto_now_add=True)
     characteristics = models.ManyToManyField(
         GlobalCharacteristic,

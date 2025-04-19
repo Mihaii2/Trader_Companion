@@ -1,72 +1,72 @@
-2025-04-15 02:14:43,522 - INFO - Starting stock screening pipeline
-2025-04-15 02:14:43,522 - INFO - Finding and deleting old CSV files...
-2025-04-15 02:14:43,524 - INFO - Found 15 CSV files to delete
-2025-04-15 02:14:43,525 - INFO - Deleting: Days_Traded.csv
-2025-04-15 02:14:43,525 - INFO - Deleting: max_rsi_12m.csv
-2025-04-15 02:14:43,526 - INFO - Deleting: max_rsi_3m.csv
-2025-04-15 02:14:43,526 - INFO - Deleting: max_rsi_6m.csv
-2025-04-15 02:14:43,527 - INFO - Deleting: max_rsi_vs_market_3mo.csv
-2025-04-15 02:14:43,528 - INFO - Deleting: min_rsi_vs_market_3mo.csv
-2025-04-15 02:14:43,528 - INFO - Deleting: mvp_stocks_6mo.csv
-2025-04-15 02:14:43,528 - INFO - Deleting: price_spikes.csv
-2025-04-15 02:14:43,529 - INFO - Deleting: top_price_increase_1y.csv
-2025-04-15 02:14:43,530 - INFO - Deleting: top_price_tightness_1w.csv
-2025-04-15 02:14:43,530 - INFO - Deleting: volume_acceleration_stocks.csv
-2025-04-15 02:14:43,531 - INFO - Deleting: close_to_52week_high.csv
-2025-04-15 02:14:43,532 - INFO - Deleting: last_price_above_10.csv
-2025-04-15 02:14:43,533 - INFO - Deleting: obligatory_passed_stocks.csv
-2025-04-15 02:14:43,533 - INFO - Deleting: trading_for_at_most_3mo.csv
-2025-04-15 02:14:43,583 - INFO - [minimum_5_dollar.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-04-15 02:14:43,583 - INFO - [minimum_5_dollar.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv
-2025-04-15 02:14:43,586 - INFO - [trading_for_at_most_3mo.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-04-15 02:14:43,586 - INFO - [close_to_52week_high.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-04-15 02:14:43,586 - INFO - [trading_for_at_most_3mo.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv
-2025-04-15 02:14:43,586 - INFO - [close_to_52week_high.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv
-2025-04-15 02:15:39,059 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 10 months analysis complete. 181 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv.
-2025-04-15 02:15:39,059 - INFO - [trading_for_at_most_3mo.py] Skipped 501 rows due to missing or invalid data.
-2025-04-15 02:15:39,237 - INFO - [minimum_5_dollar.py] Last price check complete. 2563 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv.
-2025-04-15 02:15:39,237 - INFO - [minimum_5_dollar.py] Skipped 501 rows due to missing or invalid data.
-2025-04-15 02:15:39,319 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 1713 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv.
-2025-04-15 02:15:39,319 - INFO - [close_to_52week_high.py] Skipped 501 rows due to missing or invalid data.
-2025-04-15 02:15:39,460 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-04-15 02:15:39,461 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-04-15 02:15:39,461 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-04-15 02:15:39,461 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-04-15 02:15:39,463 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-04-15 02:15:39,463 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-04-15 02:15:39,463 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-04-15 02:15:39,463 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-04-15 02:15:39,464 - INFO - [obligatory_screen_passer.py] 
-2025-04-15 02:15:39,464 - INFO - [obligatory_screen_passer.py] Found 36 stocks that passed all available screens
-2025-04-15 02:15:39,464 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
-2025-04-15 02:15:39,518 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
-2025-04-15 02:15:39,526 - INFO - [banned_filter.py] Checking 36 symbols for ban. 17 symbols are allowed.
-2025-04-15 02:15:39,526 - INFO - [banned_filter.py] Removed 1 expired bans.
-2025-04-15 02:15:41,540 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='C:\\Users\\Victus\\PycharmProjects\\Stocks_Screener_V2\\flask_microservice_stocks_filterer\\stocks_filtering_application\\ipos\\ranking_screens\\passed_stocks_input_data\\filtered_price_data.csv' mode='w' encoding='cp1252'>
-2025-04-15 02:15:41,618 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 0 Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\volume_acceleration_stocks.csv
-2025-04-15 02:15:42,012 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_increase_1y.csv
-2025-04-15 02:15:42,012 - INFO - [top_price_tightness_1w.py] Top stocks by price tightness (last 1 week) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_tightness_1w.csv
-2025-04-15 02:15:42,014 - INFO - [days_traded.py] Stocks ranked by number of trading days have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\Days_Traded.csv
-2025-04-15 02:15:42,033 - INFO - [price_spikes.py] Analysis complete. Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\price_spikes.csv
-2025-04-15 02:15:42,034 - INFO - [top_rsi_12m.py] Skipping SMA: Insufficient trading data (only 9 days)
-2025-04-15 02:15:42,038 - INFO - [top_rsi_12m.py] Top stocks by maximum RSI (last 12 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_12m.csv
-2025-04-15 02:15:42,038 - INFO - [top_rsi_12m.py] Total stocks analyzed: 16
-2025-04-15 02:15:42,038 - INFO - [top_rsi_12m.py] Stocks excluded due to insufficient trading data: 1
-2025-04-15 02:15:42,045 - INFO - [top_rsi.py] Skipping SMA: Insufficient trading data (only 9 days)
-2025-04-15 02:15:42,047 - INFO - [top_rsi_6m.py] Skipping SMA: Insufficient trading data (only 9 days)
-2025-04-15 02:15:42,050 - INFO - [top_rsi.py] Top stocks by maximum RSI (last 3 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_3m.csv
-2025-04-15 02:15:42,050 - INFO - [top_rsi.py] Total stocks analyzed: 16
-2025-04-15 02:15:42,051 - INFO - [top_rsi.py] Stocks excluded due to insufficient trading data: 1
-2025-04-15 02:15:42,052 - INFO - [top_rsi_6m.py] Top stocks by maximum RSI (last 6 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_6m.csv
-2025-04-15 02:15:42,052 - INFO - [top_rsi_6m.py] Total stocks analyzed: 16
-2025-04-15 02:15:42,052 - INFO - [top_rsi_6m.py] Stocks excluded due to insufficient trading data: 1
-2025-04-15 02:15:42,103 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_increases_1y.py:27: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-04-15 02:15:42,103 - ERROR - [top_price_increases_1y.py ERROR] price_increases = df.groupby('Symbol').apply(calculate_price_increase)
-2025-04-15 02:15:42,104 - ERROR - [top_price_tightness_1w.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_tightness_1w.py:31: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-04-15 02:15:42,104 - ERROR - [top_price_tightness_1w.py ERROR] price_tightness = df_filtered.groupby('Symbol').apply(calculate_price_tightness)
-2025-04-15 02:15:42,118 - ERROR - [days_traded.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\days_traded.py:26: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-04-15 02:15:42,118 - ERROR - [days_traded.py ERROR] trading_days = df.groupby('Symbol').apply(count_trading_days)
-2025-04-15 02:15:42,490 - INFO - [mvp.py] Stocks meeting MVP criteria at least once in the last 6 months have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\mvp_stocks_6mo.csv
-2025-04-15 02:15:43,232 - INFO - [top_n_stocks_by_price_increase.py] Warning: File 'mvp_stocks_6mo.csv' has an invalid header. Skipping.
-2025-04-15 02:15:43,233 - INFO - [top_n_stocks_by_price_increase.py] 'C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\stocks_ranking_by_price.csv' has been created.
-2025-04-15 02:15:43,238 - INFO - Stock screening pipeline completed successfully.
+2025-04-18 19:03:28,004 - INFO - Starting stock screening pipeline
+2025-04-18 19:03:28,004 - INFO - Finding and deleting old CSV files...
+2025-04-18 19:03:28,005 - INFO - Found 15 CSV files to delete
+2025-04-18 19:03:28,005 - INFO - Deleting: Days_Traded.csv
+2025-04-18 19:03:28,006 - INFO - Deleting: max_rsi_12m.csv
+2025-04-18 19:03:28,007 - INFO - Deleting: max_rsi_3m.csv
+2025-04-18 19:03:28,007 - INFO - Deleting: max_rsi_6m.csv
+2025-04-18 19:03:28,008 - INFO - Deleting: max_rsi_vs_market_3mo.csv
+2025-04-18 19:03:28,009 - INFO - Deleting: min_rsi_vs_market_3mo.csv
+2025-04-18 19:03:28,009 - INFO - Deleting: mvp_stocks_6mo.csv
+2025-04-18 19:03:28,010 - INFO - Deleting: price_spikes.csv
+2025-04-18 19:03:28,011 - INFO - Deleting: top_price_increase_1y.csv
+2025-04-18 19:03:28,011 - INFO - Deleting: top_price_tightness_1w.csv
+2025-04-18 19:03:28,012 - INFO - Deleting: volume_acceleration_stocks.csv
+2025-04-18 19:03:28,013 - INFO - Deleting: close_to_52week_high.csv
+2025-04-18 19:03:28,014 - INFO - Deleting: last_price_above_10.csv
+2025-04-18 19:03:28,014 - INFO - Deleting: obligatory_passed_stocks.csv
+2025-04-18 19:03:28,014 - INFO - Deleting: trading_for_at_most_3mo.csv
+2025-04-18 19:03:28,102 - INFO - [close_to_52week_high.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-04-18 19:03:28,102 - INFO - [close_to_52week_high.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv
+2025-04-18 19:03:28,102 - INFO - [trading_for_at_most_3mo.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-04-18 19:03:28,103 - INFO - [trading_for_at_most_3mo.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv
+2025-04-18 19:03:28,106 - INFO - [minimum_5_dollar.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-04-18 19:03:28,106 - INFO - [minimum_5_dollar.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv
+2025-04-18 19:04:25,718 - INFO - [minimum_5_dollar.py] Last price check complete. 2509 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv.
+2025-04-18 19:04:25,718 - INFO - [minimum_5_dollar.py] Skipped 502 rows due to missing or invalid data.
+2025-04-18 19:04:26,138 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 1722 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv.
+2025-04-18 19:04:26,138 - INFO - [close_to_52week_high.py] Skipped 502 rows due to missing or invalid data.
+2025-04-18 19:04:26,680 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 10 months analysis complete. 178 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv.
+2025-04-18 19:04:26,680 - INFO - [trading_for_at_most_3mo.py] Skipped 502 rows due to missing or invalid data.
+2025-04-18 19:04:26,857 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
+2025-04-18 19:04:26,858 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-04-18 19:04:26,858 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
+2025-04-18 19:04:26,858 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
+2025-04-18 19:04:26,859 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
+2025-04-18 19:04:26,859 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-04-18 19:04:26,859 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
+2025-04-18 19:04:26,859 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
+2025-04-18 19:04:26,860 - INFO - [obligatory_screen_passer.py] 
+2025-04-18 19:04:26,860 - INFO - [obligatory_screen_passer.py] Found 37 stocks that passed all available screens
+2025-04-18 19:04:26,860 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
+2025-04-18 19:04:26,910 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
+2025-04-18 19:04:26,918 - INFO - [banned_filter.py] Checking 37 symbols for ban. 19 symbols are allowed.
+2025-04-18 19:04:26,919 - INFO - [banned_filter.py] Removed 2 expired bans.
+2025-04-18 19:04:29,656 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='C:\\Users\\Victus\\PycharmProjects\\Stocks_Screener_V2\\flask_microservice_stocks_filterer\\stocks_filtering_application\\ipos\\ranking_screens\\passed_stocks_input_data\\filtered_price_data.csv' mode='w' encoding='cp1252'>
+2025-04-18 19:04:29,880 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 0 Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\volume_acceleration_stocks.csv
+2025-04-18 19:04:30,872 - INFO - [days_traded.py] Stocks ranked by number of trading days have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\Days_Traded.csv
+2025-04-18 19:04:30,872 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_increase_1y.csv
+2025-04-18 19:04:30,873 - INFO - [top_price_tightness_1w.py] Top stocks by price tightness (last 1 week) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_tightness_1w.csv
+2025-04-18 19:04:30,925 - INFO - [top_rsi_6m.py] Skipping SMA: Insufficient trading data (only 12 days)
+2025-04-18 19:04:30,925 - INFO - [top_rsi_12m.py] Skipping SMA: Insufficient trading data (only 12 days)
+2025-04-18 19:04:30,935 - INFO - [price_spikes.py] Analysis complete. Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\price_spikes.csv
+2025-04-18 19:04:30,936 - INFO - [top_rsi_12m.py] Top stocks by maximum RSI (last 12 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_12m.csv
+2025-04-18 19:04:30,936 - INFO - [top_rsi_12m.py] Total stocks analyzed: 18
+2025-04-18 19:04:30,936 - INFO - [top_rsi_12m.py] Stocks excluded due to insufficient trading data: 1
+2025-04-18 19:04:30,938 - INFO - [top_rsi_6m.py] Top stocks by maximum RSI (last 6 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_6m.csv
+2025-04-18 19:04:30,938 - INFO - [top_rsi_6m.py] Total stocks analyzed: 18
+2025-04-18 19:04:30,938 - INFO - [top_rsi_6m.py] Stocks excluded due to insufficient trading data: 1
+2025-04-18 19:04:30,944 - INFO - [top_rsi.py] Skipping SMA: Insufficient trading data (only 12 days)
+2025-04-18 19:04:30,960 - INFO - [top_rsi.py] Top stocks by maximum RSI (last 3 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_3m.csv
+2025-04-18 19:04:30,960 - INFO - [top_rsi.py] Total stocks analyzed: 18
+2025-04-18 19:04:30,960 - INFO - [top_rsi.py] Stocks excluded due to insufficient trading data: 1
+2025-04-18 19:04:31,001 - ERROR - [top_price_increases_1y.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_increases_1y.py:27: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-04-18 19:04:31,001 - ERROR - [days_traded.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\days_traded.py:26: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-04-18 19:04:31,001 - ERROR - [top_price_increases_1y.py ERROR] price_increases = df.groupby('Symbol').apply(calculate_price_increase)
+2025-04-18 19:04:31,002 - ERROR - [days_traded.py ERROR] trading_days = df.groupby('Symbol').apply(count_trading_days)
+2025-04-18 19:04:31,014 - ERROR - [top_price_tightness_1w.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_tightness_1w.py:31: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-04-18 19:04:31,015 - ERROR - [top_price_tightness_1w.py ERROR] price_tightness = df_filtered.groupby('Symbol').apply(calculate_price_tightness)
+2025-04-18 19:04:31,899 - INFO - [mvp.py] Stocks meeting MVP criteria at least once in the last 6 months have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\mvp_stocks_6mo.csv
+2025-04-18 19:04:33,307 - INFO - [top_n_stocks_by_price_increase.py] Warning: File 'mvp_stocks_6mo.csv' has an invalid header. Skipping.
+2025-04-18 19:04:33,308 - INFO - [top_n_stocks_by_price_increase.py] 'C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\stocks_ranking_by_price.csv' has been created.
+2025-04-18 19:04:33,314 - INFO - Stock screening pipeline completed successfully.

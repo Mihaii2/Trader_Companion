@@ -18,6 +18,7 @@ export interface StockPick {
   total_score: number;
   personal_opinion_score: number;
   demand_reason: string;
+  note: string;
   ranking_box: number;
   case_text: string;
   characteristics: StockCharacteristic[];
