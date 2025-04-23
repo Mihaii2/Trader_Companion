@@ -43,7 +43,8 @@ const ORDERED_CHARACTERISTICS = [
   "MVP",
   "Power Play",
   "Fast Rebounder",
-  "Looks Late Stage",
+  "PE & Bases Look Late Stage",
+  "Started Off Correction",
   "Early Stage",
   "Bad Liquidity",
   "Earnings Dump",
@@ -59,7 +60,6 @@ const ORDERED_CHARACTERISTICS = [
   "Good Q EPS",
   "Sales Deceleration",
   "EPS Deceleration",
-  "Not Much Taxes",
   "Code 33",
   "Rolling 2Q Code 33",
   "Last Q 20pct EPS",
@@ -67,6 +67,7 @@ const ORDERED_CHARACTERISTICS = [
   "Good ROE",
   "Bad Inventory&Receivables",
   "Earnings Red Flags",
+  "Not Much Taxes",
   "Over 10pct Avg surprise",
   "Q with 75pct Surprise",
   "Sales Surprises",
@@ -114,6 +115,7 @@ export const RankingItem: React.FC<Props> = ({
   const [priorityCharacteristics, setPriorityCharacteristics] = useState<StockPick['characteristics']>([]);
   const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
   const [note, setNote] = useState<string>(initialStock.note || '');
+  const [lastClickedCharacteristic, setLastClickedCharacteristic] = useState<number | null>(null);
 
   
   // Track pending characteristic changes
@@ -796,7 +798,10 @@ export const RankingItem: React.FC<Props> = ({
                   return (
                     <div 
                       key={globalChar.id} 
-                      className="flex items-center justify-between border p-0.5 rounded min-h-[28px]"
+                      className={`flex items-center justify-between border p-0.5 rounded min-h-[28px] 
+                        ${lastClickedCharacteristic === globalChar.id ? 'bg-primary/20' : ''} 
+                        hover:bg-secondary/20 transition-colors duration-150 cursor-default`}
+                      onClick={() => setLastClickedCharacteristic(globalChar.id)}
                     >
                       <div className="flex items-center gap-1">
                         <Checkbox 

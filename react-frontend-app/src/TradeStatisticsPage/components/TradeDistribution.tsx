@@ -108,7 +108,7 @@ export const TradeDistribution: React.FC<TradeDistributionProps> = ({
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background border rounded p-2 shadow-md">
+        <div className="bg-card border rounded p-2 shadow-md">
           <p className="font-medium">{`${data.range}%`}</p>
           <p className="text-sm">{`${data.count} trades`}</p>
           <p className="text-sm">{`${data.percentage.toFixed(1)}% of total`}</p>
@@ -130,7 +130,7 @@ export const TradeDistribution: React.FC<TradeDistributionProps> = ({
   }, [distributionData.intervals]);
 
   return (
-    <Card className="bg-black text-white">
+    <Card>
       <CardHeader>
         <CardTitle>Trade Return Distribution</CardTitle>
       </CardHeader>
@@ -187,10 +187,17 @@ export const TradeDistribution: React.FC<TradeDistributionProps> = ({
                       angle={-45} 
                       textAnchor="end" 
                       height={60}
-                      tick={{ fontSize: 10 }}
+                      tick={{ fontSize: 10, fill: "#60656e" }}  // Added fill color for light gray
                       interval={0}
+                      // Remove the stroke="currentColor" or change it if needed
                     />
-                    <YAxis />
+                    <YAxis stroke="currentColor"
+                      tick={{  fill: "#60656e" }} // Added fill color for light gray
+                      interval={0}tickMargin={5} // Add some margin between the ticks and the axis line
+                      width={40} // Adjust the width of the Y-axis to make space for the labels
+                      tickLine={{ stroke: "#60656e" }} // Added stroke color for light gray
+                      axisLine={{ stroke: "#60656e" }} // Added stroke color for light gray
+                    />
                     <Tooltip content={<CustomTooltip />} />
                     
                     {/* Reference area for -2 to 0 and 0 to 2 range */}
@@ -198,14 +205,14 @@ export const TradeDistribution: React.FC<TradeDistributionProps> = ({
                       <ReferenceArea 
                         x1={distributionData.intervals[zeroAreaIndices.startIndex].label} 
                         x2={distributionData.intervals[zeroAreaIndices.endIndex - 1].label}
-                        fill="#0066FF" 
+                        fill="hsl(var(--primary))" 
                         fillOpacity={0.2} 
                       />
                     )}
                     
                     <Bar 
                       dataKey="count" 
-                      fill="#8884d8" 
+                      fill="hsl(var(--primary))" 
                       minPointSize={2}
                       isAnimationActive={false}
                     />

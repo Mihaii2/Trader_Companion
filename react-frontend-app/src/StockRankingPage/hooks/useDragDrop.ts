@@ -75,7 +75,6 @@ export const useDragDrop = (
       'break-inside-avoid mb-1',
       'transition-all duration-200',
       'cursor-move',
-      'hover:scale-[1.01] active:scale-[0.99]',
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
       isDragging && 'opacity-75'
     )
