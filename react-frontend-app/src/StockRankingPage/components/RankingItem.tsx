@@ -92,6 +92,7 @@ const PRIORITY_CHARACTERISTICS = [
   "Cyclical",
   "Top Competitor",
   "Turnaround",
+  "Power Play"
 ];
 
 export const RankingItem: React.FC<Props> = ({
