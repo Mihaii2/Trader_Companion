@@ -12,6 +12,7 @@ class Trades(models.Model):
     Pattern = models.CharField(max_length=100)
     Days_In_Pattern_Before_Entry = models.IntegerField()
     Price_Tightness_1_Week_Before = models.FloatField()
+    Pct_Off_52W_High = models.FloatField(default=100)
     Exit_Reason = models.CharField(max_length=1000)
     Market_Condition = models.CharField(max_length=100)
     Category = models.CharField(max_length=100)
@@ -41,6 +42,7 @@ class Trades(models.Model):
     Under_30k_Shares = models.BooleanField(default=False)
     Spikes_On_Volume = models.BooleanField(default=False)
     Started_Off_Correction = models.BooleanField(default=False)
+    All_Trendlines_Up = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.Ticker} - {self.Entry_Date}"

@@ -11,6 +11,7 @@ type FilterExtensions = {
   minFundamentalsQuality?: number
   maxPriceTightness?: number
   maxNrBases?: number
+  pctOff52WHigh?: number
 }
 
 type TradeFiltererProps = {
@@ -22,7 +23,8 @@ const MIN_VALUE_FIELDS = {
   minEarningsQuality: 'Min Earnings Quality',
   minFundamentalsQuality: 'Min Fundamentals Quality',
   maxPriceTightness: 'Max Price Tightness (1 Week Before)',
-  maxNrBases: 'Max Number of Bases'
+  maxNrBases: 'Max Number of Bases',
+  pctOff52WHigh: 'Max % Off 52W High'
 } as const
 
 const DROPDOWN_FIELDS = [
@@ -52,7 +54,8 @@ const DROPDOWN_FIELDS = [
   'Over_10_pct_Avg_Surprise',
   'Under_30k_Shares',
   'Spikes_On_Volume',
-  'Started_Off_Correction'
+  'Started_Off_Correction',
+  'All_Trendlines_Up'
 ] as const
 
 const formatLabel = (fieldName: string): string => {

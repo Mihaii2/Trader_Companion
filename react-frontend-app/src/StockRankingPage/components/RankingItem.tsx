@@ -35,13 +35,24 @@ interface Props {
 const ORDERED_CHARACTERISTICS = [
   "Earnings Surprises",
   "Strong Against Market",
+  "Weak RSI(<70)",
+  "Weak Against Market",
   "Spike Down On Volume",
+  "Support off The Lows",
   "Good Stage 2 Volume",
+  "M - Favorable Market Direction",
+  "Accum.(no selling) on Weekly",
+  "Accum.(no selling) on Daily",
+  "High Alpha Low StdDev",
+  "Low Alpha High StdDev",
   "Spikes On Volume",
   "Shakeouts",
   "Volatile",
+  "Strong RSI(>70)",
+  "Strong IPO Price Action",
   "MVP",
   "Power Play",
+  "PP With Tight W Closes",
   "Fast Rebounder",
   "PE & Bases Look Late Stage",
   "Started Off Correction",
@@ -51,18 +62,23 @@ const ORDERED_CHARACTERISTICS = [
   "IPO 10 Years",
   "Low PE",
   "Under 30k Shares",
+  "S - Reasonable Number Of Shares",
   "Good Yearly Sales",
   "Good Yearly Margins",
   "Good Yearly EPS",
   "EPS Breakout Year",
-  "Good Q Revenue",
-  "Good Q Margins",
-  "Good Q EPS",
+  "Good Q YOY Revenue",
+  "Good Q YOY Margins",
+  "Good Q YOY EPS",
+  "Reasonable Debt",
   "Sales Deceleration",
-  "EPS Deceleration",
+  "No Earnings Deceleration",
+  "C - Current Quarter 20% Up",
+  "Earnings Acceleration somewhere in Last 10Q",
+  "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
   "Code 33",
   "Rolling 2Q Code 33",
-  "Last Q 20pct EPS",
+  "Last Q 20pct YOY EPS",
   "Sudden Growth Change",
   "Good ROE",
   "Bad Inventory&Receivables",
@@ -75,14 +91,15 @@ const ORDERED_CHARACTERISTICS = [
   "Sales Upward Revisions",
   "Downward Revisions",
   "Good Ownership Past Q",
+  "I - Institutional support so far",
   "Bad Ownership Past Q",
+  "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
   "Good Guidance",
   "Signs Acceleration will Continue",
   "Top Competitor",
   "Industry Leader",
   "Cyclical",
   "Turnaround",
-  
 ];
 
 // Define priority characteristics that should always be displayed first if present
@@ -93,6 +110,20 @@ const PRIORITY_CHARACTERISTICS = [
   "Top Competitor",
   "Turnaround",
   "Power Play"
+];
+
+const COLOR_CODED_CHARACTERISTICS = [
+  "Good Stage 2 Volume",
+  "Strong RSI(>70)",
+  "No Earnings Deceleration",
+  "Earnings Acceleration somewhere in Last 10Q",
+  "C - Current Quarter 20% Up",
+  "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
+  "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
+  "S - Reasonable Number Of Shares",
+  "L - Leader",
+  "I - Institutional support so far",
+  "M - Favorable Market Direction"
 ];
 
 export const RankingItem: React.FC<Props> = ({
@@ -795,15 +826,23 @@ export const RankingItem: React.FC<Props> = ({
                 {getSortedGlobalCharacteristics().map(globalChar => {
                   const isSelected = isCharacteristicSelected(globalChar.id);
                   const selectedChar = isSelected ? getCharacteristicById(globalChar.id) : null;
-                  
+                  const isColorCoded = COLOR_CODED_CHARACTERISTICS.includes(globalChar.name);
+
                   return (
                     <div 
                       key={globalChar.id} 
                       className={`flex items-center justify-between border p-0.5 rounded min-h-[28px] 
                         ${lastClickedCharacteristic === globalChar.id ? 'bg-primary/20' : ''} 
-                        hover:bg-secondary/20 transition-colors duration-150 cursor-default`}
+                        ${isColorCoded ? 
+                          (isSelected 
+                            ? 'bg-green-100 dark:bg-green-900/40 border-green-300 dark:border-green-800' 
+                            : 'bg-red-50 dark:bg-red-900/40 border-red-200 dark:border-red-950/50'
+                          ) : 'hover:bg-secondary/20'
+                        }
+                        transition-colors duration-150 cursor-default`}
                       onClick={() => setLastClickedCharacteristic(globalChar.id)}
                     >
+              
                       <div className="flex items-center gap-1">
                         <Checkbox 
                           checked={isSelected}

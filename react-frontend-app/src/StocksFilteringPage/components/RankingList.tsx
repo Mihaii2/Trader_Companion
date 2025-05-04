@@ -135,29 +135,34 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
             {totalStocks} Stocks
           </span>
           <button 
-            className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-            onClick={() => {
-              // Create text content with one ticker symbol per line
-              const content = sortedRankings.map(item => item.Symbol).join('\n');
-              
-              // Create blob and download link
-              const blob = new Blob([content], { type: 'text/plain' });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = 'list.txt';
-              document.body.appendChild(a);
-              a.click();
-              
-              // Clean up
-              setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }, 100);
-            }}
-          >
-            Download List
-          </button>
+  className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+  onClick={() => {
+    // Format data with the correct format
+    const tickers = sortedRankings.map(item => item.Symbol);
+    
+    let formattedContent = "CSVEXPORT\nCOLUMN,0\n";
+    formattedContent += tickers.map(ticker => 
+      `SYM,${ticker},SMART/AMEX,`
+    ).join('\n');
+    
+    // Create blob and download link
+    const blob = new Blob([formattedContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'export.csv';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  }}
+>
+  Download List
+</button>
           {title || 'Stock Rankings'}
         </div>
         <div className="text-sm text-muted-foreground text-right">

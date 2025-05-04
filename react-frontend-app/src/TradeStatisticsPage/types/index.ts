@@ -32,4 +32,5 @@ export interface ExtendedFilters extends Partial<Trade> {
   minFundamentalsQuality?: number;
   maxPriceTightness?: number;
   minNrBases?: number;
+  pctOff52WHigh?: number;
 }

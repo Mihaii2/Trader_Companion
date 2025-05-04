@@ -48,6 +48,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Earnings_Quality: 'w-16',
     Fundamentals_Quality: 'w-20',
     Nr_Bases: 'w-10',
+    Pct_Off_52W_High: 'w-16',
   };
 
   useEffect(() => {

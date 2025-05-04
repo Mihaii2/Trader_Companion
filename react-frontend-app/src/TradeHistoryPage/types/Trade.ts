@@ -41,4 +41,6 @@ export interface Trade {
   Case: string;
   Spikes_On_Volume: boolean;
   Started_Off_Correction: boolean;
+  All_Trendlines_Up: boolean;
+  Pct_Off_52W_High: number;
 }

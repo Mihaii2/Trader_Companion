@@ -52,6 +52,8 @@ export const useTradeStats = (filters: ExtendedFilters) => {
               return trade.Price_Tightness_1_Week_Before <= value;
             case 'maxNrBases':
               return trade.Nr_Bases <= value;
+            case 'pctOff52WHigh':
+              return trade.Pct_Off_52W_High <= value;
             default:
               if (typeof trade[key as keyof Trade] === 'boolean') {
                 return trade[key as keyof Trade] === (value === 'true');
