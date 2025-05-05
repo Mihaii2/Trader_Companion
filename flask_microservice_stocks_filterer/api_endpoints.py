@@ -364,5 +364,65 @@ def stop_pipeline():
     })
 
 
+@app.route('/stock_counts', methods=['GET'])
+def get_stock_counts():
+    """
+    Get the total number of stocks in each list before filtering/bans
+
+    Returns:
+        JSON object containing:
+        - minervini_1mo_total: Total number of stocks in minervini 1mo list
+        - minervini_4mo_total: Total number of stocks in minervini 4mo list
+        - ipos_total: Total number of stocks in IPOs list
+    """
+    try:
+        # Get the absolute path of the stocks_filtering_application directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Find the absolute path of the "flask_microservice_stocks_filterer" directory
+        while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.dirname(
+                script_dir) != script_dir:
+            script_dir = os.path.dirname(script_dir)
+
+        base_path = os.path.join(script_dir, "stocks_filtering_application")
+
+        # Define paths to each CSV file
+        minervini_1mo_path = os.path.join(base_path, "minervini_1mo/obligatory_screens/obligatory_passed_stocks.csv")
+        minervini_4mo_path = os.path.join(base_path, "minervini_4mo/obligatory_screens/obligatory_passed_stocks.csv")
+        ipos_path = os.path.join(base_path, "ipos/obligatory_screens/obligatory_passed_stocks.csv")
+
+        # Count rows in each file
+        minervini_1mo_count = count_rows_in_csv(minervini_1mo_path)
+        minervini_4mo_count = count_rows_in_csv(minervini_4mo_path)
+        ipos_count = count_rows_in_csv(ipos_path)
+
+        return jsonify({
+            "status": "success",
+            "minervini_1mo_total": minervini_1mo_count,
+            "minervini_4mo_total": minervini_4mo_count,
+            "ipos_total": ipos_count
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": f"Error retrieving stock counts: {str(e)}"
+        }), 500
+
+
+def count_rows_in_csv(file_path):
+    """Helper function to count rows in a CSV file"""
+    try:
+        if not os.path.exists(file_path):
+            return 0
+
+        with open(file_path, 'r') as f:
+            # Using pandas to account for header row and ensure proper CSV parsing
+            df = pd.read_csv(file_path)
+            return len(df)
+    except Exception as e:
+        print(f"Error counting rows in {file_path}: {str(e)}")
+        return 0
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

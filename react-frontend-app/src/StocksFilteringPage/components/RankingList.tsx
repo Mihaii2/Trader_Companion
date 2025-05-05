@@ -257,11 +257,11 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
                           : 'bg-red-500/40 hover:bg-red-600/80'}`}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent row click when clicking the button
-                        handleBanStock(item.Symbol, 24);
+                        handleBanStock(item.Symbol, 12);
                       }}
                       disabled={bannedStocks[item.Symbol]}
                     >
-                      {pendingBans[item.Symbol] ? '...' : '6Mo'}
+                      {pendingBans[item.Symbol] ? '...' : '3Mo'}
                     </button>
                     <button
                       className={`text-white w-full text-xs font-medium py-0.5 px-2 rounded

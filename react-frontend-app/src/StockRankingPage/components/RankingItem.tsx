@@ -74,8 +74,12 @@ const ORDERED_CHARACTERISTICS = [
   "Sales Deceleration",
   "No Earnings Deceleration",
   "C - Current Quarter 20% Up",
+  "C - Current Quarter 40% Up",
+  "Previous 2 Quarters Also Up 20%",
   "Earnings Acceleration somewhere in Last 10Q",
   "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
+  "Compounded Yearly EPS of 50%",
+  "Steady Yearly EPS increase",
   "Code 33",
   "Rolling 2Q Code 33",
   "Last Q 20pct YOY EPS",
@@ -86,6 +90,7 @@ const ORDERED_CHARACTERISTICS = [
   "Not Much Taxes",
   "Over 10pct Avg surprise",
   "Q with 75pct Surprise",
+  "Decelerating Surprises %",
   "Sales Surprises",
   "Upward Revisions",
   "Sales Upward Revisions",
@@ -97,7 +102,7 @@ const ORDERED_CHARACTERISTICS = [
   "Good Guidance",
   "Signs Acceleration will Continue",
   "Top Competitor",
-  "Industry Leader",
+  "L - Leader",
   "Cyclical",
   "Turnaround",
 ];
@@ -105,7 +110,7 @@ const ORDERED_CHARACTERISTICS = [
 // Define priority characteristics that should always be displayed first if present
 // Replace these with your preferred characteristics list
 const PRIORITY_CHARACTERISTICS = [
-  "Leader",
+  "L - Leader",
   "Cyclical",
   "Top Competitor",
   "Turnaround",
@@ -117,6 +122,7 @@ const COLOR_CODED_CHARACTERISTICS = [
   "Strong RSI(>70)",
   "No Earnings Deceleration",
   "Earnings Acceleration somewhere in Last 10Q",
+  "Started Off Correction",
   "C - Current Quarter 20% Up",
   "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
   "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
@@ -835,7 +841,7 @@ export const RankingItem: React.FC<Props> = ({
                         ${lastClickedCharacteristic === globalChar.id ? 'bg-primary/20' : ''} 
                         ${isColorCoded ? 
                           (isSelected 
-                            ? 'bg-green-100 dark:bg-green-900/40 border-green-300 dark:border-green-800' 
+                            ? 'bg-green-100 dark:bg-green-800/40' 
                             : 'bg-red-50 dark:bg-red-900/40 border-red-200 dark:border-red-950/50'
                           ) : 'hover:bg-secondary/20'
                         }
@@ -905,7 +911,7 @@ export const RankingItem: React.FC<Props> = ({
             {/* Demand Reason - More compact layout */}
             <div className="mb-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Demand Reason:</span>
+                <span className="text-sm font-medium">Catalyst:</span>
                 <div className="flex-1">
                   <Input
                     value={stock.demand_reason || ''}
