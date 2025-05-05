@@ -149,13 +149,13 @@ def kill_ib_processes():
 @app.route('/rankings/<path:filename>', methods=['GET'])
 def get_rankings(filename):
     """
-    Get the contents of a ranking file
+    Get the contents of a ranking file and count total stocks in the source obligatory_passed_stocks.csv
 
     Args:
         filename (str): Name of the ranking file (without .csv extension)
 
     Returns:
-        JSON object containing the CSV data, creation date, and status or error message
+        JSON object containing the CSV data, creation date, total stocks count, and status or error message
     """
 
     file_path = os.path.join('./stocks_filtering_application', filename)
@@ -170,7 +170,6 @@ def get_rankings(filename):
                 "message": f"Ranking file {file_path} not found"
             }), 404
 
-
         # Get modification times for both files
         price_data_timestamp = os.path.getmtime(stock_data_path)
         rankings_timestamp = os.path.getmtime(file_path)
@@ -184,14 +183,39 @@ def get_rankings(filename):
         # Convert DataFrame to list of dictionaries
         rankings_data = df.fillna('').to_dict('records')
 
+        # Default total stocks (in case we can't find the file)
+        total_stocks = 0
+
+        # Determine which list this file belongs to and get total stocks count
+        if 'minervini_1mo' in file_path:
+            total_path = os.path.join('./stocks_filtering_application',
+                                      'minervini_1mo/obligatory_screens/results/obligatory_passed_stocks.csv')
+            if os.path.exists(total_path):
+                total_stocks = len(pd.read_csv(total_path))
+        elif 'minervini_4mo' in file_path:
+            total_path = os.path.join('./stocks_filtering_application',
+                                      'minervini_4mo/obligatory_screens/results/obligatory_passed_stocks.csv')
+            if os.path.exists(total_path):
+                total_stocks = len(pd.read_csv(total_path))
+        elif 'ipos' in file_path:
+            total_path = os.path.join('./stocks_filtering_application',
+                                      'ipos/obligatory_screens/results/obligatory_passed_stocks.csv')
+            if os.path.exists(total_path):
+                total_stocks = len(pd.read_csv(total_path))
+
+        filtered_stocks = len(rankings_data)
+
         return jsonify({
             "status": "success",
             "message": rankings_data,
             "stock_data_created_at": price_data_date,
-            "rankings_created_at": rankings_date
+            "rankings_created_at": rankings_date,
+            "total_stocks": total_stocks,
+            "filtered_stocks": filtered_stocks
         })
 
     except Exception as e:
+        print(f"Error in get_rankings: {str(e)}")
         return jsonify({
             "status": "error",
             "message": f"Error reading files: {str(e)}"

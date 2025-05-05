@@ -101,10 +101,11 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     return <div className="bg-background rounded-lg shadow-sm p-4">No data available</div>;
   }
 
-  // Get total count of stocks
-  const totalStocks = sortedRankings.length;
+  // Get filtered and total counts from API response
+  const filteredStocks = rankings?.filtered_stocks ?? sortedRankings.length;
+  const totalStocks = rankings?.total_stocks ?? 0;
 
-  // Get all available columns
+  // All available columns
   const allAvailableColumns = Object.keys(sortedRankings[0]);
   
   // Define the exact order we want for specific columns
@@ -131,38 +132,45 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     <div className="bg-background rounded-lg shadow-sm">
       <div className="p-4 border-b border-border flex justify-between items-start">
         <div className="text-lg font-semibold flex items-center gap-2">
-          <span className="text-base px-2 py-0.5 rounded-md bg-primary/20">
-            {totalStocks} Stocks
-          </span>
+          <div className="flex gap-2 items-center">
+            <span className="text-base px-2 py-0.5 rounded-md bg-primary/20">
+              {filteredStocks} Filtered Stocks
+            </span>
+            {totalStocks > 0 && (
+              <span className="text-base px-2 py-0.5 rounded-md bg-primary/20">
+                {totalStocks} Total Stocks
+              </span>
+            )}
+          </div>
           <button 
-  className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-  onClick={() => {
-    // Format data with the correct format
-    const tickers = sortedRankings.map(item => item.Symbol);
-    
-    let formattedContent = "CSVEXPORT\nCOLUMN,0\n";
-    formattedContent += tickers.map(ticker => 
-      `SYM,${ticker},SMART/AMEX,`
-    ).join('\n');
-    
-    // Create blob and download link
-    const blob = new Blob([formattedContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'export.csv';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Clean up
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 100);
-  }}
->
-  Download List
-</button>
+            className="text-xs px-2 py-0.5 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+            onClick={() => {
+              // Format data with the correct format
+              const tickers = sortedRankings.map(item => item.Symbol);
+              
+              let formattedContent = "CSVEXPORT\nCOLUMN,0\n";
+              formattedContent += tickers.map(ticker => 
+                `SYM,${ticker},SMART/AMEX,`
+              ).join('\n');
+              
+              // Create blob and download link
+              const blob = new Blob([formattedContent], { type: 'text/plain' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'export.csv';
+              document.body.appendChild(a);
+              a.click();
+              
+              // Clean up
+              setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }, 100);
+            }}
+          >
+            Download List
+          </button>
           {title || 'Stock Rankings'}
         </div>
         <div className="text-sm text-muted-foreground text-right">
@@ -286,5 +294,3 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
     </div>
   );
 };
-
-export default RankingList;

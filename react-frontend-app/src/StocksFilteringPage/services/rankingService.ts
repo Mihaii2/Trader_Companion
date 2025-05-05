@@ -15,7 +15,9 @@ export const rankingService = {
           status: 'success',
           message: response.data.message,
           stock_data_created_at: response.data.stock_data_created_at,
-          rankings_created_at: response.data.rankings_created_at
+          rankings_created_at: response.data.rankings_created_at,
+          total_stocks: response.data.total_stocks || 0, // Default to 0 if not present
+          filtered_stocks: response.data.filtered_stocks || 0 // Default to 0 if not present
         };
       }
 
@@ -31,7 +33,9 @@ export const rankingService = {
           status: 'success',
           message: parsed.message,
           stock_data_created_at: parsed.stock_data_created_at,
-          rankings_created_at: parsed.rankings_created_at
+          rankings_created_at: parsed.rankings_created_at,
+          total_stocks: parsed.total_stocks || 0, // Default to 0 if not present
+          filtered_stocks: parsed.filtered_stocks || 0 // Default to 0 if not present
         };
       }
 

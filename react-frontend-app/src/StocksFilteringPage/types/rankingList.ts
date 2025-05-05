@@ -18,6 +18,8 @@ export interface RankingListSuccessResponse {
   message: RankingItem[];
   stock_data_created_at: string;
   rankings_created_at: string;
+  total_stocks: number;  // Optional as older API responses might not have this
+  filtered_stocks: number; // Optional as older API responses might not have this
 }
 
 // For the error response
