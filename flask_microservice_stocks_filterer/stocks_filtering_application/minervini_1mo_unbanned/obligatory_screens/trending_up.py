@@ -52,7 +52,7 @@ def main():
 
     # Define the input and output file paths
     input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
-    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "trending_up_stocks.csv")
+    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results", "trending_up_stocks.csv")
 
     print(f"Resolved input file path: {input_file}")
     print(f"Resolved output file path: {output_file}")

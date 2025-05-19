@@ -12,7 +12,7 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
     script_dir = os.path.dirname(script_dir)
 
 # Define paths based on the correct absolute directory
-logs_dir = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "logs")
+logs_dir = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "logs")
 os.makedirs(logs_dir, exist_ok=True)
 
 
@@ -89,8 +89,8 @@ def run_scripts_in_parallel(scripts, price_increase=None):
 
 def get_dirs_to_cleanup():
     return [
-        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results"),
-        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results")
+        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "ranking_screens", "results"),
+        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results")
     ]
 
 
@@ -119,12 +119,12 @@ def main():
     logging.info("Starting stock screening pipeline")
 
     obligatory_screens = [
-        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", f"{name}.py")
+        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", f"{name}.py")
         for name in
         ["ibd_rs_ranking", "above_52week_low", "trending_up", "close_to_52week_high", "minimum_price_increase", "minimum_5_dollar"]
     ]
     ranking_screens = [
-        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", f"{name}.py")
+        os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "ranking_screens", f"{name}.py")
         for name in ["ibd_rs_ticker_filterer" ,"top_price_increases_1y", "price_spikes", "volume_acceleration", "top_price_tightness_1w", "top_rsi", "mvp", "top_rsi_6m", "top_rsi_12m"]
     ]
 
@@ -138,16 +138,16 @@ def main():
 
     run_scripts_in_parallel(obligatory_screens, args.price_increase)
 
-    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "obligatory_screen_passer.py"))
+    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "obligatory_screen_passer.py"))
 
-    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "banned_stocks", "banned_filter.py"))
+    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "banned_stocks", "banned_filter.py"))
 
-    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "passed_stocks_input_data",
+    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "ranking_screens", "passed_stocks_input_data",
                             "obligatory_screen_data_filter.py"))
 
     run_scripts_in_parallel(ranking_screens)
 
-    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "top_n_stocks_by_price_increase.py"), [str(args.top_n)])
+    run_script(os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "top_n_stocks_by_price_increase.py"), [str(args.top_n)])
 
     logging.info("Stock screening pipeline completed successfully.")
 

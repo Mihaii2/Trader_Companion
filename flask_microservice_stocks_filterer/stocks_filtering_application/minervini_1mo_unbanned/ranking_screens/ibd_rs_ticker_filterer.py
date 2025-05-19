@@ -11,13 +11,13 @@ def main():
         script_dir = os.path.dirname(script_dir)
 
     # Define file paths for input and output
-    rs_raw_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "raw_rs_file.csv")
-    obligatory_passed_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "obligatory_passed_stocks.csv")
-    not_banned_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "banned_stocks", "stocks_not_banned.csv")
+    rs_raw_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results", "raw_rs_file.csv")
+    obligatory_passed_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results", "obligatory_passed_stocks.csv")
+    not_banned_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "banned_stocks", "stocks_not_banned.csv")
     
     # Output files
-    filtered_rs_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "filtered_rs_file.csv")
-    filtered_banned_rs_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "ranking_screens", "results", "filtered_banned_rs_file.csv")
+    filtered_rs_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results", "filtered_rs_file.csv")
+    filtered_banned_rs_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "ranking_screens", "results", "filtered_banned_rs_file.csv")
     
     # Create output directory if it doesn't exist
     output_dir = os.path.dirname(filtered_rs_file)
@@ -69,7 +69,7 @@ def main():
     print(f"Saved filtered RS ratings to {filtered_rs_file}")
     
     # Step 2: Further filter to exclude banned stocks
-    filtered_banned_rs_df = filtered_rs_df[filtered_rs_df['Symbol'].isin(not_banned_stocks)]
+    filtered_banned_rs_df = filtered_rs_df
     print(f"After filtering out banned stocks: {len(filtered_banned_rs_df)} stocks remain")
     
     # Save filtered banned RS file

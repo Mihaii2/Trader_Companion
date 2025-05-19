@@ -27,6 +27,11 @@ export const StocksRankingPage: React.FC = () => {
           filename="minervini_4mo/stocks_ranking_by_price.csv" 
           title="Minervini Trend At least 4 Months (Good for Breakouts)" 
         />
+
+        <RankingList 
+          filename="minervini_1mo_unbanned/stocks_ranking_by_price.csv" 
+          title="Minervini Trend At least 1 Month" 
+        />
       </div>
     </div>
   );

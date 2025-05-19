@@ -128,7 +128,7 @@ def main():
     input_file = os.path.join(
         script_dir,
         "stocks_filtering_application",
-        "minervini_1mo",
+        "minervini_1mo_unbanned",
         "ranking_screens",
         "passed_stocks_input_data",
         "filtered_price_data.csv"
@@ -433,7 +433,7 @@ def main():
     max_output_file = os.path.join(
         script_dir,
         "stocks_filtering_application",
-        "minervini_1mo",
+        "minervini_1mo_unbanned",
         "ranking_screens",
         "results",
         "max_rsi_vs_market_3mo.csv"
@@ -456,7 +456,7 @@ def main():
     min_output_file = os.path.join(
         script_dir,
         "stocks_filtering_application",
-        "minervini_1mo",
+        "minervini_1mo_unbanned",
         "ranking_screens",
         "results",
         "min_rsi_vs_market_3mo.csv"

@@ -76,7 +76,7 @@ def main():
         script_dir = os.path.dirname(script_dir)
 
     # Define the banned stocks file path
-    file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "banned_stocks", "banned_stocks.csv")
+    file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "banned_stocks", "banned_stocks.csv")
 
     # Ensure the directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)

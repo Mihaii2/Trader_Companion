@@ -39,7 +39,7 @@ def main():
 
     # Define the input and output file paths
     input_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
-    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results", "raw_rs_file.csv")
+    output_file = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results", "raw_rs_file.csv")
 
     # Create output directory if it doesn't exist
     output_dir = os.path.dirname(output_file)

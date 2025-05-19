@@ -74,9 +74,9 @@ def main():
         script_dir = os.path.dirname(script_dir)
 
     # Define the file paths dynamically
-    not_banned_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "banned_stocks", "stocks_not_banned.csv")
-    passed_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo","obligatory_screens", "results", "obligatory_passed_stocks.csv")
-    banned_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo","banned_stocks", "banned_stocks.csv")
+    not_banned_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "banned_stocks", "stocks_not_banned.csv")
+    passed_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned","obligatory_screens", "results", "obligatory_passed_stocks.csv")
+    banned_stocks_file_path = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned","banned_stocks", "banned_stocks.csv")
 
     # Ensure the necessary directories exist
     os.makedirs(os.path.dirname(not_banned_file_path), exist_ok=True)

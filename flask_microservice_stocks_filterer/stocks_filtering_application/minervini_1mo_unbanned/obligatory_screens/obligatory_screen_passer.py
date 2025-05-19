@@ -54,7 +54,7 @@ def main():
         script_dir = os.path.dirname(script_dir)
 
     # Define the input directory and output file path
-    input_directory = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo", "obligatory_screens", "results")
+    input_directory = os.path.join(script_dir, "stocks_filtering_application", "minervini_1mo_unbanned", "obligatory_screens", "results")
     output_file = os.path.join(input_directory, "obligatory_passed_stocks.csv")
 
     
