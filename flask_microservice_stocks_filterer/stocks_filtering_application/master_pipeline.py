@@ -19,6 +19,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 PIPELINE_PATHS = [
     os.path.join(script_dir, "minervini_1mo", "stock_screening_pipeline.py"),
     os.path.join(script_dir, "minervini_4mo", "stock_screening_pipeline.py"),
+    os.path.join(script_dir, "minervini_1mo_unbanned", "stock_screening_pipeline.py"),
     os.path.join(script_dir, "ipos", "stock_screening_pipeline.py"),
 ]
 
