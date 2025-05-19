@@ -6,7 +6,35 @@
   ],
   "current_batch": null,
   "total_batches": null,
-  "status": "running",
-  "last_updated": 1747674188.8646042,
-  "process_pid": 30656
+  "status": "completed",
+  "last_updated": 1747674398.260572,
+  "process_pid": null,
+  "errors": [
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-05-19 20:05:36,652 - ERROR - [top_price_tightness_1w.py ERROR] TypeError: unsupported operand type(s) for -: 'float' and 'DateOffset'",
+      "timestamp": 1747674336.69162
+    },
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-05-19 20:05:36,657 - ERROR - [top_rsi_12m.py ERROR] TypeError: unsupported operand type(s) for -: 'float' and 'DateOffset'",
+      "timestamp": 1747674336.7024524
+    },
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-05-19 20:05:36,662 - ERROR - [top_rsi.py ERROR] TypeError: unsupported operand type(s) for -: 'float' and 'DateOffset'",
+      "timestamp": 1747674336.7051623
+    },
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-05-19 20:05:36,665 - ERROR - [top_rsi_6m.py ERROR] TypeError: unsupported operand type(s) for -: 'float' and 'DateOffset'",
+      "timestamp": 1747674336.7058876
+    },
+    {
+      "script": "stock_screening_pipeline.py",
+      "error": "2025-05-19 20:05:36,671 - ERROR - [days_traded.py ERROR] TypeError: DataFrame.sort_values() missing 1 required positional argument: 'by'",
+      "timestamp": 1747674336.7136378
+    }
+  ],
+  "end_time": 1747674398.2605712
 }
