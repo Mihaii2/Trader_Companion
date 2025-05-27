@@ -69,6 +69,8 @@ export const RiskPoolStats: React.FC = () => {
           // Constants
           const thresholdPct = 0.005; // 0.5%
           const maxRiskPoolPct = 0.05; // 5%
+          const reductionFactor = 0.25; // 25% reduction factor
+          const increaseFactor = 0.25; // 25% increase factor
           
           const isWinningTrade = trade.Return !== null && trade.Return > 0;
           
@@ -111,7 +113,6 @@ export const RiskPoolStats: React.FC = () => {
             currentRiskPool: number,
             lossAmount: number
           ): number => {
-            const reductionFactor = 0.2;
             const lossProportion = Math.min(lossAmount / currentRiskPool, 1.0);
             const reduction = currentRiskPool * reductionFactor * lossProportion;
             return currentRiskPool - reduction;
@@ -123,7 +124,6 @@ export const RiskPoolStats: React.FC = () => {
             currentRiskPool: number,
             winAmount: number
           ): number => {
-            const increaseFactor = 0.2;
             const winProportion = Math.min(winAmount / currentRiskPool, 1.0);
             const increase = currentRiskPool * increaseFactor * winProportion;
             return currentRiskPool + increase;
@@ -155,21 +155,31 @@ export const RiskPoolStats: React.FC = () => {
                 currentRiskPool = potentialNewRiskPool;
                 const increasedAmount = currentRiskPool - oldRiskPool;
                 
-                const k = 20; // K value used in formula
-                const formulaCalculation = winAmount * oldRiskPool / (oldRiskPool + k);
+                const winProportion = Math.min(winAmount / oldRiskPool, 1.0);
+                const formulaCalculation = oldRiskPool * increaseFactor * winProportion;
                 
                 logs.push(`Risk Pool Update: Formula used for entire win amount ($${winAmount.toFixed(2)})`);
-                logs.push(`Formula calculation: $${winAmount.toFixed(2)} * $${oldRiskPool.toFixed(2)} / ($${oldRiskPool.toFixed(2)} + ${k}) = $${formulaCalculation.toFixed(4)}`);
+                logs.push(`Formula calculation: $${oldRiskPool.toFixed(2)} * ${increaseFactor} * ${winProportion.toFixed(4)} = $${formulaCalculation.toFixed(4)}`);
                 logs.push(`Formula added: $${increasedAmount.toFixed(4)} to pool`);
               } else {
                 // Applying the formula to the entire win would exceed the threshold
                 // Find the amount that would reach the threshold exactly when using the formula
                 
-                // We need to solve for x in: oldRiskPool + (x * oldRiskPool / (oldRiskPool + k)) = threshold
-                // Rearranging: x = (threshold - oldRiskPool) * (oldRiskPool + k) / oldRiskPool
+                // We need to solve for x in: oldRiskPool + (oldRiskPool * increaseFactor * min(x/oldRiskPool, 1)) = threshold
+                // If x >= oldRiskPool: oldRiskPool + (oldRiskPool * increaseFactor) = threshold
+                // If x < oldRiskPool: oldRiskPool + (increaseFactor * x) = threshold
                 
-                const k = 20;
-                const amountNeededForThreshold = (newThresholdAmount - oldRiskPool) * (oldRiskPool + k) / oldRiskPool;
+                const maxIncrease = oldRiskPool * increaseFactor;
+                const neededIncrease = newThresholdAmount - oldRiskPool;
+                
+                let amountNeededForThreshold: number;
+                if (neededIncrease <= maxIncrease) {
+                  // We can reach threshold with partial application
+                  amountNeededForThreshold = neededIncrease / increaseFactor;
+                } else {
+                  // Need full application plus direct addition
+                  amountNeededForThreshold = oldRiskPool; // This will give us max increase
+                }
                 
                 // Use formula for the threshold portion
                 const riskPoolAtThreshold = calculateIncreasedRiskPool(oldRiskPool, amountNeededForThreshold);
@@ -178,8 +188,10 @@ export const RiskPoolStats: React.FC = () => {
                 // Add the rest directly
                 const remainingWin = winAmount - amountNeededForThreshold;
                 
+                const winProportion = Math.min(amountNeededForThreshold / oldRiskPool, 1.0);
+                
                 logs.push(`Risk Pool Update: Formula used for $${amountNeededForThreshold.toFixed(4)}, adding $${increasedByFormula.toFixed(4)}`);
-                logs.push(`Formula calculation: $${amountNeededForThreshold.toFixed(4)} * $${oldRiskPool.toFixed(2)} / ($${oldRiskPool.toFixed(2)} + ${k}) = $${increasedByFormula.toFixed(4)}`);
+                logs.push(`Formula calculation: $${oldRiskPool.toFixed(2)} * ${increaseFactor} * ${winProportion.toFixed(4)} = $${increasedByFormula.toFixed(4)}`);
                 logs.push(`Full addition for remaining $${remainingWin.toFixed(2)}`);
                 
                 // Apply both parts
@@ -230,14 +242,14 @@ export const RiskPoolStats: React.FC = () => {
                 
                 // Then apply formula for remaining amount
                 const beforeFormula = currentRiskPool;
-                const k = 20; // K value used in formula
-                const formulaCalculation = excessLoss * beforeFormula / (beforeFormula + k);
+                const lossProportion = Math.min(excessLoss / beforeFormula, 1.0);
+                const formulaCalculation = beforeFormula * reductionFactor * lossProportion;
                 
                 currentRiskPool = calculateReducedRiskPool(currentRiskPool, excessLoss);
                 const reducedByFormula = beforeFormula - currentRiskPool;
                 
                 logs.push(`Risk Pool Update: ${reducedByDirect.toFixed(4)} subtracted directly to reach threshold`);
-                logs.push(`Formula calculation: ${excessLoss.toFixed(2)} * ${beforeFormula.toFixed(2)} / (${beforeFormula.toFixed(2)} + ${k}) = ${formulaCalculation.toFixed(4)}`);
+                logs.push(`Formula calculation: ${beforeFormula.toFixed(2)} * ${reductionFactor} * ${lossProportion.toFixed(4)} = ${formulaCalculation.toFixed(4)}`);
                 logs.push(`Formula used for remaining ${excessLoss.toFixed(2)}, reducing by ${reducedByFormula.toFixed(4)}`);
               }
             } else {
@@ -246,11 +258,11 @@ export const RiskPoolStats: React.FC = () => {
               currentRiskPool = calculateReducedRiskPool(currentRiskPool, lossAmount);
               const reducedBy = beforeFormula - currentRiskPool;
               
-              const k = 20; // K value used in formula
-              const formulaCalculation = lossAmount * beforeFormula / (beforeFormula + k);
+              const lossProportion = Math.min(lossAmount / beforeFormula, 1.0);
+              const formulaCalculation = beforeFormula * reductionFactor * lossProportion;
               
               logs.push(`Risk Pool Update: Formula used for entire ${lossAmount.toFixed(2)} loss`);
-              logs.push(`Formula calculation: ${lossAmount.toFixed(2)} * ${beforeFormula.toFixed(2)} / (${beforeFormula.toFixed(2)} + ${k}) = ${formulaCalculation.toFixed(4)}`);
+              logs.push(`Formula calculation: ${beforeFormula.toFixed(2)} * ${reductionFactor} * ${lossProportion.toFixed(4)} = ${formulaCalculation.toFixed(4)}`);
               logs.push(`Formula reduced pool by ${reducedBy.toFixed(4)}`);
             }
             

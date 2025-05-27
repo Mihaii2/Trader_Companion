@@ -37,7 +37,7 @@ export const StocksScreenerCommander: React.FC = () => {
   const { response, loading, error, sendCommand } = useStockScreener();
 
   const [options, setOptions] = useState<ScreeningOptions>({
-    min_price_increase: 50,
+    min_price_increase: 20,
     ranking_method: 'price',
     fetch_data: true,
     top_n: 500,

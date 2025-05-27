@@ -48,7 +48,7 @@ const ORDERED_CHARACTERISTICS = [
   "Spikes On Volume",
   "Shakeouts",
   "Volatile",
-  "Strong Against Others",
+  "Held Up Well Against Market/ Outperforming/ Surging",
   "Strong IPO Price Action",
   "MVP",
   "Power Play",
@@ -66,6 +66,10 @@ const ORDERED_CHARACTERISTICS = [
   "Good Yearly Sales",
   "Good Yearly Net Margins",
   "Good Yearly EPS",
+  "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
+  "Compounded Yearly EPS of 50%",
+  "Steady Yearly EPS increase",
+  "Yearly Code 33",
   "EPS Breakout Year",
   "Good Q YOY Revenue",
   "Good Q YOY Net Margins",
@@ -77,11 +81,7 @@ const ORDERED_CHARACTERISTICS = [
   "C - Current Quarter 40% Up",
   "Previous 2 Quarters Also Up 20%",
   "Earnings Acceleration somewhere in Last 10Q",
-  "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
-  "Compounded Yearly EPS of 50%",
-  "Steady Yearly EPS increase",
   "Code 33",
-  "Yearly Code 33",
   "Rolling 2Q Code 33",
   "Last Q 20pct YOY EPS",
   "Sudden Growth Change",
@@ -104,37 +104,33 @@ const ORDERED_CHARACTERISTICS = [
   "Signs Acceleration will Continue",
   "Top Competitor",
   "L - Leader",
-  "L - Close Second",
   "Cyclical",
-  "Turnaround",
+  "Turnaround(100%>2Q)",
 ];
 
 // Define priority characteristics that should always be displayed first if present
 // Replace these with your preferred characteristics list
 const PRIORITY_CHARACTERISTICS = [
   "L - Leader",
-  "L - Close Second",
   "Cyclical",
   "Top Competitor",
-  "Turnaround",
+  "Turnaround(100%>2Q)",
   "Power Play"
 ];
 
 const COLOR_CODED_CHARACTERISTICS = [
-  "Good Stage 2 Volume",
-  "Strong Against Others",
   "No Earnings Deceleration",
   "Earnings Acceleration somewhere in Last 10Q",
   "Started Off Correction",
   "IPO 10 Years",
-  "Other compay(ies) have good performance too",
+  "Held Up Well Against Market/ Outperforming/ Surging/RSI Uptrend",
   "C - Current Quarter 20% Up",
   "A - Compounded Yearly EPS of 25%(10% for turnarounds)",
   "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
   "S - Reasonable Number Of Shares",
   "L - Leader",
   "I - Institutional support so far",
-  "M - Favorable Market Direction"
+  "M - Favorable Market Direction",
 ];
 
 export const RankingItem: React.FC<Props> = ({

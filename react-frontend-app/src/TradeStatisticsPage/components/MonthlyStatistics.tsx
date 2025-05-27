@@ -67,7 +67,7 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="w-12 text-center">Use In Yearly</TableHead>
+            <TableHead className="w-12 text-center">Use In Statistics</TableHead>
             <TableHead className="text-center">Trading Month</TableHead>
             <TableHead className="text-center">Average GAIN</TableHead>
             <TableHead className="text-center">Average LOSS</TableHead>
