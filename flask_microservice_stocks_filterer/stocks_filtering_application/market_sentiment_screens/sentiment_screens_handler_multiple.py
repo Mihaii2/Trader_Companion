@@ -17,7 +17,7 @@ scripts_dir = os.path.join(script_dir, "stocks_filtering_application", "market_s
 results_dir = os.path.join(scripts_dir, "results")
 os.makedirs(results_dir, exist_ok=True)
 
-nasdaq_stocks_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
+amex_arca_bats_nasdaq_nyse_otc_stocks_file = os.path.join(script_dir, "stocks_filtering_application", "price_data", "all_tickers_historical.csv")
 
 # Define script-to-CSV mapping
 script_mapping = {
@@ -107,9 +107,9 @@ def generate_csv():
     today = date.today() - timedelta(days=2)
     for days in range(250):
         print(f"Processing day {days + 1} / 250")
-        most_recent_date = get_most_recent_date(nasdaq_stocks_file)
+        most_recent_date = get_most_recent_date(amex_arca_bats_nasdaq_nyse_otc_stocks_file)
         if most_recent_date:
-            remove_most_recent_rows(nasdaq_stocks_file, most_recent_date)
+            remove_most_recent_rows(amex_arca_bats_nasdaq_nyse_otc_stocks_file, most_recent_date)
         
         execute_scripts_in_parallel(scripts)
         percentages = {csv: read_percentage(csv) for csv in scripts.values()}

@@ -251,7 +251,7 @@ def chunked_main():
     # Ensure paths are properly resolved
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    input_file = os.path.join(script_dir, "stock_tickers", "nasdaq_stocks.csv")  # File with ticker symbols
+    input_file = os.path.join(script_dir, "stock_tickers", "amex_arca_bats_nasdaq_nyse_otc_stocks.csv")  # File with ticker symbols
     output_dir = os.path.join(script_dir, "fundamental_data")  # Directory to store individual ticker CSVs
     master_output_file = os.path.join(script_dir, "fundamental_data", "all_tickers_fundamentals.csv")  # Final merged output file
     

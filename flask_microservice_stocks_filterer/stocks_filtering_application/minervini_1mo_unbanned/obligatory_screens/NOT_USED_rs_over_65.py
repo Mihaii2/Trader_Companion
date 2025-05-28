@@ -18,7 +18,7 @@ def calculate_rsi(data, periods=14):
     return rsi
 
 # Read the CSV file
-df = pd.read_csv('../../stock_api_data/nasdaq_stocks_1_year_price_data.csv', parse_dates=['Date'])
+df = pd.read_csv('../../stock_api_data/amex_arca_bats_nasdaq_nyse_otc_stocks_1_year_price_data.csv', parse_dates=['Date'])
 
 # Group by Symbol and calculate RSI
 def calculate_group_rsi(group):

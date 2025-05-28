@@ -537,9 +537,9 @@
 2025-03-18 22:46:05,369 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 22:46:05,369 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 22:46:05,369 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 22:46:05,370 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 22:46:05,370 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 22:46:05,370 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
-2025-03-18 22:46:05,373 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 22:46:05,373 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 22:46:05,374 - INFO - Starting new scraping run with 4851 tickers
 2025-03-18 22:46:05,374 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-18 22:46:05,374 - INFO - Current time: 2025-03-18 22:46:05
@@ -791,7 +791,7 @@
 2025-03-18 23:07:45,789 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:07:45,789 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:07:45,790 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:07:45,790 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:07:45,790 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:07:45,790 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:07:45,796 - INFO - Resuming from progress file: 142 processed, 4849 pending
 2025-03-18 23:07:45,796 - INFO - Starting scraper for 4849 pending tickers out of 4991 total
@@ -986,7 +986,7 @@
 2025-03-18 23:15:02,903 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:15:02,903 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:15:02,903 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:15:02,903 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:15:02,903 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:15:02,903 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:15:02,910 - INFO - Resuming from progress file: 284 processed, 4847 pending
 2025-03-18 23:15:02,910 - INFO - Starting scraper for 4847 pending tickers out of 5131 total
@@ -1129,7 +1129,7 @@
 2025-03-18 23:15:19,101 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:15:19,101 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:15:19,102 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:15:19,102 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:15:19,102 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:15:19,102 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:15:19,108 - INFO - Resuming from progress file: 417 processed, 4714 pending
 2025-03-18 23:15:19,108 - INFO - Starting scraper for 4714 pending tickers out of 5131 total
@@ -1158,7 +1158,7 @@
 2025-03-18 23:18:39,945 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:18:39,945 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:18:39,945 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:18:39,946 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:18:39,946 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:18:39,946 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:18:39,946 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
 2025-03-18 23:18:39,952 - INFO - Resuming from progress file: 426 processed, 4705 pending
@@ -1259,7 +1259,7 @@
 2025-03-18 23:30:12,350 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:30:12,350 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:30:12,350 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:30:12,350 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:30:12,350 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:30:12,351 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:30:12,351 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
 2025-03-18 23:30:12,357 - INFO - Resuming from progress file: 463 processed, 4698 pending
@@ -1464,7 +1464,7 @@
 2025-03-18 23:50:18,025 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:50:18,025 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:50:18,025 - INFO - Progress file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\progress.csv
-2025-03-18 23:50:18,025 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:50:18,025 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:50:18,025 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:50:18,026 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
 2025-03-18 23:50:18,031 - INFO - Resuming from progress file: 559 processed, 4692 pending
@@ -1493,10 +1493,10 @@
 2025-03-18 23:54:10,737 - INFO - Starting scraper (restart 0/5)
 2025-03-18 23:54:10,738 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-18 23:54:10,738 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-18 23:54:10,738 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:54:10,738 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:54:10,738 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-18 23:54:10,738 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-18 23:54:10,742 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-18 23:54:10,742 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-18 23:54:10,743 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-18 23:54:10,744 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-18 23:54:10,744 - INFO - Already processed 0 tickers
@@ -1782,10 +1782,10 @@
 2025-03-19 00:29:27,300 - INFO - Starting scraper (restart 0/5)
 2025-03-19 00:29:27,301 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 00:29:27,301 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 00:29:27,301 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 00:29:27,301 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 00:29:27,302 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 00:29:27,302 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 00:29:27,331 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 00:29:27,331 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 00:29:27,332 - INFO - Found 115 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 00:29:27,337 - INFO - Starting scraper for 4736 pending tickers out of 4851 total
 2025-03-19 00:29:27,337 - INFO - Already processed 115 tickers
@@ -1807,10 +1807,10 @@
 2025-03-19 00:31:25,876 - INFO - Starting scraper (restart 0/5)
 2025-03-19 00:31:25,876 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 00:31:25,876 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 00:31:25,876 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 00:31:25,876 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 00:31:25,877 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 00:31:25,877 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 00:31:25,903 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 00:31:25,903 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 00:31:25,904 - INFO - Found 121 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 00:31:25,909 - INFO - Starting scraper for 4730 pending tickers out of 4851 total
 2025-03-19 00:31:25,910 - INFO - Already processed 121 tickers
@@ -2130,10 +2130,10 @@
 2025-03-19 01:11:36,045 - INFO - Starting scraper (restart 0/5)
 2025-03-19 01:11:36,046 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 01:11:36,046 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 01:11:36,046 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:11:36,046 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:11:36,046 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 01:11:36,047 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 01:11:36,170 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:11:36,170 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:11:36,171 - INFO - Found 218 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 01:11:36,181 - INFO - Starting scraper for 4633 pending tickers out of 4851 total
 2025-03-19 01:11:36,182 - INFO - Already processed 218 tickers
@@ -2378,11 +2378,11 @@
 2025-03-19 01:41:33,517 - INFO - Starting scraper (restart 0/5)
 2025-03-19 01:41:33,519 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 01:41:33,519 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 01:41:33,519 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:41:33,519 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:41:33,519 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 01:41:33,519 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
 2025-03-19 01:41:33,519 - INFO - Log file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\scraper.log
-2025-03-19 01:41:33,645 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:41:33,645 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:41:33,646 - INFO - Found 272 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 01:41:33,657 - INFO - Starting scraper for 4579 pending tickers out of 4851 total
 2025-03-19 01:41:33,657 - INFO - Already processed 272 tickers
@@ -2400,10 +2400,10 @@
 2025-03-19 01:43:20,079 - INFO - Starting scraper (restart 0/5)
 2025-03-19 01:43:20,079 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 01:43:20,080 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 01:43:20,080 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:43:20,080 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:43:20,080 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 01:43:20,080 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 01:43:20,134 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 01:43:20,134 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 01:43:20,135 - INFO - Found 277 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 01:43:20,146 - INFO - Starting scraper for 4574 pending tickers out of 4851 total
 2025-03-19 01:43:20,146 - INFO - Already processed 277 tickers
@@ -5140,10 +5140,10 @@ Stacktrace:
 2025-03-19 10:38:23,113 - INFO - Starting scraper (restart 0/5)
 2025-03-19 10:38:23,113 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 10:38:23,114 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 10:38:23,114 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 10:38:23,114 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 10:38:23,114 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 10:38:23,115 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 10:38:23,385 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 10:38:23,385 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 10:38:23,387 - INFO - Found 1342 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 10:38:23,438 - INFO - Starting scraper for 3509 pending tickers out of 4851 total
 2025-03-19 10:38:23,438 - INFO - Already processed 1342 tickers
@@ -7015,10 +7015,10 @@ Stacktrace:
 2025-03-19 14:00:12,430 - INFO - Starting scraper (restart 0/5)
 2025-03-19 14:00:12,430 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 14:00:12,430 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 14:00:12,430 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 14:00:12,430 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 14:00:12,431 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 14:00:12,431 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 14:00:13,531 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 14:00:13,531 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 14:00:13,533 - INFO - Found 1566 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 14:00:13,588 - INFO - Starting scraper for 3285 pending tickers out of 4851 total
 2025-03-19 14:00:13,588 - INFO - Already processed 1566 tickers
@@ -7984,10 +7984,10 @@ Stacktrace:
 2025-03-19 17:40:23,993 - INFO - Starting scraper (restart 0/5)
 2025-03-19 17:40:23,994 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 17:40:23,994 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 17:40:23,994 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 17:40:23,994 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 17:40:23,995 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 17:40:23,995 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 17:40:25,455 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 17:40:25,455 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 17:40:25,458 - INFO - Found 1927 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 17:40:25,536 - INFO - Starting scraper for 2924 pending tickers out of 4851 total
 2025-03-19 17:40:25,537 - INFO - Already processed 1927 tickers
@@ -7997,10 +7997,10 @@ Stacktrace:
 2025-03-19 17:41:09,099 - INFO - Starting scraper (restart 0/5)
 2025-03-19 17:41:09,100 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-19 17:41:09,100 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-19 17:41:09,100 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 17:41:09,100 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 17:41:09,100 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-19 17:41:09,101 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-19 17:41:09,448 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-19 17:41:09,448 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-19 17:41:09,450 - INFO - Found 1928 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-19 17:41:09,520 - INFO - Starting scraper for 2923 pending tickers out of 4851 total
 2025-03-19 17:41:09,521 - INFO - Already processed 1928 tickers
@@ -15034,10 +15034,10 @@ Stacktrace:
 2025-03-20 11:42:31,340 - INFO - Starting scraper (restart 0/5)
 2025-03-20 11:42:31,341 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 11:42:31,341 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 11:42:31,341 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 11:42:31,341 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 11:42:31,341 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 11:42:31,342 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 11:42:34,297 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 11:42:34,297 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 11:42:34,302 - INFO - Found 4639 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 11:42:34,411 - INFO - Starting scraper for 209 pending tickers out of 4851 total
 2025-03-20 11:42:34,411 - INFO - Already processed 4639 tickers
@@ -15550,10 +15550,10 @@ Stacktrace:
 2025-03-20 16:45:00,367 - INFO - Starting scraper (restart 0/5)
 2025-03-20 16:45:00,368 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 16:45:00,368 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 16:45:00,368 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 16:45:00,368 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 16:45:00,368 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 16:45:00,368 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 16:45:00,374 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 16:45:00,374 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 16:45:00,374 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 16:45:00,375 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-20 16:45:00,375 - INFO - Already processed 0 tickers
@@ -17131,10 +17131,10 @@ Stacktrace:
 2025-03-20 18:44:52,730 - INFO - Starting scraper (restart 0/5)
 2025-03-20 18:44:52,730 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 18:44:52,730 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 18:44:52,730 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 18:44:52,730 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 18:44:52,730 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 18:44:52,731 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 18:44:53,271 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 18:44:53,271 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 18:44:53,273 - INFO - Found 993 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 18:44:53,313 - INFO - Starting scraper for 3858 pending tickers out of 4851 total
 2025-03-20 18:44:53,314 - INFO - Already processed 993 tickers
@@ -17170,10 +17170,10 @@ Stacktrace:
 2025-03-20 18:48:52,668 - INFO - Starting scraper (restart 0/5)
 2025-03-20 18:48:52,668 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 18:48:52,668 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 18:48:52,668 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 18:48:52,668 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 18:48:52,669 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 18:48:52,669 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 18:48:52,673 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 18:48:52,673 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 18:48:52,673 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 18:48:52,673 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-20 18:48:52,674 - INFO - Already processed 0 tickers
@@ -17446,10 +17446,10 @@ Stacktrace:
 2025-03-20 19:16:29,425 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:16:29,425 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:16:29,425 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 19:16:29,426 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:16:29,426 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:16:29,426 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:16:29,426 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 19:16:29,427 - INFO - Read 9 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:16:29,427 - INFO - Read 9 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:16:29,427 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 19:16:29,427 - INFO - Starting scraper for 9 pending tickers out of 9 total
 2025-03-20 19:16:29,428 - INFO - Already processed 0 tickers
@@ -17477,10 +17477,10 @@ Stacktrace:
 2025-03-20 19:20:56,856 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:20:56,856 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:20:56,856 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 19:20:56,857 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:20:56,857 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:20:56,857 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:20:56,857 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_activity.txt
-2025-03-20 19:20:56,858 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:20:56,858 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:20:56,859 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 19:20:56,859 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:20:56,859 - INFO - Already processed 0 tickers
@@ -17494,10 +17494,10 @@ Stacktrace:
 2025-03-20 19:27:21,624 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:27:21,625 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:27:21,625 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-20 19:27:21,625 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:27:21,625 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:27:21,626 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:27:21,626 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:27:21,627 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:27:21,627 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:27:21,628 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-20 19:27:21,628 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:27:21,628 - INFO - Already processed 0 tickers
@@ -17558,10 +17558,10 @@ Stacktrace:
 2025-03-20 19:29:40,254 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:29:40,254 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:29:40,254 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-20 19:29:40,254 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:29:40,254 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:29:40,255 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:29:40,255 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:29:40,256 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:29:40,256 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:29:40,256 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-20 19:29:40,256 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:29:40,257 - INFO - Already processed 0 tickers
@@ -17589,10 +17589,10 @@ Stacktrace:
 2025-03-20 19:31:36,783 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:31:36,784 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:31:36,784 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-20 19:31:36,784 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:31:36,784 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:31:36,785 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:31:36,785 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:31:36,786 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:31:36,786 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:31:36,787 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-20 19:31:36,789 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:31:36,790 - INFO - Already processed 0 tickers
@@ -17608,10 +17608,10 @@ Stacktrace:
 2025-03-20 19:32:15,312 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:32:15,312 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:32:15,312 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-20 19:32:15,312 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:32:15,312 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:32:15,312 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:32:15,313 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:32:15,315 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:32:15,315 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:32:15,315 - INFO - Found 2 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-20 19:32:15,316 - INFO - Starting scraper for 2 pending tickers out of 4 total
 2025-03-20 19:32:15,316 - INFO - Already processed 2 tickers
@@ -17633,10 +17633,10 @@ Stacktrace:
 2025-03-20 19:33:05,040 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:33:05,040 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:33:05,041 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-20 19:33:05,041 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:33:05,041 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:33:05,041 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:33:05,041 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:33:05,042 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:33:05,042 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:33:05,043 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-20 19:33:05,043 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:33:05,043 - INFO - Already processed 0 tickers
@@ -17657,10 +17657,10 @@ Stacktrace:
 2025-03-20 19:35:09,415 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:35:09,415 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:35:09,415 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 19:35:09,415 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:35:09,415 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:35:09,415 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:35:09,416 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:35:09,416 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:35:09,416 - INFO - Read 4 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:35:09,417 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 19:35:09,417 - INFO - Starting scraper for 4 pending tickers out of 4 total
 2025-03-20 19:35:09,417 - INFO - Already processed 0 tickers
@@ -17688,10 +17688,10 @@ Stacktrace:
 2025-03-20 19:37:26,754 - INFO - Starting scraper (restart 0/5)
 2025-03-20 19:37:26,754 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 19:37:26,754 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 19:37:26,755 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:37:26,755 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:37:26,755 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 19:37:26,755 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 19:37:26,759 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 19:37:26,759 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 19:37:26,760 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 19:37:26,760 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-20 19:37:26,760 - INFO - Already processed 0 tickers
@@ -20226,10 +20226,10 @@ Stacktrace:
 2025-03-20 22:41:27,212 - INFO - Starting scraper (restart 0/5)
 2025-03-20 22:41:27,212 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 22:41:27,212 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 22:41:27,213 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:41:27,213 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:41:27,213 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 22:41:27,213 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 22:41:27,380 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:41:27,380 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:41:27,381 - INFO - Found 496 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 22:41:27,401 - INFO - Starting scraper for 4355 pending tickers out of 4851 total
 2025-03-20 22:41:27,402 - INFO - Already processed 496 tickers
@@ -20237,10 +20237,10 @@ Stacktrace:
 2025-03-20 22:42:18,667 - INFO - Starting scraper (restart 0/5)
 2025-03-20 22:42:18,668 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 22:42:18,668 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 22:42:18,668 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:42:18,668 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:42:18,668 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 22:42:18,668 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 22:42:18,761 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:42:18,761 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:42:18,762 - INFO - Found 496 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 22:42:18,781 - INFO - Starting scraper for 4355 pending tickers out of 4851 total
 2025-03-20 22:42:18,781 - INFO - Already processed 496 tickers
@@ -20419,10 +20419,10 @@ Stacktrace:
 2025-03-20 22:56:10,217 - INFO - Starting scraper (restart 0/5)
 2025-03-20 22:56:10,218 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 22:56:10,218 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 22:56:10,218 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:56:10,218 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:56:10,218 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 22:56:10,218 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 22:56:10,483 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:56:10,483 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:56:10,484 - INFO - Found 502 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 22:56:10,504 - INFO - Starting scraper for 4349 pending tickers out of 4851 total
 2025-03-20 22:56:10,504 - INFO - Already processed 502 tickers
@@ -20446,10 +20446,10 @@ Stacktrace:
 2025-03-20 22:58:07,930 - INFO - Starting scraper (restart 0/5)
 2025-03-20 22:58:07,930 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 22:58:07,930 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 22:58:07,931 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:58:07,931 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:58:07,931 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 22:58:07,931 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 22:58:08,040 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 22:58:08,040 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 22:58:08,041 - INFO - Found 500 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 22:58:08,061 - INFO - Starting scraper for 4351 pending tickers out of 4851 total
 2025-03-20 22:58:08,062 - INFO - Already processed 500 tickers
@@ -20524,10 +20524,10 @@ Stacktrace:
 2025-03-20 23:05:25,106 - INFO - Starting scraper (restart 0/5)
 2025-03-20 23:05:25,107 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-20 23:05:25,107 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-20 23:05:25,108 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 23:05:25,108 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 23:05:25,108 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-20 23:05:25,108 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-20 23:05:25,217 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-20 23:05:25,217 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-20 23:05:25,218 - INFO - Found 513 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-20 23:05:25,239 - INFO - Starting scraper for 4338 pending tickers out of 4851 total
 2025-03-20 23:05:25,239 - INFO - Already processed 513 tickers
@@ -22213,10 +22213,10 @@ Stacktrace:
 2025-03-21 00:51:58,708 - INFO - Starting scraper (restart 0/5)
 2025-03-21 00:51:58,708 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-21 00:51:58,709 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-21 00:51:58,709 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 00:51:58,709 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 00:51:58,709 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-21 00:51:58,709 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-21 00:51:58,714 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 00:51:58,714 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 00:51:58,714 - INFO - Found 0 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-21 00:51:58,715 - INFO - Starting scraper for 4851 pending tickers out of 4851 total
 2025-03-21 00:51:58,715 - INFO - Already processed 0 tickers
@@ -22230,10 +22230,10 @@ Stacktrace:
 2025-03-21 00:52:28,909 - INFO - Starting scraper (restart 0/5)
 2025-03-21 00:52:28,909 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-21 00:52:28,909 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
-2025-03-21 00:52:28,910 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 00:52:28,910 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 00:52:28,910 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-21 00:52:28,910 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-21 00:52:28,915 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 00:52:28,915 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 00:52:28,916 - INFO - Found 3 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\html_pages
 2025-03-21 00:52:28,916 - INFO - Starting scraper for 4848 pending tickers out of 4851 total
 2025-03-21 00:52:28,917 - INFO - Already processed 3 tickers
@@ -22409,10 +22409,10 @@ Stacktrace:
 2025-03-21 01:13:33,723 - INFO - Starting scraper (restart 0/5)
 2025-03-21 01:13:33,723 - INFO - Base directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer
 2025-03-21 01:13:33,723 - INFO - HTML pages directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
-2025-03-21 01:13:33,724 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 01:13:33,724 - INFO - Tickers file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 01:13:33,724 - INFO - Last run directory: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\last_run
 2025-03-21 01:13:33,724 - INFO - Last activity file: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\script_versions\last_activity.txt
-2025-03-21 01:13:34,241 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\nasdaq_stocks.csv
+2025-03-21 01:13:34,241 - INFO - Read 4851 tickers from c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\stock_tickers\amex_arca_bats_nasdaq_nyse_otc_stocks.csv
 2025-03-21 01:13:34,242 - INFO - Found 799 already processed tickers in c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\fundamental_data\html_pages
 2025-03-21 01:13:34,275 - INFO - Starting scraper for 4052 pending tickers out of 4851 total
 2025-03-21 01:13:34,275 - INFO - Already processed 799 tickers

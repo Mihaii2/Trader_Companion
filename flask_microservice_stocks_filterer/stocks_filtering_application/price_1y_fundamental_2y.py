@@ -102,7 +102,7 @@ def get_stock_data(ticker):
 
 def main():
     # Read NASDAQ stock list
-    nasdaq_stocks = pd.read_csv('./stock_tickers/nasdaq_stocks.csv')
+    amex_arca_bats_nasdaq_nyse_otc_stocks = pd.read_csv('./stock_tickers/amex_arca_bats_nasdaq_nyse_otc_stocks.csv')
 
     # Create lists to store all data
     all_price_data = []
@@ -113,8 +113,8 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         # Process stocks in smaller batches
         batch_size = 50
-        for i in range(0, len(nasdaq_stocks), batch_size):
-            batch = nasdaq_stocks['Symbol'][i:i + batch_size]
+        for i in range(0, len(amex_arca_bats_nasdaq_nyse_otc_stocks), batch_size):
+            batch = amex_arca_bats_nasdaq_nyse_otc_stocks['Symbol'][i:i + batch_size]
 
             # Submit batch of tasks
             futures = [executor.submit(get_stock_data, ticker) for ticker in batch]
@@ -130,14 +130,14 @@ def main():
                 except Exception as e:
                     print(f"Error processing future: {e}")
 
-            print(f"Completed batch {i // batch_size + 1} of {(len(nasdaq_stocks) + batch_size - 1) // batch_size}")
+            print(f"Completed batch {i // batch_size + 1} of {(len(amex_arca_bats_nasdaq_nyse_otc_stocks) + batch_size - 1) // batch_size}")
             time.sleep(45)  # Add delay between batches
 
     # Save the data
     try:
         if all_price_data:
             combined_price_data = pd.concat(all_price_data, ignore_index=True)
-            combined_price_data.to_csv('./stock_api_data/nasdaq_stocks_1_year_price_data.csv', index=False)
+            combined_price_data.to_csv('./stock_api_data/amex_arca_bats_nasdaq_nyse_otc_stocks_1_year_price_data.csv', index=False)
             print(f"Saved price data for {len(all_price_data)} stocks")
 
         quarterly_fundamental_data = [item for item in all_quarterly_fundamental_data if item is not None]

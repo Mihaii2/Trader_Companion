@@ -18,7 +18,7 @@ def main():
         script_dir,
         "stocks_filtering_application",
         "stock_api_data",
-        "nasdaq_stocks_1_year_price_data.csv"
+        "amex_arca_bats_nasdaq_nyse_otc_stocks_1_year_price_data.csv"
     )
 
     # Output file (only the 4-day rolling percentage)

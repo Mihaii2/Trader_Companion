@@ -49,6 +49,6 @@ def process_stocks(input_file, output_file):
     print(f"Low volatility analysis complete. {len(qualified_stocks)} stocks meeting the criteria have been saved to {output_file}.")
 
 # Usage
-input_file = '../../stock_api_data/nasdaq_stocks_1_year_price_data.csv'
+input_file = '../../stock_api_data/amex_arca_bats_nasdaq_nyse_otc_stocks_1_year_price_data.csv'
 output_file = './obligatory_screens/results/low_volatility_2weeks.csv'
 process_stocks(input_file, output_file)

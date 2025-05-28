@@ -76,6 +76,6 @@ def analyze_stock_volume(file_path, output_file):
     print(f"Higher volume up analysis complete. {len(results)} Results saved to {output_file}")
 
 # Usage
-input_file = '../stock_api_data/nasdaq_stocks_1_year_price_data.csv'
+input_file = '../stock_api_data/amex_arca_bats_nasdaq_nyse_otc_stocks_1_year_price_data.csv'
 output_file = './obligatory_screens/results/high_volume_up_stocks.csv'
 analyze_stock_volume(input_file, output_file)
