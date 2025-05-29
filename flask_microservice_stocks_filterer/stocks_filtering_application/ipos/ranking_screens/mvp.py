@@ -3,33 +3,39 @@ import os
 import numpy as np
 from datetime import datetime, timedelta
 
-def calculate_mvp_score_for_window(window):
+def calculate_mvp_score_for_window(window, reference_avg_volume):
     """Calculate MVP score for a 15-day window"""
     if len(window) < 15:
         return 0
     
     # Sort by date to ensure correct order
-    window = window.sort_values('Date')
+    window = window.sort_values('Date').reset_index(drop=True)
     
     # Calculate daily price changes
     window['Daily_Change'] = window['Close'].diff()
     
     # 1. Momentum: Check if the stock is up 12 out of 15 days
-    positive_days = sum(window['Daily_Change'] > 0)
+    # Skip the first row since it will have NaN for Daily_Change
+    positive_days = sum(window['Daily_Change'].iloc[1:] > 0)
     momentum_check = positive_days >= 12
     
     # 2. Volume: Check if volume increased by 25% during the 15-day period
-    # We're using the whole group's volume as the reference (passing it as a parameter)
     avg_volume_window = window['Volume'].mean()
-    avg_volume_reference = group['Volume'].mean()  # Assuming 'group' is accessible
-    volume_increase = (avg_volume_window / avg_volume_reference) - 1
-    volume_check = volume_increase >= 0.25
+    if reference_avg_volume == 0 or np.isnan(reference_avg_volume):
+        volume_check = False  # Can't calculate if reference volume is 0 or NaN
+    else:
+        volume_increase = (avg_volume_window / reference_avg_volume) - 1
+        volume_check = volume_increase >= 0.25
     
     # 3. Price: Check if the stock price is up 20% or more during the 15-day period
     first_close = window['Close'].iloc[0]
     last_close = window['Close'].iloc[-1]
-    price_percent_change = ((last_close / first_close) - 1) * 100
-    price_check = price_percent_change >= 20
+    
+    if first_close == 0 or np.isnan(first_close) or np.isnan(last_close):
+        price_check = False  # Can't calculate if price data is invalid
+    else:
+        price_percent_change = ((last_close / first_close) - 1) * 100
+        price_check = price_percent_change >= 20
     
     # Return 1 if all conditions are met, 0 otherwise
     if momentum_check and volume_check and price_check:
@@ -39,15 +45,22 @@ def calculate_mvp_score_for_window(window):
 
 def check_mvp_criteria_in_period(group, lookback_days=180):
     """Check if the stock met MVP criteria at least once in the lookback period"""
+    # Handle empty or very small groups
+    if len(group) < 15:
+        return 0
+    
     # Sort by date to ensure correct order
-    group = group.sort_values('Date')
+    group = group.sort_values('Date').reset_index(drop=True)
+    
+    # Calculate reference average volume for the entire group
+    reference_avg_volume = group['Volume'].mean()
     
     # Calculate the date cutoff (6 months ago)
     latest_date = group['Date'].max()
     cutoff_date = latest_date - pd.Timedelta(days=lookback_days)
     
     # Filter for the lookback period
-    period_data = group[group['Date'] >= cutoff_date]
+    period_data = group[group['Date'] >= cutoff_date].reset_index(drop=True)
     
     if len(period_data) < 15:  # Not enough data in the period
         return 0
@@ -55,19 +68,27 @@ def check_mvp_criteria_in_period(group, lookback_days=180):
     # Sliding window approach: check each possible 15-day window in the lookback period
     met_criteria = False
     
-    for start_idx in range(len(period_data) - 14):
-        window = period_data.iloc[start_idx:start_idx + 15]
+    # Make sure we don't go out of bounds
+    max_start_idx = len(period_data) - 15
+    
+    for start_idx in range(max_start_idx + 1):
+        window = period_data.iloc[start_idx:start_idx + 15].copy()
         
-        # Skip if window doesn't have exactly 15 days
+        # Double-check window has exactly 15 days
         if len(window) != 15:
             continue
             
         # Calculate MVP score for this window
-        score = calculate_mvp_score_for_window(window)
-        
-        if score == 1:
-            met_criteria = True
-            break
+        try:
+            score = calculate_mvp_score_for_window(window, reference_avg_volume)
+            
+            if score == 1:
+                met_criteria = True
+                break
+        except Exception as e:
+            # Skip this window if there's any calculation error
+            print(f"Error calculating MVP score for window: {e}")
+            continue
     
     return 1 if met_criteria else 0
 
@@ -82,21 +103,44 @@ while not script_dir.endswith("flask_microservice_stocks_filterer") and os.path.
 input_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "ranking_screens", "passed_stocks_input_data", "filtered_price_data.csv")
 output_file = os.path.join(script_dir, "stocks_filtering_application", "ipos", "ranking_screens", "results", "mvp_stocks_6mo.csv")
 
-# Read CSV with date parsing
-df = pd.read_csv(input_file, parse_dates=['Date'])
+try:
+    # Read CSV with date parsing
+    df = pd.read_csv(input_file, parse_dates=['Date'])
+    print(f"Loaded {len(df)} rows of data")
+    
+    # Group by symbol and check for MVP criteria in the lookback period
+    results = []
+    
+    symbols_processed = 0
+    for symbol, group in df.groupby('Symbol'):
+        try:
+            mvp_score = check_mvp_criteria_in_period(group, lookbook_days=180)  # 180 days = ~6 months
+            if mvp_score == 1:
+                results.append({'Symbol': symbol, 'MVP_Last_6Mo': 1})
+            
+            symbols_processed += 1
+            if symbols_processed % 50 == 0:  # Progress indicator
+                print(f"Processed {symbols_processed} symbols...")
+                
+        except Exception as e:
+            print(f"Error processing symbol {symbol}: {e}")
+            continue
+    
+    print(f"Processed {symbols_processed} symbols total")
+    print(f"Found {len(results)} stocks meeting MVP criteria")
+    
+    # Create a DataFrame with the results
+    if results:
+        result_df = pd.DataFrame(results)
+        # Write the results to the output CSV file
+        result_df.to_csv(output_file, index=False)
+        print(f"Results saved to {output_file}")
+    else:
+        # Create empty DataFrame with proper columns if no results
+        result_df = pd.DataFrame(columns=['Symbol', 'MVP_Last_6Mo'])
+        result_df.to_csv(output_file, index=False)
+        print(f"No stocks met MVP criteria. Empty results file saved to {output_file}")
 
-# Group by symbol and check for MVP criteria in the lookback period
-results = []
-
-for symbol, group in df.groupby('Symbol'):
-    mvp_score = check_mvp_criteria_in_period(group, lookback_days=180)  # 180 days = ~6 months
-    if mvp_score == 1:
-        results.append({'Symbol': symbol, 'MVP_Last_6Mo': 1})
-
-# Create a DataFrame with the results
-result_df = pd.DataFrame(results)
-
-# Write the results to the output CSV file
-result_df.to_csv(output_file, index=False)
-
-print(f"Stocks meeting MVP criteria at least once in the last 6 months have been saved to {output_file}")
+except Exception as e:
+    print(f"Error reading input file or processing data: {e}")
+    print(f"Make sure the input file exists at: {input_file}")

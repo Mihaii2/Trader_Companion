@@ -48,7 +48,7 @@ const ORDERED_CHARACTERISTICS = [
   "Spikes On Volume",
   "Shakeouts",
   "Volatile",
-  "Held Up Well Against Market/ Outperforming/ Surging",
+  "Held Up Well Against Market/ Outperforming/ Surging/RSI Uptrend",
   "Strong IPO Price Action",
   "MVP",
   "Power Play",
