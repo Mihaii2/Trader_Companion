@@ -1,285 +1,84 @@
-2025-05-29 15:37:19,720 - INFO - Starting stock screening pipeline
-2025-05-29 15:37:19,720 - INFO - Finding and deleting old CSV files...
-2025-05-29 15:37:19,720 - INFO - Found 12 CSV files to delete
-2025-05-29 15:37:19,721 - INFO - Deleting: Days_Traded.csv
-2025-05-29 15:37:19,734 - INFO - Deleting: max_rsi_12m.csv
-2025-05-29 15:37:19,744 - INFO - Deleting: max_rsi_3m.csv
-2025-05-29 15:37:19,745 - INFO - Deleting: max_rsi_6m.csv
-2025-05-29 15:37:19,745 - INFO - Deleting: price_spikes.csv
-2025-05-29 15:37:19,746 - INFO - Deleting: top_price_increase_1y.csv
-2025-05-29 15:37:19,747 - INFO - Deleting: top_price_tightness_1w.csv
-2025-05-29 15:37:19,760 - INFO - Deleting: volume_acceleration_stocks.csv
-2025-05-29 15:37:19,761 - INFO - Deleting: close_to_52week_high.csv
-2025-05-29 15:37:19,762 - INFO - Deleting: last_price_above_10.csv
-2025-05-29 15:37:19,776 - INFO - Deleting: obligatory_passed_stocks.csv
-2025-05-29 15:37:19,777 - INFO - Deleting: trading_for_at_most_3mo.csv
-2025-05-29 15:37:19,939 - INFO - [close_to_52week_high.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-29 15:37:19,939 - INFO - [close_to_52week_high.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv
-2025-05-29 15:37:20,014 - INFO - [minimum_5_dollar.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-29 15:37:20,014 - INFO - [minimum_5_dollar.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv
-2025-05-29 15:37:20,078 - INFO - [trading_for_at_most_3mo.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-29 15:37:20,079 - INFO - [trading_for_at_most_3mo.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv
-2025-05-29 15:39:20,485 - INFO - [minimum_5_dollar.py] Last price check complete. 3252 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv.
-2025-05-29 15:39:20,486 - INFO - [minimum_5_dollar.py] Skipped 501 rows due to missing or invalid data.
-2025-05-29 15:39:20,603 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 2681 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv.
-2025-05-29 15:39:20,603 - INFO - [close_to_52week_high.py] Skipped 501 rows due to missing or invalid data.
-2025-05-29 15:39:21,206 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 12 months analysis complete. 349 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv.
-2025-05-29 15:39:21,206 - INFO - [trading_for_at_most_3mo.py] Skipped 501 rows due to missing or invalid data.
-2025-05-29 15:39:21,424 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-05-29 15:39:21,424 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-05-29 15:39:21,424 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-05-29 15:39:21,424 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-05-29 15:39:21,425 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-05-29 15:39:21,425 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-05-29 15:39:21,425 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-05-29 15:39:21,425 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-05-29 15:39:21,426 - INFO - [obligatory_screen_passer.py] 
-2025-05-29 15:39:21,426 - INFO - [obligatory_screen_passer.py] Found 132 stocks that passed all available screens
-2025-05-29 15:39:21,426 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
-2025-05-29 15:39:21,460 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
-2025-05-29 15:39:21,470 - INFO - [banned_filter.py] Checking 132 symbols for ban. 87 symbols are allowed.
-2025-05-29 15:39:21,470 - INFO - [banned_filter.py] Removed 0 expired bans.
-2025-05-29 15:39:23,879 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='C:\\Users\\Victus\\PycharmProjects\\Stocks_Screener_V2\\flask_microservice_stocks_filterer\\stocks_filtering_application\\ipos\\ranking_screens\\passed_stocks_input_data\\filtered_price_data.csv' mode='w' encoding='cp1252'>
-2025-05-29 15:39:24,086 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 9 Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\volume_acceleration_stocks.csv
-2025-05-29 15:39:24,806 - INFO - [top_rsi_6m.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,809 - INFO - [days_traded.py] Stocks ranked by number of trading days have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\Days_Traded.csv
-2025-05-29 15:39:24,809 - INFO - [top_price_tightness_1w.py] Top stocks by price tightness (last 1 week) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_tightness_1w.csv
-2025-05-29 15:39:24,810 - INFO - [top_rsi.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,812 - INFO - [top_rsi_6m.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,813 - INFO - [top_rsi.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,813 - INFO - [top_rsi_12m.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,816 - INFO - [top_rsi_12m.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-29 15:39:24,824 - INFO - [top_rsi.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-29 15:39:24,825 - INFO - [top_rsi_6m.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-29 15:39:24,827 - INFO - [top_rsi.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-29 15:39:24,829 - INFO - [top_rsi_6m.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-29 15:39:24,831 - INFO - [top_rsi_12m.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-29 15:39:24,834 - INFO - [top_rsi_12m.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-29 15:39:24,836 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_increase_1y.csv
-2025-05-29 15:39:24,853 - INFO - [top_rsi.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,858 - INFO - [top_rsi_12m.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,860 - INFO - [top_rsi_6m.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,867 - INFO - [top_rsi.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,875 - INFO - [top_rsi_12m.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,876 - INFO - [top_rsi_6m.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-29 15:39:24,893 - INFO - [top_rsi_6m.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,893 - INFO - [top_rsi_12m.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,893 - INFO - [top_rsi.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,896 - INFO - [top_rsi_12m.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,897 - INFO - [top_rsi.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,897 - INFO - [top_rsi_6m.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,901 - INFO - [top_rsi_6m.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,901 - INFO - [top_rsi.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,902 - INFO - [top_rsi_12m.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,916 - ERROR - [top_price_tightness_1w.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_tightness_1w.py:31: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-05-29 15:39:24,916 - ERROR - [top_price_tightness_1w.py ERROR] price_tightness = df_filtered.groupby('Symbol').apply(calculate_price_tightness)
-2025-05-29 15:39:24,924 - ERROR - [days_traded.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\days_traded.py:26: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-05-29 15:39:24,925 - ERROR - [days_traded.py ERROR] trading_days = df.groupby('Symbol').apply(count_trading_days)
-2025-05-29 15:39:24,927 - INFO - [top_rsi_12m.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,930 - INFO - [top_rsi_6m.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,931 - INFO - [top_rsi.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-29 15:39:24,950 - INFO - [top_rsi_12m.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,950 - INFO - [top_rsi.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,950 - INFO - [top_rsi_6m.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-29 15:39:24,976 - INFO - [price_spikes.py] Analysis complete. Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\price_spikes.csv
-2025-05-29 15:39:24,979 - INFO - [top_rsi_6m.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,982 - INFO - [top_rsi.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,983 - INFO - [top_rsi_12m.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-29 15:39:24,996 - INFO - [top_rsi_6m.py] Top stocks by maximum RSI (last 6 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_6m.csv
-2025-05-29 15:39:24,996 - INFO - [top_rsi_6m.py] Total stocks analyzed: 74
-2025-05-29 15:39:24,997 - INFO - [top_rsi_6m.py] Stocks excluded due to insufficient trading data: 12
-2025-05-29 15:39:25,000 - INFO - [top_rsi.py] Top stocks by maximum RSI (last 3 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_3m.csv
-2025-05-29 15:39:25,000 - INFO - [top_rsi.py] Total stocks analyzed: 74
-2025-05-29 15:39:25,000 - INFO - [top_rsi_12m.py] Top stocks by maximum RSI (last 12 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_12m.csv
-2025-05-29 15:39:25,000 - INFO - [top_rsi.py] Stocks excluded due to insufficient trading data: 12
-2025-05-29 15:39:25,000 - INFO - [top_rsi_12m.py] Total stocks analyzed: 74
-2025-05-29 15:39:25,000 - INFO - [top_rsi_12m.py] Stocks excluded due to insufficient trading data: 12
-2025-05-30 01:43:14,033 - INFO - Starting stock screening pipeline
-2025-05-30 01:43:14,033 - INFO - Finding and deleting old CSV files...
-2025-05-30 01:43:14,034 - INFO - Found 12 CSV files to delete
-2025-05-30 01:43:14,034 - INFO - Deleting: Days_Traded.csv
-2025-05-30 01:43:14,035 - INFO - Deleting: max_rsi_12m.csv
-2025-05-30 01:43:14,036 - INFO - Deleting: max_rsi_3m.csv
-2025-05-30 01:43:14,036 - INFO - Deleting: max_rsi_6m.csv
-2025-05-30 01:43:14,037 - INFO - Deleting: price_spikes.csv
-2025-05-30 01:43:14,037 - INFO - Deleting: top_price_increase_1y.csv
-2025-05-30 01:43:14,038 - INFO - Deleting: top_price_tightness_1w.csv
-2025-05-30 01:43:14,038 - INFO - Deleting: volume_acceleration_stocks.csv
-2025-05-30 01:43:14,039 - INFO - Deleting: close_to_52week_high.csv
-2025-05-30 01:43:14,040 - INFO - Deleting: last_price_above_10.csv
-2025-05-30 01:43:14,041 - INFO - Deleting: obligatory_passed_stocks.csv
-2025-05-30 01:43:14,042 - INFO - Deleting: trading_for_at_most_3mo.csv
-2025-05-30 01:43:14,092 - INFO - [close_to_52week_high.py] Resolved input file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-30 01:43:14,092 - INFO - [minimum_5_dollar.py] Resolved input file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-30 01:43:14,092 - INFO - [close_to_52week_high.py] Resolved output file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv
-2025-05-30 01:43:14,093 - INFO - [minimum_5_dollar.py] Resolved output file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv
-2025-05-30 01:43:14,094 - INFO - [trading_for_at_most_3mo.py] Resolved input file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
-2025-05-30 01:43:14,094 - INFO - [trading_for_at_most_3mo.py] Resolved output file path: c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv
-2025-05-30 01:43:34,197 - INFO - [minimum_5_dollar.py] Last price check complete. 3252 stocks meeting the criteria have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv.
-2025-05-30 01:43:34,198 - INFO - [minimum_5_dollar.py] Skipped 501 rows due to missing or invalid data.
-2025-05-30 01:43:34,354 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 12 months analysis complete. 349 stocks meeting the criteria have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv.
-2025-05-30 01:43:34,355 - INFO - [trading_for_at_most_3mo.py] Skipped 501 rows due to missing or invalid data.
-2025-05-30 01:43:34,516 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 2681 stocks meeting the criteria have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv.
-2025-05-30 01:43:34,516 - INFO - [close_to_52week_high.py] Skipped 501 rows due to missing or invalid data.
-2025-05-30 01:43:34,613 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-05-30 01:43:34,613 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-05-30 01:43:34,613 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-05-30 01:43:34,613 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] 
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] Found 132 stocks that passed all available screens
-2025-05-30 01:43:34,615 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
-2025-05-30 01:43:34,649 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
-2025-05-30 01:43:34,658 - INFO - [banned_filter.py] Checking 132 symbols for ban. 87 symbols are allowed.
-2025-05-30 01:43:34,658 - INFO - [banned_filter.py] Removed 0 expired bans.
-2025-05-30 01:43:37,099 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='c:\\Users\\Victus\\PycharmProjects\\Stocks_Screener_V2\\flask_microservice_stocks_filterer\\stocks_filtering_application\\ipos\\ranking_screens\\passed_stocks_input_data\\filtered_price_data.csv' mode='w' encoding='cp1252'>
-2025-05-30 01:43:37,223 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 9 Results saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\volume_acceleration_stocks.csv
-2025-05-30 01:43:38,193 - INFO - [mvp.py] Loaded 8884 rows of data
-2025-05-30 01:43:38,196 - INFO - [mvp.py] Error processing symbol AACB: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,196 - INFO - [mvp.py] Error processing symbol AAM: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,196 - INFO - [mvp.py] Error processing symbol AAPG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,196 - INFO - [mvp.py] Error processing symbol AHL: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,197 - INFO - [mvp.py] Error processing symbol AIFE: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,197 - INFO - [mvp.py] Error processing symbol AII: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,197 - INFO - [mvp.py] Error processing symbol ALDF: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,197 - INFO - [mvp.py] Error processing symbol ASPC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,198 - INFO - [mvp.py] Error processing symbol ATII: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,198 - INFO - [mvp.py] Error processing symbol B: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,198 - INFO - [mvp.py] Error processing symbol BACQ: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,198 - INFO - [mvp.py] Error processing symbol BEAG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol BOBP: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol BSII: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol CAPN: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol CCIR: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol CEPO: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol CEPT: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,199 - INFO - [mvp.py] Error processing symbol CHAR: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,200 - INFO - [mvp.py] Error processing symbol COLA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,200 - INFO - [mvp.py] Error processing symbol CRWV: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,200 - INFO - [mvp.py] Error processing symbol CTEV: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,200 - INFO - [mvp.py] Error processing symbol CURB: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,200 - INFO - [mvp.py] Error processing symbol DEFR: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol DMAA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol DRDB: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol DTSQ: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol DYNX: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol ECG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,201 - INFO - [mvp.py] Error processing symbol EQV: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,202 - INFO - [mvp.py] Error processing symbol ETOR: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,202 - INFO - [mvp.py] Error processing symbol EURK: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,202 - INFO - [mvp.py] Error processing symbol FACT: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,202 - INFO - [mvp.py] Error processing symbol FERA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,202 - INFO - [mvp.py] Error processing symbol FLG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,203 - INFO - [mvp.py] Error processing symbol FVN: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,203 - INFO - [mvp.py] Error processing symbol GIG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,203 - INFO - [mvp.py] Error processing symbol GLXY: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,203 - INFO - [mvp.py] Error processing symbol GRAF: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,204 - INFO - [mvp.py] Error processing symbol GSHR: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,204 - INFO - [mvp.py] Error processing symbol GSRT: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,204 - INFO - [mvp.py] Error processing symbol HNGE: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,204 - INFO - [mvp.py] Error processing symbol HOND: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,204 - INFO - [mvp.py] Error processing symbol HSPT: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,205 - INFO - [mvp.py] Error processing symbol HTO: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,205 - INFO - [mvp.py] Error processing symbol HVII: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,205 - INFO - [mvp.py] Error processing symbol JACS: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,205 - INFO - [mvp.py] Error processing symbol LIF: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,205 - INFO - [mvp.py] Error processing symbol LOKV: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,206 - INFO - [mvp.py] Error processing symbol MBAV: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,206 - INFO - [mvp.py] Error processing symbol MDU: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,206 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_increase_1y.csv
-2025-05-30 01:43:38,206 - INFO - [mvp.py] Error processing symbol MLAC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,206 - INFO - [mvp.py] Error processing symbol MNTN: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,206 - INFO - [mvp.py] Error processing symbol MRP: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol MSIF: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol NHIC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol NTWO: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol OACC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol OS: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol PLMK: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,207 - INFO - [mvp.py] Error processing symbol PMVC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol POLE: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol PRMB: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol QSEA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol RAC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol RANG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol RDAC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,208 - INFO - [mvp.py] Error processing symbol RIBB: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol SBXD: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol SIMA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol SNRE: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol SOBO: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol SORA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,209 - INFO - [mvp.py] Error processing symbol STRZ: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol SVCC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol SW: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol TDAC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol TIC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol TLX: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,210 - INFO - [mvp.py] Error processing symbol TVA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,211 - INFO - [mvp.py] Error processing symbol TVRD: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,211 - INFO - [mvp.py] Error processing symbol TWFG: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,211 - INFO - [mvp.py] Error processing symbol VACH: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,211 - INFO - [mvp.py] Error processing symbol VCIC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,211 - INFO - [mvp.py] Error processing symbol VENU: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,212 - INFO - [mvp.py] Error processing symbol WLAC: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,212 - INFO - [mvp.py] Error processing symbol YHNA: check_mvp_criteria_in_period() got an unexpected keyword argument 'lookbook_days'. Did you mean 'lookback_days'?
-2025-05-30 01:43:38,212 - INFO - [mvp.py] Processed 0 symbols total
-2025-05-30 01:43:38,212 - INFO - [mvp.py] Found 0 stocks meeting MVP criteria
-2025-05-30 01:43:38,212 - INFO - [mvp.py] No stocks met MVP criteria. Empty results file saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\mvp_stocks_6mo.csv
-2025-05-30 01:43:38,215 - INFO - [top_price_tightness_1w.py] Top stocks by price tightness (last 1 week) have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_tightness_1w.csv
-2025-05-30 01:43:38,216 - INFO - [days_traded.py] Stocks ranked by number of trading days have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\Days_Traded.csv
-2025-05-30 01:43:38,218 - INFO - [top_rsi_6m.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,218 - INFO - [top_rsi_12m.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,223 - INFO - [top_rsi_6m.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,223 - INFO - [top_rsi_12m.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,227 - INFO - [top_rsi.py] Skipping AHL: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,231 - INFO - [top_rsi.py] Skipping AII: Insufficient trading data (only 14 days)
-2025-05-30 01:43:38,235 - INFO - [top_rsi_12m.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-30 01:43:38,238 - INFO - [top_rsi_6m.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-30 01:43:38,239 - INFO - [top_rsi_12m.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-30 01:43:38,242 - INFO - [top_rsi_6m.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-30 01:43:38,246 - INFO - [top_rsi.py] Skipping BOBP: Insufficient trading data (only 5 days)
-2025-05-30 01:43:38,250 - INFO - [top_rsi.py] Skipping B: Insufficient trading data (only 13 days)
-2025-05-30 01:43:38,263 - INFO - [top_rsi_6m.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,264 - INFO - [top_rsi_12m.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,278 - INFO - [top_rsi.py] Skipping DEFR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,279 - INFO - [top_rsi_6m.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,283 - INFO - [top_rsi_12m.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,295 - INFO - [top_rsi_6m.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,296 - INFO - [top_rsi.py] Skipping ETOR: Insufficient trading data (only 10 days)
-2025-05-30 01:43:38,297 - INFO - [top_rsi_12m.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,297 - INFO - [top_rsi_6m.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,300 - INFO - [top_rsi_12m.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,300 - INFO - [top_rsi_6m.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,302 - INFO - [top_rsi_12m.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,309 - INFO - [top_rsi.py] Skipping GLXY: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,310 - ERROR - [top_price_tightness_1w.py ERROR] c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_tightness_1w.py:31: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-05-30 01:43:38,310 - ERROR - [top_price_tightness_1w.py ERROR] price_tightness = df_filtered.groupby('Symbol').apply(calculate_price_tightness)
-2025-05-30 01:43:38,313 - INFO - [top_rsi.py] Skipping GSHR: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,317 - INFO - [top_rsi.py] Skipping HNGE: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,317 - ERROR - [days_traded.py ERROR] c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\days_traded.py:26: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
-2025-05-30 01:43:38,318 - ERROR - [days_traded.py ERROR] trading_days = df.groupby('Symbol').apply(count_trading_days)
-2025-05-30 01:43:38,322 - INFO - [top_rsi_6m.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,322 - INFO - [top_rsi_12m.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,333 - INFO - [top_rsi.py] Skipping MNTN: Insufficient trading data (only 4 days)
-2025-05-30 01:43:38,335 - INFO - [top_rsi_6m.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,337 - INFO - [top_rsi_12m.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,346 - INFO - [top_rsi.py] Skipping QSEA: Insufficient trading data (only 12 days)
-2025-05-30 01:43:38,352 - INFO - [price_spikes.py] Analysis complete. Results saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\price_spikes.csv
-2025-05-30 01:43:38,357 - INFO - [top_rsi_6m.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,361 - INFO - [top_rsi_12m.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,365 - INFO - [top_rsi.py] Skipping TVA: Insufficient trading data (only 8 days)
-2025-05-30 01:43:38,370 - INFO - [top_rsi_6m.py] Top stocks by maximum RSI (last 6 months) have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_6m.csv
-2025-05-30 01:43:38,370 - INFO - [top_rsi_6m.py] Total stocks analyzed: 74
-2025-05-30 01:43:38,370 - INFO - [top_rsi_6m.py] Stocks excluded due to insufficient trading data: 12
-2025-05-30 01:43:38,373 - INFO - [top_rsi_12m.py] Top stocks by maximum RSI (last 12 months) have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_12m.csv
-2025-05-30 01:43:38,374 - INFO - [top_rsi_12m.py] Total stocks analyzed: 74
-2025-05-30 01:43:38,374 - INFO - [top_rsi_12m.py] Stocks excluded due to insufficient trading data: 12
-2025-05-30 01:43:38,378 - INFO - [top_rsi.py] Top stocks by maximum RSI (last 3 months) have been saved to c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_3m.csv
-2025-05-30 01:43:38,378 - INFO - [top_rsi.py] Total stocks analyzed: 74
-2025-05-30 01:43:38,378 - INFO - [top_rsi.py] Stocks excluded due to insufficient trading data: 12
-2025-05-30 01:43:38,488 - INFO - [top_n_stocks_by_price_increase.py] 'c:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\stocks_ranking_by_price.csv' has been created.
-2025-05-30 01:43:38,493 - INFO - Stock screening pipeline completed successfully.
+2025-06-10 04:18:05,649 - INFO - Starting stock screening pipeline
+2025-06-10 04:18:05,649 - INFO - Finding and deleting old CSV files...
+2025-06-10 04:18:05,649 - INFO - Found 13 CSV files to delete
+2025-06-10 04:18:05,650 - INFO - Deleting: Days_Traded.csv
+2025-06-10 04:18:05,651 - INFO - Deleting: max_rsi_12m.csv
+2025-06-10 04:18:05,651 - INFO - Deleting: max_rsi_3m.csv
+2025-06-10 04:18:05,652 - INFO - Deleting: max_rsi_6m.csv
+2025-06-10 04:18:05,652 - INFO - Deleting: mvp_stocks_6mo.csv
+2025-06-10 04:18:05,652 - INFO - Deleting: price_spikes.csv
+2025-06-10 04:18:05,653 - INFO - Deleting: top_price_increase_1y.csv
+2025-06-10 04:18:05,654 - INFO - Deleting: top_price_tightness_1w.csv
+2025-06-10 04:18:05,654 - INFO - Deleting: volume_acceleration_stocks.csv
+2025-06-10 04:18:05,655 - INFO - Deleting: close_to_52week_high.csv
+2025-06-10 04:18:05,656 - INFO - Deleting: last_price_above_10.csv
+2025-06-10 04:18:05,656 - INFO - Deleting: obligatory_passed_stocks.csv
+2025-06-10 04:18:05,657 - INFO - Deleting: trading_for_at_most_3mo.csv
+2025-06-10 04:18:05,705 - INFO - [trading_for_at_most_3mo.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-06-10 04:18:05,706 - INFO - [trading_for_at_most_3mo.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv
+2025-06-10 04:18:05,708 - INFO - [close_to_52week_high.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-06-10 04:18:05,708 - INFO - [close_to_52week_high.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv
+2025-06-10 04:18:05,711 - INFO - [minimum_5_dollar.py] Resolved input file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\price_data\all_tickers_historical.csv
+2025-06-10 04:18:05,711 - INFO - [minimum_5_dollar.py] Resolved output file path: C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv
+2025-06-10 04:20:13,698 - INFO - [minimum_5_dollar.py] Last price check complete. 3290 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\last_price_above_10.csv.
+2025-06-10 04:20:13,699 - INFO - [minimum_5_dollar.py] Skipped 500 rows due to missing or invalid data.
+2025-06-10 04:20:14,420 - INFO - [close_to_52week_high.py] Close to 52-week high analysis complete. 2829 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\close_to_52week_high.csv.
+2025-06-10 04:20:14,420 - INFO - [close_to_52week_high.py] Skipped 500 rows due to missing or invalid data.
+2025-06-10 04:20:14,833 - INFO - [trading_for_at_most_3mo.py] Stocks trading for at most 12 months analysis complete. 340 stocks meeting the criteria have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\obligatory_screens\results\trading_for_at_most_3mo.csv.
+2025-06-10 04:20:14,833 - INFO - [trading_for_at_most_3mo.py] Skipped 500 rows due to missing or invalid data.
+2025-06-10 04:20:15,148 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
+2025-06-10 04:20:15,148 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-06-10 04:20:15,148 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
+2025-06-10 04:20:15,148 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] Processing 3 CSV files:
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] - close_to_52week_high.csv
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] - last_price_above_10.csv
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] - trading_for_at_most_3mo.csv
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] 
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] Found 133 stocks that passed all available screens
+2025-06-10 04:20:15,150 - INFO - [obligatory_screen_passer.py] Results saved to obligatory_passed_stocks.csv
+2025-06-10 04:20:15,190 - INFO - [banned_filter.py] Creating new empty stocks_not_banned.csv file...
+2025-06-10 04:20:15,202 - INFO - [banned_filter.py] Checking 133 symbols for ban. 106 symbols are allowed.
+2025-06-10 04:20:15,202 - INFO - [banned_filter.py] Removed 77 expired bans.
+2025-06-10 04:20:18,820 - INFO - [obligatory_screen_data_filter.py] Filtered data has been written to <_io.TextIOWrapper name='C:\\Users\\Victus\\PycharmProjects\\Stocks_Screener_V2\\flask_microservice_stocks_filterer\\stocks_filtering_application\\ipos\\ranking_screens\\passed_stocks_input_data\\filtered_price_data.csv' mode='w' encoding='cp1252'>
+2025-06-10 04:20:19,326 - INFO - [volume_acceleration.py] Volume Acceleration Analysis complete. 14 Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\volume_acceleration_stocks.csv
+2025-06-10 04:20:20,151 - INFO - [mvp.py] Loaded 12316 rows of data
+2025-06-10 04:20:20,185 - INFO - [days_traded.py] Stocks ranked by number of trading days have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\Days_Traded.csv
+2025-06-10 04:20:20,188 - INFO - [top_price_tightness_1w.py] Top stocks by price tightness (last 1 week) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_tightness_1w.csv
+2025-06-10 04:20:20,188 - INFO - [top_price_increases_1y.py] Top 100 stocks by price increase have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\top_price_increase_1y.csv
+2025-06-10 04:20:20,238 - INFO - [top_rsi.py] Skipping BOBP: Insufficient trading data (only 13 days)
+2025-06-10 04:20:20,242 - INFO - [top_rsi_12m.py] Skipping BOBP: Insufficient trading data (only 13 days)
+2025-06-10 04:20:20,243 - INFO - [top_rsi_6m.py] Skipping BOBP: Insufficient trading data (only 13 days)
+2025-06-10 04:20:20,321 - ERROR - [days_traded.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\days_traded.py:26: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-06-10 04:20:20,321 - ERROR - [days_traded.py ERROR] trading_days = df.groupby('Symbol').apply(count_trading_days)
+2025-06-10 04:20:20,338 - ERROR - [top_price_tightness_1w.py ERROR] C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\top_price_tightness_1w.py:31: DeprecationWarning: DataFrameGroupBy.apply operated on the grouping columns. This behavior is deprecated, and in a future version of pandas the grouping columns will be excluded from the operation. Either pass `include_groups=False` to exclude the groupings or explicitly select the grouping columns after groupby to silence this warning.
+2025-06-10 04:20:20,339 - ERROR - [top_price_tightness_1w.py ERROR] price_tightness = df_filtered.groupby('Symbol').apply(calculate_price_tightness)
+2025-06-10 04:20:20,379 - INFO - [top_rsi.py] Skipping HNGE: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,401 - INFO - [top_rsi_6m.py] Skipping HNGE: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,409 - INFO - [top_rsi.py] Skipping KG: Insufficient trading data (only 9 days)
+2025-06-10 04:20:20,422 - INFO - [top_rsi_12m.py] Skipping HNGE: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,463 - INFO - [top_rsi_12m.py] Skipping KG: Insufficient trading data (only 9 days)
+2025-06-10 04:20:20,467 - INFO - [top_rsi.py] Skipping MNTN: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,484 - INFO - [top_rsi_6m.py] Skipping KG: Insufficient trading data (only 9 days)
+2025-06-10 04:20:20,540 - INFO - [top_rsi_12m.py] Skipping MNTN: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,559 - INFO - [top_rsi_6m.py] Skipping MNTN: Insufficient trading data (only 12 days)
+2025-06-10 04:20:20,674 - INFO - [price_spikes.py] Analysis complete. Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\price_spikes.csv
+2025-06-10 04:20:20,684 - INFO - [top_rsi.py] Skipping UYSC: Insufficient trading data (only 10 days)
+2025-06-10 04:20:20,709 - INFO - [top_rsi_6m.py] Skipping UYSC: Insufficient trading data (only 10 days)
+2025-06-10 04:20:20,712 - INFO - [top_rsi.py] Top stocks by maximum RSI (last 3 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_3m.csv
+2025-06-10 04:20:20,713 - INFO - [top_rsi.py] Total stocks analyzed: 100
+2025-06-10 04:20:20,713 - INFO - [top_rsi.py] Stocks excluded due to insufficient trading data: 5
+2025-06-10 04:20:20,716 - INFO - [top_rsi_12m.py] Skipping UYSC: Insufficient trading data (only 10 days)
+2025-06-10 04:20:20,727 - INFO - [top_rsi_6m.py] Top stocks by maximum RSI (last 6 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_6m.csv
+2025-06-10 04:20:20,728 - INFO - [top_rsi_6m.py] Total stocks analyzed: 100
+2025-06-10 04:20:20,728 - INFO - [top_rsi_6m.py] Stocks excluded due to insufficient trading data: 5
+2025-06-10 04:20:20,744 - INFO - [top_rsi_12m.py] Top stocks by maximum RSI (last 12 months) have been saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\max_rsi_12m.csv
+2025-06-10 04:20:20,744 - INFO - [top_rsi_12m.py] Total stocks analyzed: 100
+2025-06-10 04:20:20,745 - INFO - [top_rsi_12m.py] Stocks excluded due to insufficient trading data: 5
+2025-06-10 04:20:27,718 - INFO - [mvp.py] Processed 50 symbols...
+2025-06-10 04:20:35,023 - INFO - [mvp.py] Processed 100 symbols...
+2025-06-10 04:20:36,043 - INFO - [mvp.py] Processed 106 symbols total
+2025-06-10 04:20:36,043 - INFO - [mvp.py] Found 2 stocks meeting MVP criteria
+2025-06-10 04:20:36,045 - INFO - [mvp.py] Results saved to C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\ranking_screens\results\mvp_stocks_6mo.csv
+2025-06-10 04:20:36,170 - INFO - [top_n_stocks_by_price_increase.py] 'C:\Users\Victus\PycharmProjects\Stocks_Screener_V2\flask_microservice_stocks_filterer\stocks_filtering_application\ipos\stocks_ranking_by_price.csv' has been created.
+2025-06-10 04:20:36,177 - INFO - Stock screening pipeline completed successfully.

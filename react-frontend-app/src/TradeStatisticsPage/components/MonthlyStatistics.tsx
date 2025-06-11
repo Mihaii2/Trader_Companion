@@ -46,9 +46,9 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
     const avgDaysLoss = filteredStats.reduce((sum, month) => 
       sum + (month.avgDaysLoss * month.totalTrades), 0) / totalTrades;
     
-    // Find overall largest gain and loss
-    const largestGain = Math.max(...filteredStats.map(month => month.largestGain));
-    const largestLoss = Math.min(...filteredStats.map(month => month.largestLoss));
+    // Calculate average largest gain and loss
+    const largestGain = filteredStats.reduce((sum, month) => sum + month.largestGain, 0) / filteredStats.length;
+    const largestLoss = filteredStats.reduce((sum, month) => sum + month.largestLoss, 0) / filteredStats.length;
     
     return {
       averageGain,

@@ -3,7 +3,21 @@ import os
 import numpy as np
 from datetime import datetime, timedelta
 
-def calculate_mvp_score_for_window(window, reference_avg_volume):
+def calculate_50day_volume_ma(group, end_date, window_days=50):
+    """Calculate 50-day volume moving average ending at a specific date"""
+    # Filter data up to and including the end_date
+    data_up_to_date = group[group['Date'] <= end_date].sort_values('Date')
+    
+    # Take the last 50 days (or all available if less than 50)
+    volume_data = data_up_to_date['Volume'].tail(window_days)
+    
+    # Return the average, or NaN if no data
+    if len(volume_data) == 0:
+        return np.nan
+    
+    return volume_data.mean()
+
+def calculate_mvp_score_for_window(window, group_data):
     """Calculate MVP score for a 15-day window"""
     if len(window) < 15:
         return 0
@@ -20,11 +34,16 @@ def calculate_mvp_score_for_window(window, reference_avg_volume):
     momentum_check = positive_days >= 12
     
     # 2. Volume: Check if volume increased by 25% during the 15-day period
+    # Calculate 50-day volume MA as of the start of the window
+    window_start_date = window['Date'].iloc[0]
+    reference_50day_volume_ma = calculate_50day_volume_ma(group_data, window_start_date, 50)
+    
     avg_volume_window = window['Volume'].mean()
-    if reference_avg_volume == 0 or np.isnan(reference_avg_volume):
-        volume_check = False  # Can't calculate if reference volume is 0 or NaN
+    
+    if np.isnan(reference_50day_volume_ma) or reference_50day_volume_ma == 0:
+        volume_check = False  # Can't calculate if reference volume is NaN or 0
     else:
-        volume_increase = (avg_volume_window / reference_avg_volume) - 1
+        volume_increase = (avg_volume_window / reference_50day_volume_ma) - 1
         volume_check = volume_increase >= 0.25
     
     # 3. Price: Check if the stock price is up 20% or more during the 15-day period
@@ -52,9 +71,6 @@ def check_mvp_criteria_in_period(group, lookback_days=180):
     # Sort by date to ensure correct order
     group = group.sort_values('Date').reset_index(drop=True)
     
-    # Calculate reference average volume for the entire group
-    reference_avg_volume = group['Volume'].mean()
-    
     # Calculate the date cutoff (6 months ago)
     latest_date = group['Date'].max()
     cutoff_date = latest_date - pd.Timedelta(days=lookback_days)
@@ -80,7 +96,7 @@ def check_mvp_criteria_in_period(group, lookback_days=180):
             
         # Calculate MVP score for this window
         try:
-            score = calculate_mvp_score_for_window(window, reference_avg_volume)
+            score = calculate_mvp_score_for_window(window, group)
             
             if score == 1:
                 met_criteria = True
@@ -114,7 +130,7 @@ try:
     symbols_processed = 0
     for symbol, group in df.groupby('Symbol'):
         try:
-            mvp_score = check_mvp_criteria_in_period(group, lookbook_days=180)  # 180 days = ~6 months
+            mvp_score = check_mvp_criteria_in_period(group, lookback_days=180)  # 180 days = ~6 months
             if mvp_score == 1:
                 results.append({'Symbol': symbol, 'MVP_Last_6Mo': 1})
             
