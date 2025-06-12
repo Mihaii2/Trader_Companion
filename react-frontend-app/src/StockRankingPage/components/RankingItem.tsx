@@ -386,7 +386,7 @@ export const RankingItem: React.FC<Props> = ({
       } finally {
         setIsSaving(false);
       }
-    }, 1000); // Wait 1 second after typing stops before saving
+    }, 2500); // Wait 2.5 seconds after typing stops before saving
   };
 
   // Toggle a characteristic on/off
