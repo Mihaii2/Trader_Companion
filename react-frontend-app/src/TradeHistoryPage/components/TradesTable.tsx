@@ -12,6 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Trade } from '../types/Trade';
 
 interface TradesTableProps {
@@ -29,6 +40,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
 }) => {
   const [editedTrades, setEditedTrades] = useState<{ [key: number]: Trade }>({});
   const [displayCount, setDisplayCount] = useState<number>(20);
+  const [tradeToDelete, setTradeToDelete] = useState<Trade | null>(null);
 
   const defaultColumnWidths: { [key: string]: string } = {
     Ticker: 'w-14',
@@ -36,7 +48,6 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Entry_Date: 'w-32',
     Exit_Date: 'w-32',
     Entry_Price: 'w-20',
-    Return: 'w-20',
     Exit_Price: 'w-20',
     Pattern: 'w-28',
     Days_In_Pattern_Before_Entry: 'w-14',
@@ -48,15 +59,21 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Earnings_Quality: 'w-16',
     Fundamentals_Quality: 'w-20',
     Nr_Bases: 'w-10',
-    Pct_Off_52W_High: 'w-16',
   };
 
   useEffect(() => {
-    const newEditedTrades = trades.reduce((acc, trade) => ({
-      ...acc,
-      [trade.ID]: { ...trade }
-    }), {});
-    setEditedTrades(newEditedTrades);
+    setEditedTrades(prev => {
+      const newEditedTrades = { ...prev };
+      
+      trades.forEach(trade => {
+        // Only add new trades that don't exist in editedTrades yet
+        if (!prev[trade.ID]) {
+          newEditedTrades[trade.ID] = { ...trade };
+        }
+      });
+      
+      return newEditedTrades;
+    });
   }, [trades]);
 
   const handleInputChange = (tradeId: number, field: keyof Trade, value: Trade[keyof Trade]) => {
@@ -67,6 +84,20 @@ export const TradesTable: React.FC<TradesTableProps> = ({
         [field]: value
       }
     }));
+  };
+
+  const handleUpdate = (trade: Trade) => {
+    const updatedTrade = editedTrades[trade.ID];
+    onUpdate(updatedTrade);
+    // Keep the updated trade in editedTrades - don't reset it
+    // The parent will update the trades prop with the new data
+  };
+
+  const handleConfirmDelete = () => {
+    if (tradeToDelete) {
+      onDelete(tradeToDelete.ID);
+      setTradeToDelete(null);
+    }
   };
 
   const handleDisplayCountChange = (value: number) => {
@@ -214,21 +245,42 @@ export const TradesTable: React.FC<TradesTableProps> = ({
                   <TableCell className="p-0 w-32 border-r">
                     <div className="flex space-x-0.5">
                       <Button
-                        onClick={() => onUpdate(editedTrades[trade.ID])}
+                        onClick={() => handleUpdate(trade)}
                         variant="default"
                         size="sm"
                         className="h-6 text-xs px-1"
                       >
                         Update
                       </Button>
-                      <Button
-                        onClick={() => onDelete(trade.ID)}
-                        variant="destructive"
-                        size="sm"
-                        className="h-6 text-xs px-1"
-                      >
-                        Remove
-                      </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            onClick={() => setTradeToDelete(trade)}
+                            variant="destructive"
+                            size="sm"
+                            className="h-6 text-xs px-1"
+                          >
+                            Remove
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to remove the trade for {trade.Ticker}? 
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel onClick={() => setTradeToDelete(null)}>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction onClick={handleConfirmDelete}>
+                              Remove Trade
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                   {fields.map(field => (
