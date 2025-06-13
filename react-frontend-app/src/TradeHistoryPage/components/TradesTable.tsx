@@ -294,6 +294,16 @@ export const TradesTable: React.FC<TradesTableProps> = ({
           </Table>
         </div>
       </div>
+        <Card className="mt-2">
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold mb-2">Considerations</h3>
+            <ul className=" text-muted-foreground pl-4 space-y-1">
+              <li>Only Trades with <strong>Status</strong> column set as <strong>Exited</strong> are used in statistics.</li>
+              <li>All trades will be used for risk pool calculation, even those without <strong>Exited</strong> status, it's the <strong>Return</strong> from all trades it is calculated with.</li>
+            </ul>
+          </CardContent>
+        </Card>
+      
     </div>
   );
 };

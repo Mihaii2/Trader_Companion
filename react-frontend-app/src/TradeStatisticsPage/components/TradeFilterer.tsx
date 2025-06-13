@@ -20,8 +20,8 @@ type TradeFiltererProps = {
 }
 
 const MIN_VALUE_FIELDS = {
-  minEarningsQuality: 'Min Earnings Quality',
-  minFundamentalsQuality: 'Min Fundamentals Quality',
+  // minEarningsQuality: 'Min Earnings Quality',
+  // minFundamentalsQuality: 'Min Fundamentals Quality',
   maxPriceTightness: 'Max Price Tightness (1 Week Before)',
   maxNrBases: 'Max Number of Bases',
   pctOff52WHigh: 'Max % Off 52W High'
@@ -36,26 +36,27 @@ const DROPDOWN_FIELDS = [
   'Has_Earnings_Acceleration',
   'Has_Catalyst',
   'IPO_Last_10_Years',
-  'Earnings_Last_Q_20_Pct',
-  'Volume_Confirmation',
+  // 'Earnings_Last_Q_20_Pct',
+  // 'Volume_Confirmation',
   'Is_BioTech',
-  'Earnings_Surprises',
-  'Expanding_Margins',
-  'EPS_breakout',
+  // 'Earnings_Surprises',
+  // 'Expanding_Margins',
+  // 'EPS_breakout',
   'Strong_annual_EPS',
   'Signs_Acceleration_Will_Continue',
-  'Sudden_Growth_Change',
-  'Strong_Quarterly_Sales',
-  'Strong_Yearly_Sales',
-  'Positive_Analysts_EPS_Revisions',
-  'Positive_Analysts_Price_Revisions',
-  'Ownership_Pct_Change_Past_Earnings',
-  'Quarters_With_75pct_Surprise',
-  'Over_10_pct_Avg_Surprise',
+  // 'Sudden_Growth_Change',
+  // 'Strong_Quarterly_Sales',
+  // 'Strong_Yearly_Sales',
+  // 'Positive_Analysts_EPS_Revisions',
+  // 'Positive_Analysts_Price_Revisions',
+  // 'Ownership_Pct_Change_Past_Earnings',
+  // 'Quarters_With_75pct_Surprise',
+  // 'Over_10_pct_Avg_Surprise',
   'Under_30k_Shares',
-  'Spikes_On_Volume',
-  'Started_Off_Correction',
-  'All_Trendlines_Up'
+  // 'Spikes_On_Volume',
+  // 'Started_Off_Correction',
+  // 'All_Trendlines_Up',
+  'If_You_Could_Only_Make_10_Trades'
 ] as const
 
 const formatLabel = (fieldName: string): string => {
