@@ -20,7 +20,7 @@ class RiskManagementSimulator:
         print(message)
         self.logs.append(message)
         
-    def calculate_increased_risk_pool(self, current_risk_pool, win_amount, k=20):
+    def calculate_increased_risk_pool(self, current_risk_pool, win_amount):
         # Symmetric formula to the loss formula
         increase_factor = 0.2  # Same factor for consistency
         
@@ -37,7 +37,7 @@ class RiskManagementSimulator:
         return current_risk_pool + increase
 
 
-    def calculate_reduced_risk_pool(self, current_risk_pool, loss_amount, k=20):
+    def calculate_reduced_risk_pool(self, current_risk_pool, loss_amount):
         # This creates a decay that will reduce by approximately half after 5 full losses
         reduction_factor = 0.2  # Approximately 20% reduction per full risk pool loss
         
