@@ -44,10 +44,10 @@ export const useTradeStats = (filters: ExtendedFilters) => {
           if (value === undefined) return true;
     
           switch (key) {
-            case 'minEarningsQuality':
-              return trade.Earnings_Quality >= value;
-            case 'minFundamentalsQuality':
-              return Number(trade.Fundamentals_Quality) >= value;
+            // case 'minEarningsQuality':
+            //   return trade.Earnings_Quality >= value;
+            // case 'minFundamentalsQuality':
+            //   return Number(trade.Fundamentals_Quality) >= value;
             case 'maxPriceTightness':
               return trade.Price_Tightness_1_Week_Before <= value;
             case 'maxNrBases':

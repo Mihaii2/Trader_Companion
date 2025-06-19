@@ -320,7 +320,7 @@ export const RiskPoolStats: React.FC = () => {
       label: "Percentage Change",
       value: `${percentageChange.toFixed(2)}%`,
       icon: Percent,
-      valueColor: percentageChange >= 0 ? "text-green-500" : "text-red-500"
+      valueColor: percentageChange >= 0 ? "text-green-500" : "text-red-0"
     },
     {
       label: "Current Balance",

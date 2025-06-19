@@ -7,8 +7,8 @@ import { Trade } from '@/TradeHistoryPage/types/Trade'
 import { useFilterOptions } from '../hooks/useFilterOptions'
 
 type FilterExtensions = {
-  minEarningsQuality?: number
-  minFundamentalsQuality?: number
+  // minEarningsQuality?: number
+  // minFundamentalsQuality?: number
   maxPriceTightness?: number
   maxNrBases?: number
   pctOff52WHigh?: number

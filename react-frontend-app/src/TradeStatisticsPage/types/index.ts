@@ -28,8 +28,8 @@ export interface YearlyStats {
 }
 
 export interface ExtendedFilters extends Partial<Trade> {
-  minEarningsQuality?: number;
-  minFundamentalsQuality?: number;
+  // minEarningsQuality?: number;
+  // minFundamentalsQuality?: number;
   maxPriceTightness?: number;
   minNrBases?: number;
   pctOff52WHigh?: number;

@@ -50,14 +50,14 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     Entry_Price: 'w-20',
     Exit_Price: 'w-20',
     Pattern: 'w-28',
-    Days_In_Pattern_Before_Entry: 'w-14',
+    // Days_In_Pattern_Before_Entry: 'w-14',
     Price_Tightness_1_Week_Before: 'w-20',
     Exit_Reason: 'w-40',
     Market_Condition: 'w-20',
     Case: 'w-40',
     Category: 'w-20',
-    Earnings_Quality: 'w-16',
-    Fundamentals_Quality: 'w-20',
+    // Earnings_Quality: 'w-16',
+    // Fundamentals_Quality: 'w-20',
     Nr_Bases: 'w-10',
   };
 
@@ -115,9 +115,7 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     
     if (profitPercent > 0) {
       return 'bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/70';
-    } else if (profitPercent < 0) {
-      return 'bg-red-500/10 hover:bg-red-500/20 dark:bg-red-950/50 dark:hover:bg-red-950/70';
-    }
+    } 
     
     return 'hover:bg-muted/50';
   };
