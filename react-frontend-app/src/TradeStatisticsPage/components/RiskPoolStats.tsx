@@ -51,7 +51,7 @@ export const RiskPoolStats: React.FC = () => {
         const fetchedTrades = tradesResponse.data;
         setInitialBalance(balance);
         setCurrentBalance(balance);
-        setTempBalance(balance.toString());
+        setTempBalance('69');
   
         let accountSize = balance;
         let currentRiskPool = accountSize * 0.005; // Start at 0.5% of account
@@ -62,7 +62,6 @@ export const RiskPoolStats: React.FC = () => {
         let currentWinRate = 0;
         let tradingWell = false;
         
-        logs.push(`Initial Balance: $${accountSize.toFixed(2)}`);
         logs.push(`Initial Risk Pool: $${currentRiskPool.toFixed(2)} (${(currentRiskPool/accountSize*100).toFixed(2)}%)`);
 
         fetchedTrades.forEach((trade: Trade, index: number) => {
@@ -135,8 +134,6 @@ export const RiskPoolStats: React.FC = () => {
             const winAmount = trade.Return;
             accountSize += winAmount;
             logs.push(`Win Amount: $${winAmount.toFixed(2)}`);
-            logs.push(`Balance Before: $${(accountSize - winAmount).toFixed(2)}`);
-            logs.push(`Balance After: $${accountSize.toFixed(2)}`);
             
             // Update threshold based on new account size
             const newThresholdAmount = accountSize * thresholdPct;
@@ -211,11 +208,8 @@ export const RiskPoolStats: React.FC = () => {
             }
           } else if (!isWinningTrade && trade.Return !== null) {
             const lossAmount = Math.abs(trade.Return);
-            const oldAccountSize = accountSize;
             accountSize -= lossAmount;
             logs.push(`Loss Amount: $${lossAmount.toFixed(2)}`);
-            logs.push(`Balance Before: $${oldAccountSize.toFixed(2)}`);
-            logs.push(`Balance After: $${accountSize.toFixed(2)}`);
             
             // Update threshold based on new account size
             const newThresholdAmount = accountSize * thresholdPct;
@@ -312,7 +306,7 @@ export const RiskPoolStats: React.FC = () => {
   const stats = [
     {
       label: "Initial Balance",
-      value: `$${initialBalance.toFixed(2)}`,
+      value: `Hidden`,
       icon: Wallet,
       valueColor: "text-blue-500"
     },
@@ -324,7 +318,7 @@ export const RiskPoolStats: React.FC = () => {
     },
     {
       label: "Current Balance",
-      value: `$${currentBalance.toFixed(2)}`,
+      value: `Hidden`,
       icon: DollarSign,
       valueColor: "text-green-500"
     },
