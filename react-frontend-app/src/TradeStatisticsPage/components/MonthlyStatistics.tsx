@@ -40,23 +40,46 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
     const winningPercentage = filteredStats.reduce((sum, month) => 
       sum + (month.winningPercentage * month.totalTrades), 0) / totalTrades;
     
-    const avgDaysGains = filteredStats.reduce((sum, month) => 
-      sum + (month.avgDaysGains * month.totalTrades), 0) / totalTrades;
+    const avgDaysGains = totalWinningTrades > 0
+      ? filteredStats.reduce((sum, month) => {
+          const winningTrades = Math.round((month.winningPercentage / 100) * month.totalTrades);
+          return sum + (month.avgDaysGains * winningTrades);
+        }, 0) / totalWinningTrades
+      : 0;
+
     
-    const avgDaysLoss = filteredStats.reduce((sum, month) => 
-      sum + (month.avgDaysLoss * month.totalTrades), 0) / totalTrades;
+    const avgDaysLoss = totalLosingTrades > 0
+      ? filteredStats.reduce((sum, month) => {
+          const losingTrades = month.totalTrades - Math.round((month.winningPercentage / 100) * month.totalTrades);
+          return sum + (month.avgDaysLoss * losingTrades);
+        }, 0) / totalLosingTrades
+      : 0;
+
+
     
-    // Calculate average largest gain and loss
-    const largestGain = filteredStats.reduce((sum, month) => sum + month.largestGain, 0) / filteredStats.length;
-    const largestLoss = filteredStats.reduce((sum, month) => sum + month.largestLoss, 0) / filteredStats.length;
+    // Calculate average largest gain and loss - only include months with valid values
+    const monthsWithGains = filteredStats.filter(month => 
+      month.largestGain !== null && month.largestGain !== undefined && month.largestGain !== 0
+    );
+    const monthsWithLosses = filteredStats.filter(month => 
+      month.largestLoss !== null && month.largestLoss !== undefined && month.largestLoss !== 0
+    );
+    
+    const avgOfLargestGains = monthsWithGains.length > 0 
+      ? monthsWithGains.reduce((sum, month) => sum + month.largestGain, 0) / monthsWithGains.length
+      : 0;
+    
+    const avgOfLargestLosses = monthsWithLosses.length > 0 
+      ? monthsWithLosses.reduce((sum, month) => sum + month.largestLoss, 0) / monthsWithLosses.length
+      : 0;
     
     return {
       averageGain,
       averageLoss,
       winningPercentage,
       totalTrades,
-      largestGain,
-      largestLoss,
+      avgOfLargestGains,
+      avgOfLargestLosses,
       avgDaysGains,
       avgDaysLoss
     };
@@ -112,8 +135,8 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
             <TableCell className="text-center py-1">{summaryStats.averageLoss.toFixed(2)}%</TableCell>
             <TableCell className="text-center py-1">{summaryStats.winningPercentage.toFixed(2)}%</TableCell>
             <TableCell className="text-center py-1">{summaryStats.totalTrades}</TableCell>
-            <TableCell className="text-center py-1">{summaryStats.largestGain.toFixed(2)}%</TableCell>
-            <TableCell className="text-center py-1">{summaryStats.largestLoss.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.avgOfLargestGains.toFixed(2)}%</TableCell>
+            <TableCell className="text-center py-1">{summaryStats.avgOfLargestLosses.toFixed(2)}%</TableCell>
             <TableCell className="text-center py-1">{summaryStats.avgDaysGains.toFixed(1)}</TableCell>
             <TableCell className="text-center py-1">{summaryStats.avgDaysLoss.toFixed(1)}</TableCell>
           </TableRow>
