@@ -18,7 +18,7 @@ const StatCard = ({
   icon: React.ElementType; 
   valueColor: string;
 }) => (
-  <Card className="bg-card">
+  <Card className="bg-card border border-border">
     <CardContent className="py-1 px-3 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">{label}:</span>
@@ -37,6 +37,11 @@ export const RiskPoolStats: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [editingBalance, setEditingBalance] = useState<boolean>(false);
   const [tempBalance, setTempBalance] = useState<string>('1000');
+  const [showSimulationDetails, setShowSimulationDetails] = useState<boolean>(false);
+  const [maxRiskPercent, setMaxRiskPercent] = useState<number>(1.25);
+  const [rMultiple, setRMultiple] = useState<number>(2);
+  const [tradesFetched, setTradesFetched] = useState<Trade[]>([]);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,6 +54,7 @@ export const RiskPoolStats: React.FC = () => {
         
         // Filter trades that have status "Exited"
         const fetchedTrades = tradesResponse.data;
+        setTradesFetched(fetchedTrades);
         setInitialBalance(balance);
         setCurrentBalance(balance);
         setTempBalance('69');
@@ -263,7 +269,7 @@ export const RiskPoolStats: React.FC = () => {
             logs.push(`Risk Pool Change: $${oldRiskPool.toFixed(2)} → $${currentRiskPool.toFixed(2)}`);
           }
           
-          logs.push(`Current Risk Pool: $${currentRiskPool.toFixed(2)} (${(currentRiskPool/accountSize*100).toFixed(2)}%)`);
+          logs.push(`Current Risk Pool: $${currentRiskPool.toFixed(2)}`);
         });
   
         setCurrentBalance(accountSize);
@@ -324,7 +330,7 @@ export const RiskPoolStats: React.FC = () => {
     },
     {
       label: "Current Risk Pool",
-      value: `$${riskPool.toFixed(2)} (${(riskPool/currentBalance*100).toFixed(2)}%)`,
+      value: `$${riskPool.toFixed(2)}`,
       icon: DollarSign,
       valueColor: "text-purple-500"
     },
@@ -336,54 +342,265 @@ export const RiskPoolStats: React.FC = () => {
     }
   ];
 
+  // Calculate perfect trading simulation
+  const calculatePerfectTrading = () => {
+    const targetReturn = initialBalance * 1.0; // 100% return
+    const targetBalance = initialBalance + targetReturn;
+    
+    let simAccountSize = currentBalance;
+    let simRiskPool = riskPool;
+    const trades = [];
+    let tradeCount = 0;
+    const simLast8Trades: boolean[] = []; // Track last 8 trades for win rate
+    // Initialize with existing trades for win rate calculation
+    const existingTrades = tradesFetched.slice(-8); // Get last 8 trades from actual trading
+    existingTrades.forEach(trade => {
+      const isWin = trade.Return !== null && trade.Return > 0;
+      simLast8Trades.push(isWin);
+    });
+    
+    
+    while (simAccountSize < targetBalance && tradeCount < 50) { // Safety limit
+      tradeCount++;
+
+      
+      
+      // Calculate risk amount (at most 1.25% of account, but use risk pool if smaller)
+      const maxRisk = simAccountSize * (maxRiskPercent / 100);
+      const riskAmount = Math.min(simRiskPool, maxRisk);
+      
+      // 2x return on risk
+      const returnAmount = riskAmount * rMultiple;
+
+      
+      // Update account size
+      simAccountSize += returnAmount;
+      
+      // Update risk pool using your algorithm for winning trades
+      const thresholdPct = 0.005; // 0.5%
+      const maxRiskPoolPct = 0.05; // 5%
+      const increaseFactor = 0.25; // 25% increase factor
+      
+      const newThresholdAmount = simAccountSize * thresholdPct;
+      const oldRiskPool = simRiskPool;
+      
+      // Calculate how much the risk pool would increase if we applied the formula
+      const calculateIncreasedRiskPool = (currentRiskPool: number, winAmount: number): number => {
+        const winProportion = Math.min(winAmount / currentRiskPool, 1.0);
+        const increase = currentRiskPool * increaseFactor * winProportion;
+        return currentRiskPool + increase;
+      };
+      
+      if (simRiskPool < newThresholdAmount) {
+        // If below threshold, apply formula logic
+        const potentialNewRiskPool = calculateIncreasedRiskPool(oldRiskPool, returnAmount);
+        
+        if (potentialNewRiskPool < newThresholdAmount) {
+          // Apply formula to entire win amount
+          simRiskPool = potentialNewRiskPool;
+        } else {
+          // Apply formula to reach threshold, then add rest directly
+          const neededIncrease = newThresholdAmount - oldRiskPool;
+          const maxIncrease = oldRiskPool * increaseFactor;
+          
+          let amountNeededForThreshold;
+          if (neededIncrease <= maxIncrease) {
+            amountNeededForThreshold = neededIncrease / increaseFactor;
+          } else {
+            amountNeededForThreshold = oldRiskPool;
+          }
+          
+          const riskPoolAtThreshold = calculateIncreasedRiskPool(oldRiskPool, amountNeededForThreshold);
+          const remainingWin = returnAmount - amountNeededForThreshold;
+          
+          simRiskPool = riskPoolAtThreshold + remainingWin;
+        }
+      } else {
+        // If already above threshold, add full amount
+        simRiskPool += returnAmount;
+      }
+      
+      // Cap risk pool at maximum percentage
+      const maxRiskPool = simAccountSize * maxRiskPoolPct;
+      if (simRiskPool > maxRiskPool) {
+        simRiskPool = maxRiskPool;
+      }
+      
+      trades.push({
+        tradeNumber: tradeCount,
+        riskAmount,
+        returnAmount,
+        newBalance: simAccountSize,
+        newRiskPool: simRiskPool,
+        percentageGain: ((simAccountSize - initialBalance) / initialBalance) * 100
+      });
+
+      // Update win rate tracking with this perfect trade (always a win)
+      if (simLast8Trades.length >= 8) {
+        simLast8Trades.shift(); // Remove oldest trade
+      }
+      simLast8Trades.push(true); // This trade is always a win in simulation
+
+      // Calculate current win rate
+      const wins = simLast8Trades.filter(win => win).length;
+      const currentWinRate = simLast8Trades.length > 0 ? wins / simLast8Trades.length : 0;
+
+      // Check if win rate reaches 3/8 (37.5%) and reset risk pool if needed
+      if (currentWinRate >= 0.375 && simRiskPool < simAccountSize * 0.005) {
+        simRiskPool = simAccountSize * 0.005; // Reset to 0.5% of account
+      }
+      
+      if (simAccountSize >= targetBalance) break;
+    }
+    
+    return trades;
+  };
+  
+  const perfectTrades = calculatePerfectTrading();
+  const finalGain = perfectTrades.length > 0 ? perfectTrades[perfectTrades.length - 1].percentageGain : 0;
+
+
   return (
-    <Card className="mb-4">
+    <>
+      <Card className="mb-4">
       <CardHeader>
         <CardTitle>Risk Pool</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
-          <div className="grid grid-cols-2 gap-1">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                {stat.label === "Initial Balance" && editingBalance ? (
-                  <Card className="bg-card">
-                    <CardContent className="py-1 px-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">{stat.label}:</span>
-                        <Input
-                          type="number"
-                          value={tempBalance}
-                          onChange={(e) => setTempBalance(e.target.value)}
-                          className="w-32 h-8 text-sm"
-                        />
-                      </div>
-                      <div className="flex gap-1">
-                        <Button size="sm" onClick={handleBalanceUpdate}>Save</Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditingBalance(false)}>Cancel</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="relative">
-                    <StatCard {...stat} />
-                    {stat.label === "Initial Balance" && !editingBalance && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-8 top-1 h-6 w-6 p-0"
-                        onClick={() => setEditingBalance(true)}
-                      >
-                        <Edit className="w-4 h-4 text-gray-500" />
-                      </Button>
-                    )}
-                  </div>
-                )}
+        <div className="grid grid-cols-2 gap-1">
+          {stats.map((stat) => (
+          <div key={stat.label}>
+            {stat.label === "Initial Balance" && editingBalance ? (
+            <Card className="bg-card">
+              <CardContent className="py-1 px-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">{stat.label}:</span>
+                <Input
+                type="number"
+                value={tempBalance}
+                onChange={(e) => setTempBalance(e.target.value)}
+                className="w-32 h-8 text-sm"
+                />
               </div>
-            ))}
+              <div className="flex gap-1">
+                <Button size="sm" onClick={handleBalanceUpdate}>Save</Button>
+                <Button size="sm" variant="outline" onClick={() => setEditingBalance(false)}>Cancel</Button>
+              </div>
+              </CardContent>
+            </Card>
+            ) : (
+            <div className="relative">
+              <StatCard {...stat} />
+              {stat.label === "Initial Balance" && !editingBalance && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-8 top-1 h-6 w-6 p-0"
+                onClick={() => setEditingBalance(true)}
+              >
+                <Edit className="w-4 h-4 text-gray-500" />
+              </Button>
+              )}
+            </div>
+            )}
           </div>
+          ))}
+        </div>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+
+      <Card className="mb-4">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">Max Risk:</span>
+            <Input
+              type="number"
+              value={maxRiskPercent}
+              onChange={(e) => setMaxRiskPercent(parseFloat(e.target.value) || 1.25)}
+              className="w-20 h-8 text-sm"
+              step="0.1"
+              min="0.1"
+              max="10"
+            />
+            <span className="text-sm text-muted-foreground">%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-sm text-muted-foreground">R Multiple:</span>
+            <Input
+              type="number"
+              value={rMultiple}
+              onChange={(e) => setRMultiple(parseFloat(e.target.value) || 2)}
+              className="w-20 h-8 text-sm"
+              step="0.1"
+              min="0.1"
+              max="10"
+            />
+            <span className="text-sm text-muted-foreground">R</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSimulationDetails(!showSimulationDetails)}
+          >
+            {showSimulationDetails ? "Hide Details" : "Show Details"}
+          </Button>
+        </div>
+          <div className="text-center flex-1">
+            <CardTitle>Perfect Trading Simulation to 100% Return</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Simulating perfect trades ({rMultiple}R return, no losses) using risk pool algorithm.
+              {perfectTrades.length > 0 && (
+                <>
+                  <br />
+                  <span className="font-semibold text-green-600">
+                    {perfectTrades.length} trades needed to reach {finalGain.toFixed(1)}% return
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2">
+      {perfectTrades.map((trade) => (
+        <Card key={trade.tradeNumber} className="bg-green-50/20 dark:bg-green-950/20 border-green-100/30 dark:border-green-900/30">
+        <CardContent className="p-3">
+        <div className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
+        Trade #{trade.tradeNumber}
+        </div>
+        <div className="space-y-1 text-xs">
+        {showSimulationDetails && (
+          <>
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">Risk:</span>
+          <span className="font-medium">${trade.riskAmount.toFixed(0)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">Return:</span>
+          <span className="font-medium text-green-600">${trade.returnAmount.toFixed(0)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">New Balance:</span>
+          <span className="font-medium">${trade.newBalance.toFixed(0)}</span>
+        </div>  
+          </>
+        )}
+        <div className="flex justify-between">
+          <span className="text-gray-600 dark:text-gray-400">Gain:</span>
+          <span className="font-medium text-green-600">{trade.percentageGain.toFixed(1)}%</span>
+        </div>
+        </div>
+        </CardContent>
+        </Card>
+      ))}
+        </div>
+      </CardContent>
+      </Card>
+    </>
   );
 };
