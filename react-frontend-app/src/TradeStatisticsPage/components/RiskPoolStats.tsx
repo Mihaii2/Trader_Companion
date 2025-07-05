@@ -39,9 +39,10 @@ export const RiskPoolStats: React.FC = () => {
   const [tempBalance, setTempBalance] = useState<string>('1000');
   const [showSimulationDetails, setShowSimulationDetails] = useState<boolean>(false);
   const [maxRiskPercent, setMaxRiskPercent] = useState<number>(1.25);
-  const [rMultiple, setRMultiple] = useState<number>(2);
+  const [rMultiple, setRMultiple] = useState<number>(3);
   const [tradesFetched, setTradesFetched] = useState<Trade[]>([]);
 
+  const [includeLosses, setIncludeLosses] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -343,6 +344,8 @@ export const RiskPoolStats: React.FC = () => {
   ];
 
   // Calculate perfect trading simulation
+
+// Modified calculatePerfectTrading function
   const calculatePerfectTrading = () => {
     const targetReturn = initialBalance * 1.0; // 100% return
     const targetBalance = initialBalance + targetReturn;
@@ -351,55 +354,50 @@ export const RiskPoolStats: React.FC = () => {
     let simRiskPool = riskPool;
     const trades = [];
     let tradeCount = 0;
-    const simLast8Trades: boolean[] = []; // Track last 8 trades for win rate
-    // Initialize with existing trades for win rate calculation
-    const existingTrades = tradesFetched.slice(-8); // Get last 8 trades from actual trading
+    const simLast8Trades: boolean[] = [];
+    const existingTrades = tradesFetched.slice(-8);
     existingTrades.forEach(trade => {
       const isWin = trade.Return !== null && trade.Return > 0;
       simLast8Trades.push(isWin);
     });
     
-    
-    while (simAccountSize < targetBalance && tradeCount < 50) { // Safety limit
+    while (simAccountSize < targetBalance && tradeCount < 100) {
       tradeCount++;
-
       
-      
-      // Calculate risk amount (at most 1.25% of account, but use risk pool if smaller)
       const maxRisk = simAccountSize * (maxRiskPercent / 100);
       const riskAmount = Math.min(simRiskPool, maxRisk);
-      
-      // 2x return on risk
       const returnAmount = riskAmount * rMultiple;
-
       
-      // Update account size
+      // Add win trade
       simAccountSize += returnAmount;
       
-      // Update risk pool using your algorithm for winning trades
-      const thresholdPct = 0.005; // 0.5%
-      const maxRiskPoolPct = 0.05; // 5%
-      const increaseFactor = 0.25; // 25% increase factor
+      const thresholdPct = 0.005;
+      const maxRiskPoolPct = 0.05;
+      const increaseFactor = 0.25;
+      const reductionFactor = 0.25;
       
       const newThresholdAmount = simAccountSize * thresholdPct;
-      const oldRiskPool = simRiskPool;
+      let oldRiskPool = simRiskPool;
       
-      // Calculate how much the risk pool would increase if we applied the formula
       const calculateIncreasedRiskPool = (currentRiskPool: number, winAmount: number): number => {
         const winProportion = Math.min(winAmount / currentRiskPool, 1.0);
         const increase = currentRiskPool * increaseFactor * winProportion;
         return currentRiskPool + increase;
       };
       
+      const calculateReducedRiskPool = (currentRiskPool: number, lossAmount: number): number => {
+        const lossProportion = Math.min(lossAmount / currentRiskPool, 1.0);
+        const reduction = currentRiskPool * reductionFactor * lossProportion;
+        return currentRiskPool - reduction;
+      };
+      
+      // Handle win trade
       if (simRiskPool < newThresholdAmount) {
-        // If below threshold, apply formula logic
         const potentialNewRiskPool = calculateIncreasedRiskPool(oldRiskPool, returnAmount);
         
         if (potentialNewRiskPool < newThresholdAmount) {
-          // Apply formula to entire win amount
           simRiskPool = potentialNewRiskPool;
         } else {
-          // Apply formula to reach threshold, then add rest directly
           const neededIncrease = newThresholdAmount - oldRiskPool;
           const maxIncrease = oldRiskPool * increaseFactor;
           
@@ -412,15 +410,12 @@ export const RiskPoolStats: React.FC = () => {
           
           const riskPoolAtThreshold = calculateIncreasedRiskPool(oldRiskPool, amountNeededForThreshold);
           const remainingWin = returnAmount - amountNeededForThreshold;
-          
           simRiskPool = riskPoolAtThreshold + remainingWin;
         }
       } else {
-        // If already above threshold, add full amount
         simRiskPool += returnAmount;
       }
       
-      // Cap risk pool at maximum percentage
       const maxRiskPool = simAccountSize * maxRiskPoolPct;
       if (simRiskPool > maxRiskPool) {
         simRiskPool = maxRiskPool;
@@ -432,22 +427,63 @@ export const RiskPoolStats: React.FC = () => {
         returnAmount,
         newBalance: simAccountSize,
         newRiskPool: simRiskPool,
-        percentageGain: ((simAccountSize - initialBalance) / initialBalance) * 100
+        percentageGain: ((simAccountSize - initialBalance) / initialBalance) * 100,
+        isWin: true
       });
-
-      // Update win rate tracking with this perfect trade (always a win)
+      
       if (simLast8Trades.length >= 8) {
-        simLast8Trades.shift(); // Remove oldest trade
+        simLast8Trades.shift();
       }
-      simLast8Trades.push(true); // This trade is always a win in simulation
-
-      // Calculate current win rate
-      const wins = simLast8Trades.filter(win => win).length;
-      const currentWinRate = simLast8Trades.length > 0 ? wins / simLast8Trades.length : 0;
-
-      // Check if win rate reaches 3/8 (37.5%) and reset risk pool if needed
+      simLast8Trades.push(true);
+      
+      let currentWinRate = simLast8Trades.length > 0 ? simLast8Trades.filter(win => win).length / simLast8Trades.length : 0;
+      
       if (currentWinRate >= 0.375 && simRiskPool < simAccountSize * 0.005) {
-        simRiskPool = simAccountSize * 0.005; // Reset to 0.5% of account
+        simRiskPool = simAccountSize * 0.005;
+      }
+      
+      // Add loss trade if includeLosses is true
+      if (includeLosses) {
+        tradeCount++;
+        simAccountSize -= riskAmount;
+        
+        const newThresholdAmountLoss = simAccountSize * thresholdPct;
+        oldRiskPool = simRiskPool;
+        
+        if (simRiskPool > newThresholdAmountLoss) {
+          const amountAboveThreshold = simRiskPool - newThresholdAmountLoss;
+          
+          if (riskAmount <= amountAboveThreshold) {
+            simRiskPool -= riskAmount;
+          } else {
+            const excessLoss = riskAmount - amountAboveThreshold;
+            simRiskPool = newThresholdAmountLoss;
+            simRiskPool = calculateReducedRiskPool(simRiskPool, excessLoss);
+          }
+        } else {
+          simRiskPool = calculateReducedRiskPool(simRiskPool, riskAmount);
+        }
+        
+        trades.push({
+          tradeNumber: tradeCount,
+          riskAmount,
+          returnAmount: -riskAmount,
+          newBalance: simAccountSize,
+          newRiskPool: simRiskPool,
+          percentageGain: ((simAccountSize - initialBalance) / initialBalance) * 100,
+          isWin: false
+        });
+        
+        if (simLast8Trades.length >= 8) {
+          simLast8Trades.shift();
+        }
+        simLast8Trades.push(false);
+        
+        currentWinRate = simLast8Trades.length > 0 ? simLast8Trades.filter(win => win).length / simLast8Trades.length : 0;
+        
+        if (currentWinRate >= 0.375 && simRiskPool < simAccountSize * 0.005) {
+          simRiskPool = simAccountSize * 0.005;
+        }
       }
       
       if (simAccountSize >= targetBalance) break;
@@ -513,8 +549,40 @@ export const RiskPoolStats: React.FC = () => {
 
       <Card className="mb-4">
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="text-center">
+          <CardTitle>Trading Simulation to 100% Return</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Simulating trades ({rMultiple}R return{includeLosses ? ", with 50% win rate" : ", no losses"}) using risk pool algorithm.
+            {perfectTrades.length > 0 && (
+              <>
+                <br />
+                <span className="font-semibold text-green-600">
+                  {perfectTrades.length} trades needed to reach {finalGain.toFixed(1)}% return
+                </span>
+              </>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center justify-start gap-4 mt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIncludeLosses(!includeLosses)}
+            className={`${
+              includeLosses 
+                ? "bg-destructive/20 text-foreground hover:bg-destructive/30 dark:bg-destructive/30 dark:text-secondary-foreground dark:hover:bg-destructive/40" 
+                : "bg-background text-foreground hover:bg-accent dark:text-secondary-foreground dark:hover:bg-secondary/80"
+            } border border-input transition-colors`}
+          >
+            {includeLosses ? "Remove Losses" : "Include Losses"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSimulationDetails(!showSimulationDetails)}
+          >
+            {showSimulationDetails ? "Hide Details" : "Show Details"}
+          </Button>
           <div className="flex items-center gap-1">
             <span className="text-sm text-muted-foreground">Max Risk:</span>
             <Input
@@ -526,76 +594,54 @@ export const RiskPoolStats: React.FC = () => {
               min="0.1"
               max="10"
             />
-            <span className="text-sm text-muted-foreground">%</span>
+            <span className="text-sm text-muted-foreground">% of account.</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-sm text-muted-foreground">R Multiple:</span>
+            <span className="text-sm text-muted-foreground">Risk Multiple:</span>
             <Input
               type="number"
               value={rMultiple}
-              onChange={(e) => setRMultiple(parseFloat(e.target.value) || 2)}
+              onChange={(e) => setRMultiple(parseFloat(e.target.value) || 3)}
               className="w-20 h-8 text-sm"
               step="0.1"
               min="0.1"
               max="10"
             />
-            <span className="text-sm text-muted-foreground">R</span>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSimulationDetails(!showSimulationDetails)}
-          >
-            {showSimulationDetails ? "Hide Details" : "Show Details"}
-          </Button>
-        </div>
-          <div className="text-center flex-1">
-            <CardTitle>Perfect Trading Simulation to 100% Return</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Simulating perfect trades ({rMultiple}R return, no losses) using risk pool algorithm.
-              {perfectTrades.length > 0 && (
-                <>
-                  <br />
-                  <span className="font-semibold text-green-600">
-                    {perfectTrades.length} trades needed to reach {finalGain.toFixed(1)}% return
-                  </span>
-                </>
-              )}
-            </p>
+            <span className="text-sm text-muted-foreground">R's</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10 gap-2">
       {perfectTrades.map((trade) => (
-        <Card key={trade.tradeNumber} className="bg-green-50/20 dark:bg-green-950/20 border-green-100/30 dark:border-green-900/30">
-        <CardContent className="p-3">
-        <div className="text-sm font-semibold text-green-800 dark:text-green-200 mb-2">
-        Trade #{trade.tradeNumber}
-        </div>
-        <div className="space-y-1 text-xs">
-        {showSimulationDetails && (
-          <>
-        <div className="flex justify-between">
-          <span className="text-gray-600 dark:text-gray-400">Risk:</span>
-          <span className="font-medium">${trade.riskAmount.toFixed(0)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600 dark:text-gray-400">Return:</span>
-          <span className="font-medium text-green-600">${trade.returnAmount.toFixed(0)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-600 dark:text-gray-400">New Balance:</span>
-          <span className="font-medium">${trade.newBalance.toFixed(0)}</span>
-        </div>  
-          </>
-        )}
-        <div className="flex justify-between">
-          <span className="text-gray-600 dark:text-gray-400">Gain:</span>
-          <span className="font-medium text-green-600">{trade.percentageGain.toFixed(1)}%</span>
-        </div>
-        </div>
-        </CardContent>
+        <Card key={trade.tradeNumber} className={trade.isWin ? "bg-green-50/20 dark:bg-green-950/20 border-green-100/30 dark:border-green-900/30" : "bg-red-50/20 dark:bg-red-950/20 border-red-100/30 dark:border-red-900/30"}>
+          <CardContent className="p-3">
+            <div className={`text-sm font-semibold ${trade.isWin ? "text-green-800 dark:text-green-200" : "text-red-0 dark:text-red-0"} mb-2`}>
+              Trade #{trade.tradeNumber} {trade.isWin ? "(Win)" : "(Loss)"}
+            </div>
+            <div className="space-y-1 text-xs">
+              {showSimulationDetails && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Risk:</span>
+                    <span className="font-medium">${trade.riskAmount.toFixed(0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Return:</span>
+                    <span className={`font-medium ${trade.isWin ? "text-green-600" : "text-red-0"}`}>${trade.returnAmount.toFixed(0)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">New Balance:</span>
+                    <span className="font-medium">${trade.newBalance.toFixed(0)}</span>
+                  </div>  
+                </>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">Gain:</span>
+                <span className={`font-medium ${trade.percentageGain >= 0 ? "text-green-600" : "text-red-0"}`}>{trade.percentageGain.toFixed(1)}%</span>
+              </div>
+            </div>
+          </CardContent>
         </Card>
       ))}
         </div>

@@ -52,6 +52,7 @@ const ORDERED_CHARACTERISTICS = [
   "Shakeouts",
   "Volatile",
   "Held Up Well Against Market/ Outperforming/ Surging/RSI Uptrend",
+  "Outperformed Sometime Prior",
   "Strong IPO Price Action",
   "MVP(Not Late Stage)",
   "Power Play(EARLY STAGE)",
@@ -808,7 +809,7 @@ export const RankingItem: React.FC<Props> = ({
                         } finally {
                           setIsSaving(false);
                         }
-                      }, 1000);
+                      }, 2500);
                     }}
                     placeholder="Enter note..."
                     className="h-8"
@@ -959,7 +960,7 @@ export const RankingItem: React.FC<Props> = ({
                         } finally {
                           setIsSaving(false);
                         }
-                      }, 1000);
+                      }, 2500);
                     }}
                     placeholder="Enter demand reason..."
                     className="h-8"
