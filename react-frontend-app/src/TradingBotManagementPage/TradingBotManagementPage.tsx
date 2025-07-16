@@ -35,6 +35,17 @@ interface ServerStatus {
   available_risk: number;
   server_uptime: string;
   last_trade_time: string;
+  trades: Array<{
+    trade_id: string;
+    ticker: string;
+    shares: number;
+    risk_amount: number;
+    lower_price_range: number;
+    higher_price_range: number;
+    sell_stops: Array<{ price: number; shares: number }>;
+  }>;
+  error_count?: number;
+  is_processing?: boolean;
 }
 
 interface ErrorLog {
@@ -59,6 +70,13 @@ export function TradingBotPage() {
     time_in_pivot_positions: '',
     data_server: 'http://localhost:5001',
     trade_server: 'http://localhost:5002'
+  });
+
+  const [pivotPositions, setPivotPositions] = useState({
+    any: false,
+    lower: false,
+    middle: false,
+    upper: false
   });
   
   const [newTrade, setNewTrade] = useState({
@@ -151,6 +169,24 @@ export function TradingBotPage() {
     } catch (error) {
       console.error('Error fetching errors:', error);
     }
+  };
+
+  const updatePivotPositions = (position: string, checked: boolean) => {
+    setPivotPositions(prev => ({
+      ...prev,
+      [position]: checked
+    }));
+    
+    // Update the botConfig with the selected positions
+    const newPositions = { ...pivotPositions, [position]: checked };
+    const selectedPositions = Object.entries(newPositions)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([pos, _]) => pos);
+    
+    setBotConfig(prev => ({
+      ...prev,
+      time_in_pivot_positions: selectedPositions.join(',')
+    }));
   };
 
   const updateRisk = async () => {
@@ -345,24 +381,31 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot (seconds)</label>
-                <input
-                  type="number"
-                  value={botConfig.time_in_pivot}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot Positions</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['any', 'lower', 'middle', 'upper'] as const).map(position => (
+                    <label key={position} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={pivotPositions[position]}
+                        onChange={(e) => updatePivotPositions(position, e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700 capitalize">{position}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot Positions</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot</label>
               <input
-                type="text"
-                value={botConfig.time_in_pivot_positions}
-                onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot_positions: e.target.value }))}
+                type="number"
+                value={botConfig.time_in_pivot}
+                onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="any,lower,middle,upper"
+                placeholder="Time in pivot (seconds)"
               />
             </div>
             
@@ -496,24 +539,30 @@ export function TradingBotPage() {
                 <div className="space-y-2">
                   {newTrade.sell_stops.map((stop, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={stop.price}
-                        onChange={(e) => updateSellStop(index, 'price', parseFloat(e.target.value))}
-                        className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Price"
-                        step="0.01"
-                      />
-                      <input
-                        type="number"
-                        value={stop.shares}
-                        onChange={(e) => updateSellStop(index, 'shares', parseInt(e.target.value))}
-                        className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Shares"
-                      />
+                      <div className="flex-1">
+                        <label className="block text-xs text-gray-500 mb-1">Stop Price</label>
+                        <input
+                          type="number"
+                          value={stop.price}
+                          onChange={(e) => updateSellStop(index, 'price', parseFloat(e.target.value))}
+                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Stop Price"
+                          step="0.01"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-xs text-gray-500 mb-1">Shares</label>
+                        <input
+                          type="number"
+                          value={stop.shares}
+                          onChange={(e) => updateSellStop(index, 'shares', parseInt(e.target.value))}
+                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Shares"
+                        />
+                      </div>
                       <button
                         onClick={() => removeSellStop(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded mt-5"
                         disabled={newTrade.sell_stops.length === 1}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -581,6 +630,59 @@ export function TradingBotPage() {
                 </>
               )}
             </div>
+            
+            {/* Active Trades Details */}
+            {serverStatus && serverStatus.trades && serverStatus.trades.length > 0 && (
+              <div className="bg-white border rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b">
+                  <h3 className="text-lg font-semibold text-gray-900">Active Trades Details</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trade ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price Range</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell Stops</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {serverStatus.trades.map((trade) => (
+                        <tr key={trade.trade_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                            {trade.trade_id.substring(0, 8)}...
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {trade.ticker}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {trade.shares.toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${trade.risk_amount.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            ${trade.lower_price_range.toFixed(2)} - ${trade.higher_price_range.toFixed(2)}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            <div className="space-y-1">
+                              {trade.sell_stops.map((stop, index) => (
+                                <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                  ${stop.price.toFixed(2)} ({stop.shares.toLocaleString()} shares)
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
             
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">Update Risk Amount</h3>
