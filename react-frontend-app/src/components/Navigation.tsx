@@ -51,6 +51,16 @@ export function Navigation() {
             >
               Trading Stats
             </Link>
+            <Link
+              to="/trading_bots"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'trading_bots' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Trading Bots
+            </Link>
           </div>
           <div>
             <ThemeToggle />

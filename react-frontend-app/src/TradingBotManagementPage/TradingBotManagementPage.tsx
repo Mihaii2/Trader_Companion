@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Square, Plus, Eye, AlertCircle, DollarSign, RefreshCw, Trash2 } from 'lucide-react';
+import { Play, Plus, Eye, AlertCircle, DollarSign, RefreshCw, Trash2 } from 'lucide-react';
 
 interface Trade {
   id: string;
@@ -226,9 +226,9 @@ export function TradingBotPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const TabButton = ({ tab, label, icon: Icon }: { tab: string; label: string; icon: any }) => (
+  const TabButton = ({ tab, label, icon: Icon }: { tab: string; label: string; icon: React.ComponentType<{ className?: string }> }) => (
     <button
-      onClick={() => setActiveTab(tab as any)}
+      onClick={() => setActiveTab(tab as 'bot' | 'trades' | 'status' | 'errors')}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
         activeTab === tab
           ? 'bg-blue-600 text-white'
@@ -362,7 +362,7 @@ export function TradingBotPage() {
                 value={botConfig.time_in_pivot_positions}
                 onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot_positions: e.target.value }))}
                 className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="all,bottom,lower,middle,upper,upper_half,middle_upper"
+                placeholder="any,lower,middle,upper"
               />
             </div>
             
@@ -386,7 +386,7 @@ export function TradingBotPage() {
                     value={newVolumeReq}
                     onChange={(e) => setNewVolumeReq(e.target.value)}
                     className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="minutes=volume or day=2000"
+                    placeholder="minutes=volume or day=volume"
                   />
                   <button
                     onClick={addVolumeRequirement}
