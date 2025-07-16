@@ -48,12 +48,22 @@ interface ServerStatus {
   is_processing?: boolean;
 }
 
+interface TradeData {
+  ticker?: string;
+  shares?: number;
+  risk_amount?: number;
+  lower_price_range?: number;
+  higher_price_range?: number;
+  sell_stops?: Array<{ price: number; shares: number }>;
+  [key: string]: unknown;
+}
+
 interface ErrorLog {
   timestamp: string;
   error_message: string;
   error_type: string;
   ticker: string;
-  trade_data: any;
+  trade_data: TradeData;
 }
 
 export function TradingBotPage() {
@@ -296,8 +306,8 @@ export function TradingBotPage() {
       onClick={() => setActiveTab(tab as 'bot' | 'trades' | 'status' | 'errors')}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
         activeTab === tab
-          ? 'bg-blue-600 text-white'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          ? 'bg-primary text-primary-foreground'
+          : 'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'
       }`}
     >
       <Icon className="w-4 h-4" />
@@ -305,10 +315,11 @@ export function TradingBotPage() {
     </button>
   );
 
+
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Trading Bot Management</h1>
+      <div className="bg-card text-card-foreground rounded-lg shadow-sm border p-6">
+        <h1 className="text-2xl font-bold mb-6">Trading Bot Management</h1>
         
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
@@ -323,44 +334,44 @@ export function TradingBotPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ticker</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Ticker</label>
                 <input
                   type="text"
                   value={botConfig.ticker}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, ticker: e.target.value }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   placeholder="AAPL"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Lower Price</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Lower Price</label>
                 <input
                   type="number"
                   value={botConfig.lower_price}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, lower_price: parseFloat(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Higher Price</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Higher Price</label>
                 <input
                   type="number"
                   value={botConfig.higher_price}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, higher_price: parseFloat(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Pivot Adjustment</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Pivot Adjustment</label>
                 <select
                   value={botConfig.pivot_adjustment}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 >
                   <option value="0.5">0.5%</option>
                   <option value="1.0">1.0%</option>
@@ -368,49 +379,49 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Recent Interval (seconds)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Recent Interval (seconds)</label>
                 <input
                   type="number"
                   value={botConfig.recent_interval}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, recent_interval: parseInt(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Historical Interval (seconds)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (seconds)</label>
                 <input
                   type="number"
                   value={botConfig.historical_interval}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, historical_interval: parseInt(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Momentum Increase</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Momentum Increase</label>
                 <input
                   type="number"
                   value={botConfig.momentum_increase}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, momentum_increase: parseFloat(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Day High Max % Off</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Day High Max % Off</label>
                 <input
                   type="number"
                   value={botConfig.day_high_max_percent_off}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot Positions</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Time in Pivot Positions</label>
                 <div className="grid grid-cols-2 gap-2">
                   {(['any', 'lower', 'middle', 'upper'] as const).map(position => (
                     <label key={position} className="flex items-center gap-2">
@@ -418,9 +429,9 @@ export function TradingBotPage() {
                         type="checkbox"
                         checked={pivotPositions[position]}
                         onChange={(e) => updatePivotPositions(position, e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-input text-primary focus:ring-ring"
                       />
-                      <span className="text-sm text-gray-700 capitalize">{position}</span>
+                      <span className="text-sm text-foreground capitalize">{position}</span>
                     </label>
                   ))}
                 </div>
@@ -428,25 +439,25 @@ export function TradingBotPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Time in Pivot</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Time in Pivot</label>
               <input
                 type="number"
                 value={botConfig.time_in_pivot}
                 onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
-                className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 placeholder="Time in pivot (seconds)"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Volume Requirements</label>
+              <label className="block text-sm font-medium text-foreground mb-2">Volume Requirements</label>
               <div className="space-y-2">
                 {botConfig.volume_requirements.map((req, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <span className="flex-1 p-2 bg-gray-50 rounded">{req}</span>
+                    <span className="flex-1 p-2 bg-muted text-muted-foreground rounded">{req}</span>
                     <button
                       onClick={() => removeVolumeRequirement(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -457,12 +468,12 @@ export function TradingBotPage() {
                     type="text"
                     value={newVolumeReq}
                     onChange={(e) => setNewVolumeReq(e.target.value)}
-                    className="flex-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     placeholder="minutes=volume or day=volume"
                   />
                   <button
                     onClick={addVolumeRequirement}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
                   >
                     Add
                   </button>
@@ -472,22 +483,22 @@ export function TradingBotPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Data Server</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Data Server</label>
                 <input
                   type="text"
                   value={botConfig.data_server}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, data_server: e.target.value }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Trade Server</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Trade Server</label>
                 <input
                   type="text"
                   value={botConfig.trade_server}
                   onChange={(e) => setBotConfig(prev => ({ ...prev, trade_server: e.target.value }))}
-                  className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
             </div>
@@ -495,7 +506,7 @@ export function TradingBotPage() {
             <button
               onClick={startBot}
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
               {loading ? 'Starting Bot...' : 'Start Trading Bot'}
@@ -506,92 +517,92 @@ export function TradingBotPage() {
         {/* Trades Tab */}
         {activeTab === 'trades' && (
           <div className="space-y-6">
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-muted/50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">Add New Trade</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ticker</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Ticker</label>
                   <input
                     type="text"
                     value={newTrade.ticker}
                     onChange={(e) => setNewTrade(prev => ({ ...prev, ticker: e.target.value }))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Shares</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Shares</label>
                   <input
                     type="number"
                     value={newTrade.shares}
                     onChange={(e) => setNewTrade(prev => ({ ...prev, shares: parseInt(e.target.value) }))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Risk Amount</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Risk Amount</label>
                   <input
                     type="number"
                     value={newTrade.risk_amount}
                     onChange={(e) => setNewTrade(prev => ({ ...prev, risk_amount: parseFloat(e.target.value) }))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Lower Price Range</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Lower Price Range</label>
                   <input
                     type="number"
                     value={newTrade.lower_price_range}
                     onChange={(e) => setNewTrade(prev => ({ ...prev, lower_price_range: parseFloat(e.target.value) }))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Higher Price Range</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Higher Price Range</label>
                   <input
                     type="number"
                     value={newTrade.higher_price_range}
                     onChange={(e) => setNewTrade(prev => ({ ...prev, higher_price_range: parseFloat(e.target.value) }))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
                   />
                 </div>
               </div>
               
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sell Stops</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Sell Stops</label>
                 <div className="space-y-2">
                   {newTrade.sell_stops.map((stop, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-500 mb-1">Stop Price</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Stop Price</label>
                         <input
                           type="number"
                           value={stop.price}
                           onChange={(e) => updateSellStop(index, 'price', parseFloat(e.target.value))}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                           placeholder="Stop Price"
                           step="0.01"
                         />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs text-gray-500 mb-1">Shares</label>
+                        <label className="block text-xs text-muted-foreground mb-1">Shares</label>
                         <input
                           type="number"
                           value={stop.shares}
                           onChange={(e) => updateSellStop(index, 'shares', parseInt(e.target.value))}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                           placeholder="Shares"
                         />
                       </div>
                       <button
                         onClick={() => removeSellStop(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded mt-5"
+                        className="p-2 text-destructive hover:bg-destructive/10 rounded mt-5"
                         disabled={newTrade.sell_stops.length === 1}
                       >
                         <Trash2 className="w-4 h-4" />
@@ -600,7 +611,7 @@ export function TradingBotPage() {
                   ))}
                   <button
                     onClick={addSellStop}
-                    className="w-full p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 text-gray-600 hover:text-gray-800"
+                    className="w-full p-2 border-2 border-dashed border-border rounded-lg hover:border-border/80 text-muted-foreground hover:text-foreground"
                   >
                     + Add Sell Stop
                   </button>
@@ -610,7 +621,7 @@ export function TradingBotPage() {
               <button
                 onClick={addTrade}
                 disabled={loading}
-                className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 dark:bg-green-700 dark:hover:bg-green-800"
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {loading ? 'Adding Trade...' : 'Add Trade'}
@@ -625,36 +636,36 @@ export function TradingBotPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {serverStatus && (
                 <>
-                  <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="bg-blue-50 dark:bg-blue-950/50 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-2">
-                      <Eye className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-semibold text-blue-800">Active Trades</h3>
+                      <Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <h3 className="font-semibold text-blue-800 dark:text-blue-200">Active Trades</h3>
                     </div>
-                    <p className="text-2xl font-bold text-blue-600">{serverStatus.active_trades}</p>
+                    <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{serverStatus.active_trades}</p>
                   </div>
                   
-                  <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="bg-green-50 dark:bg-green-950/50 p-4 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                      <h3 className="font-semibold text-green-800">Available Risk</h3>
+                      <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <h3 className="font-semibold text-green-800 dark:text-green-200">Available Risk</h3>
                     </div>
-                    <p className="text-2xl font-bold text-green-600">${serverStatus.available_risk}</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">${serverStatus.available_risk}</p>
                   </div>
                   
-                  <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="bg-purple-50 dark:bg-purple-950/50 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
                     <div className="flex items-center gap-2 mb-2">
-                      <RefreshCw className="w-5 h-5 text-purple-600" />
-                      <h3 className="font-semibold text-purple-800">Server Uptime</h3>
+                      <RefreshCw className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      <h3 className="font-semibold text-purple-800 dark:text-purple-200">Server Uptime</h3>
                     </div>
-                    <p className="text-lg font-bold text-purple-600">{serverStatus.server_uptime}</p>
+                    <p className="text-lg font-bold text-purple-600 dark:text-purple-400">{serverStatus.server_uptime}</p>
                   </div>
                   
-                  <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="bg-orange-50 dark:bg-orange-950/50 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
                     <div className="flex items-center gap-2 mb-2">
-                      <Play className="w-5 h-5 text-orange-600" />
-                      <h3 className="font-semibold text-orange-800">Last Trade</h3>
+                      <Play className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <h3 className="font-semibold text-orange-800 dark:text-orange-200">Last Trade</h3>
                     </div>
-                    <p className="text-sm font-medium text-orange-600">{serverStatus.last_trade_time || 'Never'}</p>
+                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400">{serverStatus.last_trade_time || 'Never'}</p>
                   </div>
                 </>
               )}
@@ -662,55 +673,55 @@ export function TradingBotPage() {
             
             {/* Active Trades Details */}
             {serverStatus && serverStatus.trades && serverStatus.trades.length > 0 && (
-              <div className="bg-white border rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b">
-                  <h3 className="text-lg font-semibold text-gray-900">Active Trades Details</h3>
+              <div className="bg-card border rounded-lg overflow-hidden">
+                <div className="bg-muted/50 px-6 py-4 border-b">
+                  <h3 className="text-lg font-semibold text-foreground">Active Trades Details</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gray-50">
+                    <thead className="bg-muted/50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trade ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Amount</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price Range</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell Stops</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Trade ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Ticker</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Shares</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Risk Amount</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Price Range</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Sell Stops</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-card divide-y divide-border">
                       {serverStatus.trades.map((trade) => (
-                        <tr key={trade.trade_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        <tr key={trade.trade_id} className="hover:bg-muted/50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-foreground">
                             {trade.trade_id.substring(0, 8)}...
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                             {trade.ticker}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             {trade.shares.toLocaleString()}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             ${trade.risk_amount.toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             ${trade.lower_price_range.toFixed(2)} - ${trade.higher_price_range.toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
+                          <td className="px-6 py-4 text-sm text-foreground">
                             <div className="space-y-1">
                               {trade.sell_stops.map((stop, index) => (
-                                <div key={index} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                <div key={index} className="text-xs bg-muted px-2 py-1 rounded">
                                   ${stop.price.toFixed(2)} ({stop.shares.toLocaleString()} shares)
                                 </div>
                               ))}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             <button
                               onClick={() => deleteTrade(trade.trade_id)}
                               disabled={loading}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:opacity-50 text-sm"
                             >
                               <Trash2 className="w-3 h-3" />
                               Delete
@@ -724,23 +735,23 @@ export function TradingBotPage() {
               </div>
             )}
             
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-muted/50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold mb-4">Update Risk Amount</h3>
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">New Risk Amount</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">New Risk Amount</label>
                   <input
                     type="number"
                     value={riskAmount}
                     onChange={(e) => setRiskAmount(parseFloat(e.target.value))}
-                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
                   />
                 </div>
                 <button
                   onClick={updateRisk}
                   disabled={loading}
-                  className="bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                  className="bg-primary text-primary-foreground py-3 px-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
                   Update Risk
@@ -757,7 +768,7 @@ export function TradingBotPage() {
               <h3 className="text-lg font-semibold">Error Log</h3>
               <button
                 onClick={fetchErrors}
-                className="flex items-center gap-2 px-3 py-1 bg-gray-100 rounded-lg hover:bg-gray-200"
+                className="flex items-center gap-2 px-3 py-1 bg-muted rounded-lg hover:bg-muted/80"
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh
@@ -766,28 +777,28 @@ export function TradingBotPage() {
             
             <div className="space-y-3">
               {errors.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <div className="text-center py-8 text-muted-foreground">
+                  <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
                   <p>No errors found</p>
                 </div>
               ) : (
                 errors.map((error, index) => (
-                  <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div key={index} className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-red-800">{error.error_type}</span>
-                          <span className="text-sm text-red-600">{error.timestamp}</span>
+                          <span className="font-medium text-destructive">{error.error_type}</span>
+                          <span className="text-sm text-destructive/80">{error.timestamp}</span>
                         </div>
-                        <p className="text-red-700 mb-2">{error.error_message}</p>
+                        <p className="text-destructive/90 mb-2">{error.error_message}</p>
                         {error.ticker && (
-                          <p className="text-sm text-red-600 bg-red-100 p-2 rounded">
+                          <p className="text-sm text-destructive/80 bg-destructive/5 p-2 rounded">
                             Ticker: {error.ticker}
                           </p>
                         )}
                         {error.trade_data && (
-                          <p className="text-sm text-red-600 bg-red-100 p-2 rounded mt-2">
+                          <p className="text-sm text-destructive/80 bg-destructive/5 p-2 rounded mt-2">
                             Trade Data: {JSON.stringify(error.trade_data)}
                           </p>
                         )}

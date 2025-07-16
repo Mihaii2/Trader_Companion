@@ -535,7 +535,7 @@ export const RiskPoolStats: React.FC = () => {
                 className="absolute right-8 top-1 h-6 w-6 p-0"
                 onClick={() => setEditingBalance(true)}
               >
-                <Edit className="w-4 h-4 text-gray-500" />
+                <Edit className="w-4 h-4 text-muted-foreground" />
               </Button>
               )}
             </div>
