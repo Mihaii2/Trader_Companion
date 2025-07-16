@@ -50,8 +50,10 @@ interface ServerStatus {
 
 interface ErrorLog {
   timestamp: string;
-  error: string;
-  details: string;
+  error_message: string;
+  error_type: string;
+  ticker: string;
+  trade_data: any;
 }
 
 export function TradingBotPage() {
@@ -201,6 +203,33 @@ export function TradingBotPage() {
       const result = await response.json();
       if (result.success) {
         alert('Risk amount updated successfully!');
+        fetchStatus();
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      alert(`Network error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTrade = async (tradeId: string) => {
+    if (!confirm('Are you sure you want to delete this trade?')) {
+      return;
+    }
+    
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5002/remove_trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trade_id: tradeId })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert('Trade deleted successfully!');
         fetchStatus();
       } else {
         alert(`Error: ${result.error}`);
@@ -647,6 +676,7 @@ export function TradingBotPage() {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Risk Amount</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price Range</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sell Stops</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -675,6 +705,16 @@ export function TradingBotPage() {
                                 </div>
                               ))}
                             </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <button
+                              onClick={() => deleteTrade(trade.trade_id)}
+                              disabled={loading}
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 text-sm"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Delete
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -737,12 +777,19 @@ export function TradingBotPage() {
                       <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-red-800">Error</span>
+                          <span className="font-medium text-red-800">{error.error_type}</span>
                           <span className="text-sm text-red-600">{error.timestamp}</span>
                         </div>
-                        <p className="text-red-700 mb-2">{error.error}</p>
-                        {error.details && (
-                          <p className="text-sm text-red-600 bg-red-100 p-2 rounded">{error.details}</p>
+                        <p className="text-red-700 mb-2">{error.error_message}</p>
+                        {error.ticker && (
+                          <p className="text-sm text-red-600 bg-red-100 p-2 rounded">
+                            Ticker: {error.ticker}
+                          </p>
+                        )}
+                        {error.trade_data && (
+                          <p className="text-sm text-red-600 bg-red-100 p-2 rounded mt-2">
+                            Trade Data: {JSON.stringify(error.trade_data)}
+                          </p>
                         )}
                       </div>
                     </div>
