@@ -481,8 +481,6 @@ export function TradingBotPage() {
               </div>
             </div>
             
-            
-            
             <button
               onClick={startBot}
               disabled={loading}
