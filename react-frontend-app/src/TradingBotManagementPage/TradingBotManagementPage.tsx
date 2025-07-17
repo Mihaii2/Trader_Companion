@@ -481,27 +481,7 @@ export function TradingBotPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Data Server</label>
-                <input
-                  type="text"
-                  value={botConfig.data_server}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, data_server: e.target.value }))}
-                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Trade Server</label>
-                <input
-                  type="text"
-                  value={botConfig.trade_server}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, trade_server: e.target.value }))}
-                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                />
-              </div>
-            </div>
+            
             
             <button
               onClick={startBot}
@@ -783,22 +763,22 @@ export function TradingBotPage() {
                 </div>
               ) : (
                 errors.map((error, index) => (
-                  <div key={index} className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+                  <div key={index} className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/50 rounded-lg p-4">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-5 h-5 text-destructive mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-destructive">{error.error_type}</span>
-                          <span className="text-sm text-destructive/80">{error.timestamp}</span>
+                          <span className="font-medium text-red-700 dark:text-red-300">{error.error_type}</span>
+                          <span className="text-sm text-red-600 dark:text-red-400">{error.timestamp}</span>
                         </div>
-                        <p className="text-destructive/90 mb-2">{error.error_message}</p>
+                        <p className="text-red-800 dark:text-red-200 mb-2">{error.error_message}</p>
                         {error.ticker && (
-                          <p className="text-sm text-destructive/80 bg-destructive/5 p-2 rounded">
+                          <p className="text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 p-2 rounded">
                             Ticker: {error.ticker}
                           </p>
                         )}
                         {error.trade_data && (
-                          <p className="text-sm text-destructive/80 bg-destructive/5 p-2 rounded mt-2">
+                          <p className="text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 p-2 rounded mt-2">
                             Trade Data: {JSON.stringify(error.trade_data)}
                           </p>
                         )}

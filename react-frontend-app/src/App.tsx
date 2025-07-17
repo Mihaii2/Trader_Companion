@@ -5,6 +5,7 @@ import { PersonalRankingPage } from './StockRankingPage/PersonalRankingPage';
 import { TradeHistoryPage } from './TradeHistoryPage/TradeHistoryPage';
 import { TradingStatsPage } from './TradeStatisticsPage/TradeStatisticsPage';
 import { TradingBotPage } from './TradingBotManagementPage/TradingBotManagementPage';
+import { TickerManagementPage } from './TickerManagementPage/TickerManagementPage';
 import { Navigation } from './components/Navigation';
 import './App.css';
 
@@ -20,6 +21,8 @@ export default function App() {
             <Route path="/trade_history" element={<TradeHistoryPage />} />
             <Route path="/trading_stats" element={<TradingStatsPage />} />
             <Route path="/trading_bots" element={<TradingBotPage />} />
+            <Route path="/ticker_management" element={<TickerManagementPage />} />
+            {/* Redirect to stocks screeners if no path matches */}
             {/* Redirect root path to stocks screeners */}
             <Route path="/" element={<Navigate to="/stocks_screeners" replace />} />
           </Routes>
