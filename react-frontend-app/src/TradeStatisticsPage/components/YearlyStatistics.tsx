@@ -1,8 +1,8 @@
 // components/YearlyStatistics.tsx
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Percent, Scale, DollarSign } from "lucide-react";
-
+import { TrendingUp, TrendingDown, Percent, Scale } from "lucide-react";
+// import { DollarSign } from "lucide-react";
 interface YearlyStatisticsProps {
   yearlyStats: {
     winningPercentage: number;
@@ -67,39 +67,39 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
     }
   ];
   
-  const returnStats = [
-    {
-      label: "Expected Return (12.5% Position sizing, 10 Trades)",
-      value: `${(yearlyStats.expectedReturnOn10Trades_125 || 0).toFixed(2)}%`,
-      icon: DollarSign,
-      valueColor: "text-purple-500"
-    },
-    {
-      label: "Expected Return (12.5% Position sizing, 50 Trades)",
-      value: `${(yearlyStats.expectedReturnOn50Trades_125 || 0).toFixed(2)}%`,
-      icon: DollarSign,
-      valueColor: "text-purple-500"
-    },
-    {
-      label: "Expected Return (25% Position sizing, 10 Trades)",
-      value: `${(yearlyStats.expectedReturnOn10Trades_25 || 0).toFixed(2)}%`,
-      icon: DollarSign,
-      valueColor: "text-indigo-500"
-    },
-    {
-      label: "Expected Return (25% Position sizing, 50 Trades)",
-      value: `${(yearlyStats.expectedReturnOn50Trades_25 || 0).toFixed(2)}%`,
-      icon: DollarSign,
-      valueColor: "text-indigo-500"
-    }
-  ];
+  // const returnStats = [
+  //   {
+  //     label: "Expected Return (12.5% Position sizing, 10 Trades)",
+  //     value: `${(yearlyStats.expectedReturnOn10Trades_125 || 0).toFixed(2)}%`,
+  //     icon: DollarSign,
+  //     valueColor: "text-purple-500"
+  //   },
+  //   {
+  //     label: "Expected Return (12.5% Position sizing, 50 Trades)",
+  //     value: `${(yearlyStats.expectedReturnOn50Trades_125 || 0).toFixed(2)}%`,
+  //     icon: DollarSign,
+  //     valueColor: "text-purple-500"
+  //   },
+  //   {
+  //     label: "Expected Return (25% Position sizing, 10 Trades)",
+  //     value: `${(yearlyStats.expectedReturnOn10Trades_25 || 0).toFixed(2)}%`,
+  //     icon: DollarSign,
+  //     valueColor: "text-indigo-500"
+  //   },
+  //   {
+  //     label: "Expected Return (25% Position sizing, 50 Trades)",
+  //     value: `${(yearlyStats.expectedReturnOn50Trades_25 || 0).toFixed(2)}%`,
+  //     icon: DollarSign,
+  //     valueColor: "text-indigo-500"
+  //   }
+  // ];
   
-  const expectedValueStat = {
-    label: "Expected Growth Per Trade",
-    value: `${yearlyStats.expectedValuePerTrade.toFixed(2)}%`,
-    icon: DollarSign,
-    valueColor: "text-purple-500"
-  };
+  // const expectedValueStat = {
+  //   label: "Expected Growth Per Trade",
+  //   value: `${yearlyStats.expectedValuePerTrade.toFixed(2)}%`,
+  //   icon: DollarSign,
+  //   valueColor: "text-purple-500"
+  // };
 
   return (
     <div className="space-y-1">
@@ -110,7 +110,7 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-1">
+      {/* <div className="grid grid-cols-2 gap-1">
         {returnStats.map((stat) => (
           <div key={stat.label}>
             <StatCard {...stat} />
@@ -119,7 +119,7 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
       </div>
       <div>
         <StatCard {...expectedValueStat} />
-      </div>
+      </div> */}
     </div>
   );
 };

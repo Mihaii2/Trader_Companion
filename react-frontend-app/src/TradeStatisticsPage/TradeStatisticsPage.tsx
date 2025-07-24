@@ -33,12 +33,6 @@ export const TradingStatsPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* New Trade Distribution Component */}
-      <TradeDistribution 
-        filteredTrades={filteredTrades} 
-        selectedMonths={selectedMonths}
-      />
-
       <Card>
         <CardHeader>
           <CardTitle>Yearly Statistics</CardTitle>
@@ -47,6 +41,12 @@ export const TradingStatsPage: React.FC = () => {
           <YearlyStatistics yearlyStats={yearlyStats} />
         </CardContent>
       </Card>
+      {/* New Trade Distribution Component */}
+      <TradeDistribution 
+        filteredTrades={filteredTrades} 
+        selectedMonths={selectedMonths}
+      />
+
 
       <Card>
         <CardHeader>
