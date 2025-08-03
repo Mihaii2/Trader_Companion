@@ -52,7 +52,7 @@ const DROPDOWN_FIELDS = [
   // 'Ownership_Pct_Change_Past_Earnings',
   // 'Quarters_With_75pct_Surprise',
   // 'Over_10_pct_Avg_Surprise',
-  'Under_30k_Shares',
+  'Under_30M_Shares',
   // 'Spikes_On_Volume',
   // 'Started_Off_Correction',
   // 'All_Trendlines_Up',

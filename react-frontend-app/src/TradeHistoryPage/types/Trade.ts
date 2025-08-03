@@ -37,7 +37,7 @@ export interface Trade {
   // Ownership_Pct_Change_Past_Earnings: boolean;
   // Quarters_With_75pct_Surprise: boolean;
   // Over_10_pct_Avg_Surprise: boolean;
-  Under_30k_Shares: boolean;
+  Under_30M_Shares: boolean;
   Case: string;
   // Spikes_On_Volume: boolean;
   // Started_Off_Correction: boolean;

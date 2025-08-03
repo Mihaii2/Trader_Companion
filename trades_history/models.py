@@ -39,7 +39,7 @@ class Trades(models.Model):
     # Ownership_Pct_Change_Past_Earnings = models.BooleanField()
     # Quarters_With_75pct_Surprise = models.BooleanField()
     # Over_10_pct_Avg_Surprise = models.BooleanField()
-    Under_30k_Shares = models.BooleanField(default=False)
+    Under_30M_Shares = models.BooleanField(default=False)
     # Spikes_On_Volume = models.BooleanField(default=False)
     # Started_Off_Correction = models.BooleanField(default=False)
     # All_Trendlines_Up = models.BooleanField(default=False)

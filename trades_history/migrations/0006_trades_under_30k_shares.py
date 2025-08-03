@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='trades',
-            name='Under_30k_Shares',
+            name='Under_30M_Shares',
             field=models.BooleanField(default=False),
         ),
     ]
