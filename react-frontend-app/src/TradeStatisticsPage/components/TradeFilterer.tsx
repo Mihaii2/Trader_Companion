@@ -56,7 +56,14 @@ const DROPDOWN_FIELDS = [
   // 'Spikes_On_Volume',
   // 'Started_Off_Correction',
   // 'All_Trendlines_Up',
-  'If_You_Could_Only_Make_10_Trades'
+  'If_You_Could_Only_Make_10_Trades',
+  'C',
+  'A',
+  'N',
+  'S',
+  'L',
+  'I',
+  'M',
 ] as const
 
 const formatLabel = (fieldName: string): string => {

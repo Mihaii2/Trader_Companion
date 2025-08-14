@@ -150,6 +150,74 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     const expectedReturnOn50Trades_125 = (Math.exp(expectedGrowthRate * positionSize125 * 50) - 1) * 100;
     const expectedReturnOn10Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 10) - 1) * 100;
     const expectedReturnOn50Trades_25 = (Math.exp(expectedGrowthRate * positionSize25 * 50) - 1) * 100;
+    
+    // Calculate average of largest gains/losses from each month (like in summary table)
+    const months = Array.from({ length: 12 }, (_, i) => {
+      return format(addMonths(new Date(), -i), 'MMM yy');
+    }).reverse();
+
+    const selectedMonthsData = months
+      .filter(month => selectedMonths.has(month))
+      .map(month => {
+        const monthTrades = filteredTrades.filter(trade => 
+          format(parseISO(trade.Exit_Date), 'MMM yy') === month
+        );
+
+        const gains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
+        const losses = monthTrades.filter(t => t.Exit_Price < t.Entry_Price);
+
+        const largestGain = gains.length > 0 ? 
+          Math.max(...gains.map(t => (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100)) : 0;
+        const largestLoss = losses.length > 0 ? 
+          Math.min(...losses.map(t => (t.Exit_Price - t.Entry_Price) / t.Entry_Price * 100)) : 0;
+
+        return { largestGain, largestLoss };
+      });
+
+    const monthsWithGains = selectedMonthsData.filter(month => month.largestGain > 0);
+    const monthsWithLosses = selectedMonthsData.filter(month => month.largestLoss < 0);
+
+    const avgLargestGain = monthsWithGains.length > 0 
+      ? monthsWithGains.reduce((sum, month) => sum + month.largestGain, 0) / monthsWithGains.length
+      : 0;
+
+    const avgLargestLoss = monthsWithLosses.length > 0 
+      ? monthsWithLosses.reduce((sum, month) => sum + month.largestLoss, 0) / monthsWithLosses.length
+      : 0;
+
+    const avgLargestGainLossRatio = avgLargestLoss !== 0 ? Math.abs(avgLargestGain / avgLargestLoss) : 0;
+
+    // Calculate average days held for gains and losses (like in summary table)
+    const totalWinningTrades = selectedTrades.filter(t => t.Exit_Price > t.Entry_Price).length;
+    const totalLosingTrades = selectedTrades.filter(t => t.Exit_Price <= t.Entry_Price).length;
+
+    const avgDaysGains = totalWinningTrades > 0
+      ? selectedMonthsData.reduce((sum, monthData, index) => {
+          const month = months.filter(m => selectedMonths.has(m))[index];
+          const monthTrades = filteredTrades.filter(trade => 
+            format(parseISO(trade.Exit_Date), 'MMM yy') === month
+          );
+          const monthGains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
+          const monthAvgDaysGains = monthGains.length ? 
+            monthGains.reduce((acc, t) => acc + differenceInDays(parseISO(t.Exit_Date), parseISO(t.Entry_Date)), 0) / monthGains.length : 0;
+          return sum + (monthAvgDaysGains * monthGains.length);
+        }, 0) / totalWinningTrades
+      : 0;
+
+    const avgDaysLoss = totalLosingTrades > 0
+      ? selectedMonthsData.reduce((sum, monthData, index) => {
+          const month = months.filter(m => selectedMonths.has(m))[index];
+          const monthTrades = filteredTrades.filter(trade => 
+            format(parseISO(trade.Exit_Date), 'MMM yy') === month
+          );
+          const monthLosses = monthTrades.filter(t => t.Exit_Price <= t.Entry_Price);
+          const monthAvgDaysLoss = monthLosses.length ? 
+            monthLosses.reduce((acc, t) => acc + differenceInDays(parseISO(t.Exit_Date), parseISO(t.Entry_Date)), 0) / monthLosses.length : 0;
+          return sum + (monthAvgDaysLoss * monthLosses.length);
+        }, 0) / totalLosingTrades
+      : 0;
+
+    const avgDaysRatio = avgDaysLoss !== 0 ? avgDaysGains / Math.abs(avgDaysLoss) : 0;
   
     return {
       winningPercentage: selectedTrades.length ? winRate * 100 : 0,
@@ -160,7 +228,14 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       expectedReturnOn10Trades_125: expectedReturnOn10Trades_125,
       expectedReturnOn50Trades_125: expectedReturnOn50Trades_125,
       expectedReturnOn10Trades_25: expectedReturnOn10Trades_25,
-      expectedReturnOn50Trades_25: expectedReturnOn50Trades_25
+      expectedReturnOn50Trades_25: expectedReturnOn50Trades_25,
+      avgLargestGain,
+      avgLargestLoss,
+      avgLargestGainLossRatio,
+      avgDaysGains,
+      avgDaysLoss,
+      avgDaysRatio
+
     };
   }, [filteredTrades, selectedMonths]);
   

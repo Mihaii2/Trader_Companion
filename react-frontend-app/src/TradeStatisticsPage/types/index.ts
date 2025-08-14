@@ -25,6 +25,12 @@ export interface YearlyStats {
   expectedReturnOn50Trades_125?: number; // 12.5% position sizing
   expectedReturnOn10Trades_25?: number;  // 25% position sizing
   expectedReturnOn50Trades_25?: number;  // 25% position sizing
+  avgLargestGain: number;
+  avgLargestLoss: number;
+  avgLargestGainLossRatio: number;
+  avgDaysGains: number;
+  avgDaysLoss: number;
+  avgDaysRatio: number;
 }
 
 export interface ExtendedFilters extends Partial<Trade> {

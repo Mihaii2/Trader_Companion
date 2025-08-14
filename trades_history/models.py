@@ -44,6 +44,13 @@ class Trades(models.Model):
     # Started_Off_Correction = models.BooleanField(default=False)
     # All_Trendlines_Up = models.BooleanField(default=False)
     If_You_Could_Only_Make_10_Trades = models.BooleanField(default=False)
+    C = models.BooleanField(default=False)
+    A = models.BooleanField(default=False)
+    N = models.BooleanField(default=False)
+    S = models.BooleanField(default=False)
+    L = models.BooleanField(default=False)
+    I = models.BooleanField(default=False)
+    M = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.Ticker} - {self.Entry_Date}"

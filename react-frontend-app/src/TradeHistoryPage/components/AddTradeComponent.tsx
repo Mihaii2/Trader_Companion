@@ -58,6 +58,13 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
     // All_Trendlines_Up: false,
     If_You_Could_Only_Make_10_Trades: false,
     Pct_Off_52W_High: 0,
+    C: false,
+    A: false,
+    N: false,
+    S: false,
+    L: false,
+    I: false,
+    M: false,
   };
 
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);

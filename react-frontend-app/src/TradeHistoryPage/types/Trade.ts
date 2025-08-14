@@ -44,4 +44,11 @@ export interface Trade {
   // All_Trendlines_Up: boolean;
   If_You_Could_Only_Make_10_Trades: boolean;
   Pct_Off_52W_High: number;
+  C: boolean;
+  A: boolean;
+  N: boolean;
+  S: boolean;
+  L: boolean;
+  I: boolean;
+  M: boolean;
 }

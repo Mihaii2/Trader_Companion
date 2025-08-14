@@ -60,18 +60,24 @@ export const RiskPoolStats: React.FC = () => {
         setCurrentBalance(balance);
         setTempBalance('69');
   
+        // Sort trades by entry date to ensure chronological processing
+        const sortedTrades = fetchedTrades
+          .filter(trade => trade.Entry_Date) // Only include trades with exit dates
+          .sort((a, b) => new Date(a.Entry_Date!).getTime() - new Date(b.Entry_Date!).getTime());
+
         let accountSize = balance;
         let currentRiskPool = accountSize * 0.005; // Start at 0.5% of account
         const logs: string[] = [];
-        
+
         // Initialize last 8 trades array for tracking win rate
         const last8Trades: boolean[] = []; // true for win, false for loss
         let currentWinRate = 0;
         let tradingWell = false;
-        
+
         logs.push(`Initial Risk Pool: $${currentRiskPool.toFixed(2)} (${(currentRiskPool/accountSize*100).toFixed(2)}%)`);
 
-        fetchedTrades.forEach((trade: Trade, index: number) => {
+        // Change this line from fetchedTrades to sortedTrades:
+        sortedTrades.forEach((trade: Trade, index: number) => {
           // Constants
           const thresholdPct = 0.005; // 0.5%
           const maxRiskPoolPct = 0.05; // 5%

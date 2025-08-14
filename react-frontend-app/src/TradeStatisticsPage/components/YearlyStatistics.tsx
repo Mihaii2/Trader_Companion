@@ -14,6 +14,12 @@ interface YearlyStatisticsProps {
     expectedReturnOn50Trades_125?: number;
     expectedReturnOn10Trades_25?: number;
     expectedReturnOn50Trades_25?: number;
+    avgLargestGain: number;
+    avgLargestLoss: number;
+    avgLargestGainLossRatio: number;
+    avgDaysGains: number;
+    avgDaysLoss: number;
+    avgDaysRatio: number;
   };
 }
 
@@ -60,10 +66,23 @@ export const YearlyStatistics: React.FC<YearlyStatisticsProps> = ({ yearlyStats 
       valueColor: "text-purple-500"
     },
     {
-      label: "Win / Loss",
+      label: "Avg Gain / Avg Loss",
       value: yearlyStats.winLossRatio.toFixed(2),
       icon: Scale,
       valueColor: "text-yellow-500"
+    }
+    ,
+    {
+      label: "Avg Lg Gain / Avg Lg Loss", // New stat
+      value: `${yearlyStats.avgLargestGainLossRatio.toFixed(2)}`,
+      icon: Scale,
+      valueColor: "text-purple-500"
+    },
+    {
+      label: "Avg Days Gains / Avg Days Loss",
+      value: yearlyStats.avgDaysRatio.toFixed(1),
+      icon: TrendingUp, // You can choose a different icon if you prefer
+      valueColor: "text-orange-400"
     }
   ];
   

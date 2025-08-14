@@ -27,6 +27,8 @@ interface BotConfig {
   time_in_pivot_positions: string;
   data_server: string;
   trade_server: string;
+  volume_multipliers: number[];
+
 }
 
 interface ServerStatus {
@@ -73,15 +75,16 @@ export function TradingBotPage() {
     lower_price: 0,
     higher_price: 0,
     volume_requirements: [],
-    pivot_adjustment: '0.5',
-    recent_interval: 20,
-    historical_interval: 600,
+    pivot_adjustment: '0.0',
+    recent_interval: 30,
+    historical_interval: 5.1,
     momentum_increase: 0.05,
     day_high_max_percent_off: 0.5,
-    time_in_pivot: 0,
+    time_in_pivot: 301,
     time_in_pivot_positions: '',
     data_server: 'http://localhost:5001',
-    trade_server: 'http://localhost:5002'
+    trade_server: 'http://localhost:5002',
+    volume_multipliers: [1.0, 0.75, 0.5],
   });
 
   const [pivotPositions, setPivotPositions] = useState({
@@ -107,14 +110,21 @@ export function TradingBotPage() {
   const [newVolumeReq, setNewVolumeReq] = useState('');
   const [riskAmount, setRiskAmount] = useState(0);
 
+  
+  
   // API calls
   const startBot = async () => {
     setLoading(true);
     try {
+      const configToSend = {
+        ...botConfig,
+        historical_interval: Math.round(botConfig.historical_interval * 60) // send as integer seconds
+      };
+
       const response = await fetch('http://localhost:5003/start_bot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(botConfig)
+        body: JSON.stringify(configToSend)
       });
       
       const result = await response.json();
@@ -141,6 +151,17 @@ export function TradingBotPage() {
       
       const result = await response.json();
       if (result.success) {
+        // ✅ Add ticker to monitoring server
+        try {
+          await fetch('http://localhost:5001/tickers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol: newTrade.ticker.toUpperCase() })
+          });
+        } catch (tickerErr) {
+          console.error('Failed to add ticker to monitoring server:', tickerErr);
+        }
+
         alert('Trade added successfully!');
         setNewTrade({
           ticker: '',
@@ -160,6 +181,7 @@ export function TradingBotPage() {
       setLoading(false);
     }
   };
+
 
   const fetchStatus = async () => {
     try {
@@ -373,6 +395,7 @@ export function TradingBotPage() {
                   onChange={(e) => setBotConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 >
+                  <option value="0.0">0.0%</option>
                   <option value="0.5">0.5%</option>
                   <option value="1.0">1.0%</option>
                 </select>
@@ -389,11 +412,14 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (seconds)</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (minutes), can be float</label>
                 <input
                   type="number"
                   value={botConfig.historical_interval}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, historical_interval: parseInt(e.target.value) }))}
+                  onChange={(e) => {
+                    const minutes = parseFloat(e.target.value);
+                    setBotConfig(prev => ({ ...prev, historical_interval: minutes }));
+                  }}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 />
               </div>
@@ -480,6 +506,28 @@ export function TradingBotPage() {
                 </div>
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Volume Multipliers</label>
+              <div className="grid grid-cols-3 gap-2">
+                {['Lower', 'Middle', 'Upper'].map((label, idx) => (
+                  <input
+                    key={idx}
+                    type="number"
+                    value={botConfig.volume_multipliers[idx]}
+                    onChange={(e) => {
+                      const newMultipliers = [...botConfig.volume_multipliers];
+                      newMultipliers[idx] = parseFloat(e.target.value);
+                      setBotConfig(prev => ({ ...prev, volume_multipliers: newMultipliers }));
+                    }}
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                    step="0.01"
+                    placeholder={`${label}`}
+                  />
+                ))}
+              </div>
+            </div>
+
             
             <button
               onClick={startBot}
