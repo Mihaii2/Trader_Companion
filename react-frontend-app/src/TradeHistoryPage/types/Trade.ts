@@ -19,7 +19,7 @@ export interface Trade {
   // Fundamentals_Quality: number;
   Nr_Bases: number;
   Has_Earnings_Acceleration: boolean;
-  Has_Catalyst: boolean;
+  // Has_Catalyst: boolean;
   // Earnings_Last_Q_20_Pct: boolean;
   IPO_Last_10_Years: boolean;
   // Volume_Confirmation: boolean;
@@ -27,8 +27,8 @@ export interface Trade {
   // Earnings_Surprises: boolean;
   // Expanding_Margins: boolean;
   // EPS_breakout: boolean;
-  Strong_annual_EPS: boolean;
-  Signs_Acceleration_Will_Continue: boolean;
+  // Strong_annual_EPS: boolean;
+  // Signs_Acceleration_Will_Continue: boolean;
   // Sudden_Growth_Change: boolean;
   // Strong_Quarterly_Sales: boolean;
   // Strong_Yearly_Sales: boolean;
