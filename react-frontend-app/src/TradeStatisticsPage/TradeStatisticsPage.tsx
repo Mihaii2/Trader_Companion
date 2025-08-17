@@ -7,10 +7,19 @@ import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { RiskPoolStats } from './components/RiskPoolStats';
 import { TradeDistribution } from './components/TradeDistribution';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { addMonths, format } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 export const TradingStatsPage: React.FC = () => {
   const [filters, setFilters] = useState<Partial<Trade>>({});
-  const { monthlyStats, yearlyStats, loading, toggleMonth, filteredTrades, selectedMonths } = useTradeStats(filters);
+  const [startDate, setStartDate] = useState<string>(() => {
+  const twelveMonthsAgo = addMonths(new Date(), -11);
+  return format(twelveMonthsAgo, 'yyyy-MM');
+  });
+  const [endDate, setEndDate] = useState<string>(() => {
+    return format(new Date(), 'yyyy-MM');
+  });
+  const { monthlyStats, yearlyStats, loading, toggleMonth, filteredTrades, selectedMonths } = useTradeStats(filters, startDate, endDate);
 
   if (loading) {
     return (
@@ -26,6 +35,28 @@ export const TradingStatsPage: React.FC = () => {
       
       <Card>
         <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-2 my-2">
+            <label htmlFor="start-date" className="text-sm font-medium">From:</label>
+            <Input
+              id="start-date"
+              type="month"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-32"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="end-date" className="text-sm font-medium">To:</label>
+            <Input
+              id="end-date"
+              type="month"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-32"
+            />
+          </div>
+        </div>
           <MonthlyStatistics 
             monthlyStats={monthlyStats} 
             onToggleMonth={toggleMonth}

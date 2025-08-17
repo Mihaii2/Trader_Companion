@@ -9,15 +9,18 @@ const isExitedTrade = (trade: Trade): trade is Trade & { Exit_Price: number, Exi
   return trade.Status === 'Exited' && trade.Exit_Price !== null && trade.Exit_Date !== null;
 };
 
-export const useTradeStats = (filters: ExtendedFilters) => {
+export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endDate?: string) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonths, setSelectedMonths] = useState<Set<string>>(() => {
     const initialMonths = new Set<string>();
-    const now = new Date();
-    for (let i = 0; i < 12; i++) {
-      const month = format(addMonths(now, -i), 'MMM yy');
-      initialMonths.add(month);
+    const start = startDate ? parseISO(`${startDate}-01`) : addMonths(new Date(), -11);
+    const end = endDate ? parseISO(`${endDate}-01`) : new Date();
+    
+    let currentDate = start;
+    while (currentDate <= end) {
+      initialMonths.add(format(currentDate, 'MMM yy'));
+      currentDate = addMonths(currentDate, 1);
     }
     return initialMonths;
   });
@@ -65,10 +68,20 @@ export const useTradeStats = (filters: ExtendedFilters) => {
   }, [trades, filters]);
 
   const monthlyStats = useMemo((): MonthlyStats[] => {
+    // Parse start and end dates, with defaults
+    const start = startDate ? parseISO(`${startDate}-01`) : addMonths(new Date(), -11);
+    const end = endDate ? parseISO(`${endDate}-01`) : new Date();
+    
+    // Generate array of months between start and end dates
+    const months: string[] = [];
+    let currentDate = start;
+    
+    while (currentDate <= end) {
+      months.push(format(currentDate, 'MMM yy'));
+      currentDate = addMonths(currentDate, 1);
+    }
+
     const lastYear = addMonths(new Date(), -12);
-    const months = Array.from({ length: 12 }, (_, i) => {
-      return format(addMonths(new Date(), -i), 'MMM yy');
-    }).reverse();
 
     return months.map(month => {
       const monthTrades = filteredTrades.filter(trade => 
@@ -87,7 +100,6 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       const monthDate = parseISO(`01 ${month}`);
       const isInTrailingYear = isAfter(monthDate, lastYear);
 
-      // Calculate days held using the difference between Exit_Date and Entry_Date
       const avgDaysGains = gains.length ? 
         gains.reduce((acc, t) => acc + differenceInDays(parseISO(t.Exit_Date), parseISO(t.Entry_Date)), 0) / gains.length : 0;
 
@@ -108,11 +120,12 @@ export const useTradeStats = (filters: ExtendedFilters) => {
         useInYearly: selectedMonths.has(month)
       };
     });
-  }, [filteredTrades, selectedMonths]);
+  }, [filteredTrades, selectedMonths, startDate, endDate]);
 
   const yearlyStats = useMemo((): YearlyStats => {
+    // ✅ FIXED: Filter by Entry_Date to match monthly stats calculation
     const selectedTrades = filteredTrades.filter(trade => {
-      const month = format(parseISO(trade.Exit_Date), 'MMM yy');
+      const month = format(parseISO(trade.Entry_Date), 'MMM yy'); // Changed from Exit_Date to Entry_Date
       return selectedMonths.has(month);
     });
     
@@ -159,8 +172,9 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     const selectedMonthsData = months
       .filter(month => selectedMonths.has(month))
       .map(month => {
+        // ✅ FIXED: Use Entry_Date here too for consistency
         const monthTrades = filteredTrades.filter(trade => 
-          format(parseISO(trade.Exit_Date), 'MMM yy') === month
+          format(parseISO(trade.Entry_Date), 'MMM yy') === month // Changed from Exit_Date to Entry_Date
         );
 
         const gains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
@@ -194,8 +208,9 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     const avgDaysGains = totalWinningTrades > 0
       ? selectedMonthsData.reduce((sum, monthData, index) => {
           const month = months.filter(m => selectedMonths.has(m))[index];
+          // ✅ FIXED: Use Entry_Date here too for consistency
           const monthTrades = filteredTrades.filter(trade => 
-            format(parseISO(trade.Exit_Date), 'MMM yy') === month
+            format(parseISO(trade.Entry_Date), 'MMM yy') === month // Changed from Exit_Date to Entry_Date
           );
           const monthGains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
           const monthAvgDaysGains = monthGains.length ? 
@@ -207,8 +222,9 @@ export const useTradeStats = (filters: ExtendedFilters) => {
     const avgDaysLoss = totalLosingTrades > 0
       ? selectedMonthsData.reduce((sum, monthData, index) => {
           const month = months.filter(m => selectedMonths.has(m))[index];
+          // ✅ FIXED: Use Entry_Date here too for consistency
           const monthTrades = filteredTrades.filter(trade => 
-            format(parseISO(trade.Exit_Date), 'MMM yy') === month
+            format(parseISO(trade.Entry_Date), 'MMM yy') === month // Changed from Exit_Date to Entry_Date
           );
           const monthLosses = monthTrades.filter(t => t.Exit_Price <= t.Entry_Price);
           const monthAvgDaysLoss = monthLosses.length ? 
@@ -235,7 +251,6 @@ export const useTradeStats = (filters: ExtendedFilters) => {
       avgDaysGains,
       avgDaysLoss,
       avgDaysRatio
-
     };
   }, [filteredTrades, selectedMonths]);
   

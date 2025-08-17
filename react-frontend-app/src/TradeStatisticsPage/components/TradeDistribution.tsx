@@ -35,8 +35,8 @@ export const TradeDistribution: React.FC<TradeDistributionProps> = ({
   const distributionData = useMemo(() => {
     // Filter trades based on selected months
     const tradesInSelectedMonths = filteredTrades.filter(trade => {
-      if (!trade.Exit_Date || trade.Status !== 'Exited' || trade.Exit_Price === null) return false;
-      const month = format(parseISO(trade.Exit_Date), 'MMM yy');
+      if (!trade.Entry_Date || trade.Status !== 'Exited' || trade.Exit_Price === null) return false;
+      const month = format(parseISO(trade.Entry_Date), 'MMM yy');
       return selectedMonths.has(month);
     });
     
