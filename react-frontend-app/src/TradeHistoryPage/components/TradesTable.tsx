@@ -122,8 +122,8 @@ export const TradesTable: React.FC<TradesTableProps> = ({
 
   const sortedTrades = useMemo(() => {
     return [...trades].sort((a, b) => {
-      const dateA = a.Exit_Date ? new Date(a.Exit_Date).getTime() : 0;
-      const dateB = b.Exit_Date ? new Date(b.Exit_Date).getTime() : 0;
+      const dateA = a.Entry_Date ? new Date(a.Entry_Date).getTime() : 0;
+      const dateB = b.Entry_Date ? new Date(b.Entry_Date).getTime() : 0;
       return dateB - dateA;
     });
   }, [trades]);

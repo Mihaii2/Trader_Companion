@@ -69,6 +69,7 @@ const ORDERED_CHARACTERISTICS = [
   "IPO 10 Years",
   "Top Competitor",
   "L - Leader",
+  "IPO",
   "Cyclical",
   "Turnaround(100%>2Q)",
   "Institutional Favorite",
@@ -123,6 +124,7 @@ const ORDERED_CHARACTERISTICS = [
 const PRIORITY_CHARACTERISTICS = [
   "L - Leader",
   "Cyclical",
+  "IPO",
   "Top Competitor",
   "Turnaround(100%>2Q)",
   "Power Play(EARLY STAGE)",

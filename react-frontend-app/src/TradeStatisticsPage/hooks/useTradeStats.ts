@@ -72,7 +72,7 @@ export const useTradeStats = (filters: ExtendedFilters) => {
 
     return months.map(month => {
       const monthTrades = filteredTrades.filter(trade => 
-        format(parseISO(trade.Exit_Date), 'MMM yy') === month
+        format(parseISO(trade.Entry_Date), 'MMM yy') === month
       );
 
       const gains = monthTrades.filter(t => t.Exit_Price > t.Entry_Price);
