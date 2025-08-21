@@ -28,6 +28,7 @@ interface BotConfig {
   data_server: string;
   trade_server: string;
   volume_multipliers: number[];
+  max_day_low: number | null;
 
 }
 
@@ -85,6 +86,7 @@ export function TradingBotPage() {
     data_server: 'http://localhost:5001',
     trade_server: 'http://localhost:5002',
     volume_multipliers: [1.0, 0.75, 0.5],
+    max_day_low: null,
   });
 
   const [pivotPositions, setPivotPositions] = useState({
@@ -109,16 +111,27 @@ export function TradingBotPage() {
   const [loading, setLoading] = useState(false);
   const [newVolumeReq, setNewVolumeReq] = useState('');
   const [riskAmount, setRiskAmount] = useState(0);
+  const [showVolumeWarningModal, setShowVolumeWarningModal] = useState(false);
 
   
   
   // API calls
   const startBot = async () => {
+    if (botConfig.volume_requirements.length === 0) {
+      setShowVolumeWarningModal(true);
+      return;
+    }
+
+
+    await performStartBot();
+  };
+
+  const performStartBot = async () => {
     setLoading(true);
     try {
       const configToSend = {
         ...botConfig,
-        historical_interval: Math.round(botConfig.historical_interval * 60) // send as integer seconds
+        historical_interval: Math.round(botConfig.historical_interval * 60)
       };
 
       const response = await fetch('http://localhost:5003/start_bot', {
@@ -139,6 +152,17 @@ export function TradingBotPage() {
       setLoading(false);
     }
   };
+
+  const handleConfirmStart = () => {
+    setShowVolumeWarningModal(false);
+    performStartBot();
+  };
+
+  const handleCancelStart = () => {
+    setShowVolumeWarningModal(false);
+  };
+
+
 
   const addTrade = async () => {
     setLoading(true);
@@ -443,6 +467,21 @@ export function TradingBotPage() {
                   onChange={(e) => setBotConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Max Day Low</label>
+                <input
+                  type="number"
+                  value={botConfig.max_day_low || ''}
+                  onChange={(e) => setBotConfig(prev => ({ 
+                    ...prev, 
+                    max_day_low: e.target.value ? parseFloat(e.target.value) : null 
+                  }))}
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                  step="0.01"
+                  placeholder="Optional"
                 />
               </div>
               
@@ -837,6 +876,36 @@ export function TradingBotPage() {
           </div>
         )}
       </div>
+      {/* Volume Warning Modal */}
+      {showVolumeWarningModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-card border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertCircle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <h3 className="text-lg font-semibold text-foreground">No Volume Requirements Set</h3>
+            </div>
+            
+            <p className="text-muted-foreground mb-6">
+              You haven't set any volume requirements for the trading bot. This means the bot will trade without volume filters. Are you sure you want to continue?
+            </p>
+            
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleCancelStart}
+                className="px-4 py-2 text-muted-foreground border border-input rounded-lg hover:bg-muted/50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmStart}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+              >
+                Start Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
