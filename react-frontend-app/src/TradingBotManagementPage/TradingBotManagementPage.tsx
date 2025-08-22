@@ -600,8 +600,10 @@ export function TradingBotPage() {
                   <input
                     type="number"
                     value={newTrade.shares}
-                    onChange={(e) => setNewTrade(prev => ({ ...prev, shares: parseInt(e.target.value) }))}
+                    onChange={(e) => setNewTrade(prev => ({ ...prev, shares: parseFloat(e.target.value) || 0 }))}
                     className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                    step="0.001"
+                    min="0.001"
                   />
                 </div>
                 
@@ -660,9 +662,11 @@ export function TradingBotPage() {
                         <input
                           type="number"
                           value={stop.shares}
-                          onChange={(e) => updateSellStop(index, 'shares', parseInt(e.target.value))}
+                          onChange={(e) => updateSellStop(index, 'shares', parseFloat(e.target.value) || 0)}
                           className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                           placeholder="Shares"
+                          step="0.001" // Allow fractional shares
+                          min="0.001" // Minimum fractional share
                         />
                       </div>
                       <button
@@ -765,7 +769,7 @@ export function TradingBotPage() {
                             {trade.ticker}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                            {trade.shares.toLocaleString()}
+                            {trade.shares.toFixed(3)} {/* Show 3 decimal places */}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                             ${trade.risk_amount.toFixed(2)}
@@ -777,7 +781,7 @@ export function TradingBotPage() {
                             <div className="space-y-1">
                               {trade.sell_stops.map((stop, index) => (
                                 <div key={index} className="text-xs bg-muted px-2 py-1 rounded">
-                                  ${stop.price.toFixed(2)} ({stop.shares.toLocaleString()} shares)
+                                  ${stop.price.toFixed(2)} ({stop.shares.toFixed(3)} shares)
                                 </div>
                               ))}
                             </div>
