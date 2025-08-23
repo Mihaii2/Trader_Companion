@@ -13,6 +13,7 @@ export interface MonthlyStats {
   avgDaysLoss: number;
   isInTrailingYear: boolean;
   useInYearly: boolean;
+  riskRewardRatio: number;
 }
 
 export interface YearlyStats {

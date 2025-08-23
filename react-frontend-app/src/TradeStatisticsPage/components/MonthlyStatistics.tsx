@@ -100,6 +100,8 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
             <TableHead className="text-center">LG LOSS</TableHead>
             <TableHead className="text-center">Avg Days Gains Held</TableHead>
             <TableHead className="text-center">Avg Days Loss Held</TableHead>
+            <TableHead className="text-center">Adj. Risk:Reward Ratio</TableHead>
+            <TableHead className="text-center">Expected Growth/Trade</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -124,6 +126,47 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
               <TableCell className="text-center py-1">{month.largestLoss.toFixed(2)}%</TableCell>
               <TableCell className="text-center py-1">{month.avgDaysGains.toFixed(1)}</TableCell>
               <TableCell className="text-center py-1">{month.avgDaysLoss.toFixed(1)}</TableCell>
+              <TableCell className="text-center py-1">
+              {(() => {
+                const winRate = month.winningPercentage / 100;
+                const lossRate = 1 - winRate;
+
+                if (winRate === 0 && month.averageLoss !== 0) {
+                  return "0:1";
+                }
+
+                if (lossRate === 0 && month.averageGain !== 0) {
+                  return "∞:1";
+                }
+
+                if (month.totalTrades === 0) {
+                  return "N/A";
+                }
+
+                // Risk-reward ratio adjusted by win rate
+                // Formula: (Win Rate * Avg Gain) / (Loss Rate * |Avg Loss|)
+                // The Holy Grail
+                const adjustedRatio = (winRate * month.averageGain) / (lossRate * Math.abs(month.averageLoss));
+                
+                return `${adjustedRatio.toFixed(2)}:1`;
+              })()}
+            </TableCell>
+            <TableCell className="text-center py-1">
+              {(() => {
+                const winRate = month.winningPercentage / 100;
+                const lossRate = 1 - winRate;
+
+                if (month.totalTrades === 0) {
+                  return "N/A";
+                }
+
+                const logGrowthRate = winRate * Math.log(1 + month.averageGain/100) + 
+                                    lossRate * Math.log(1 + month.averageLoss/100);
+                const geometricExpectancy = (Math.exp(logGrowthRate) - 1) * 100;
+                
+                return `${geometricExpectancy.toFixed(2)}%`;
+              })()}
+            </TableCell>
             </TableRow>
           ))}
           
@@ -139,6 +182,44 @@ export const MonthlyStatistics: React.FC<MonthlyStatisticsProps> = ({
             <TableCell className="text-center py-1">{summaryStats.avgOfLargestLosses.toFixed(2)}%</TableCell>
             <TableCell className="text-center py-1">{summaryStats.avgDaysGains.toFixed(1)}</TableCell>
             <TableCell className="text-center py-1">{summaryStats.avgDaysLoss.toFixed(1)}</TableCell>
+            <TableCell className="text-center py-1">
+              {(() => {
+                const winRate = summaryStats.winningPercentage / 100;
+                const lossRate = 1 - winRate;
+
+                if (winRate === 0 && summaryStats.averageLoss !== 0) {
+                  return "0:1";
+                }
+
+                if (lossRate === 0 && summaryStats.averageGain !== 0) {
+                  return "∞:1";
+                }
+
+                if (summaryStats.totalTrades === 0) {
+                  return "N/A";
+                }
+
+                const adjustedRatio = (winRate * summaryStats.averageGain) / (lossRate * Math.abs(summaryStats.averageLoss));
+                
+                return `${adjustedRatio.toFixed(2)}:1`;
+              })()}
+            </TableCell>
+            <TableCell className="text-center py-1">
+              {(() => {
+                const winRate = summaryStats.winningPercentage / 100;
+                const lossRate = 1 - winRate;
+
+                if (summaryStats.totalTrades === 0) {
+                  return "N/A";
+                }
+
+                const logGrowthRate = winRate * Math.log(1 + summaryStats.averageGain/100) + 
+                                    lossRate * Math.log(1 + summaryStats.averageLoss/100);
+                const geometricExpectancy = (Math.exp(logGrowthRate) - 1) * 100;
+                
+                return `${geometricExpectancy.toFixed(2)}%`;
+              })()}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

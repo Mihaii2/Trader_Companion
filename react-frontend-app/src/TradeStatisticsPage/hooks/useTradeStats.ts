@@ -117,7 +117,8 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
         avgDaysGains,
         avgDaysLoss,
         isInTrailingYear,
-        useInYearly: selectedMonths.has(month)
+        useInYearly: selectedMonths.has(month),
+        riskRewardRatio: avgLoss !== 0 ? Math.abs(avgGain / avgLoss) : 0,
       };
     });
   }, [filteredTrades, selectedMonths, startDate, endDate]);
