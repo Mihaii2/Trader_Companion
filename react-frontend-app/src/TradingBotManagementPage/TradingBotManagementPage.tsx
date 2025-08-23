@@ -80,12 +80,12 @@ export function TradingBotPage() {
     recent_interval: 30,
     historical_interval: 5.1,
     momentum_increase: 0.05,
-    day_high_max_percent_off: 0.5,
-    time_in_pivot: 301,
+    day_high_max_percent_off: 3,
+    time_in_pivot: 30,
     time_in_pivot_positions: '',
     data_server: 'http://localhost:5001',
     trade_server: 'http://localhost:5002',
-    volume_multipliers: [1.0, 0.75, 0.5],
+    volume_multipliers: [1.0, 1.0, 1.0],
     max_day_low: null,
   });
 
