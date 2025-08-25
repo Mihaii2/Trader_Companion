@@ -166,7 +166,7 @@ class StockDataServer:
             # Create initial record with volume 0
             initial_record = {
                 'symbol': symbol,
-                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'currentPrice': current_price,
                 'dayHigh': current_price,
                 'dayLow': current_price,
@@ -246,7 +246,7 @@ class StockDataServer:
             
             record = {
                 'symbol': symbol,
-                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'timestamp': datetime.now().isoformat(),
                 'currentPrice': float(current_price),
                 'dayHigh': float(day_high) if day_high is not None else float(current_price),
                 'dayLow': float(day_low) if day_low is not None else float(current_price),
@@ -375,19 +375,18 @@ class StockDataServer:
         return None
     
     def get_market_status(self):
-        """Get current market status with local time information"""
+        """Get current market status"""
         market_open, time_until_open = self.is_market_open()
         
         # Add current time information
-        et_time = self.get_current_et_time()
-        local_time = self.get_current_local_time()
+        current_time = self.get_current_time()
         
         return {
             'is_open': market_open,
             'message': "Market is open" if market_open else self.format_time_until_open(time_until_open),
-            'current_et_time': et_time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-            'current_local_time': local_time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-            'next_open_local': None if market_open else (et_time + time_until_open).astimezone(self.local_tz).strftime('%Y-%m-%d %H:%M:%S %Z')
+            'current_time': current_time.strftime('%Y-%m-%d %H:%M:%S'),
+            'market_hours': f"{self.market_open_hour:02d}:{self.market_open_minute:02d} - {self.market_close_hour:02d}:{self.market_close_minute:02d}",
+            'next_open': None if market_open else (current_time + time_until_open).strftime('%Y-%m-%d %H:%M:%S')
         }
 
 # Initialize the server
@@ -482,8 +481,8 @@ def get_status():
             'running': stock_server.running,
             'market_open': market_status['is_open'],
             'market_message': market_status['message'],
-            'current_et_time': market_status['current_et_time'],
-            'current_local_time': market_status['current_local_time'],
+            'current_time': market_status['current_time'],
+            'market_hours': market_status['market_hours'],
             'tickers_count': len(stock_server.tickers),
             'current_ticker_index': stock_server.current_ticker_index,
             'max_records_per_ticker': stock_server.max_records,
