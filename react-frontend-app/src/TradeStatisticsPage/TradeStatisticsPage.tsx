@@ -66,7 +66,8 @@ export const TradingStatsPage: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Yearly Statistics</CardTitle>
+          {/* Was "Yearly Statistics" before */}
+          <CardTitle>Summary Statistics</CardTitle>
         </CardHeader>
         <CardContent>
           <YearlyStatistics yearlyStats={yearlyStats} />
@@ -80,7 +81,7 @@ export const TradingStatsPage: React.FC = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Yearly Statistics Filters</CardTitle>
+          <CardTitle>Statistics Filters</CardTitle>
         </CardHeader>
         <CardContent>
           <TradeFilterer filters={filters} onFilterChange={setFilters} />
