@@ -29,63 +29,60 @@ class StockDataServer:
         self.market_just_opened = False
         self.last_market_status = None
         
-        # Define timezones
-        self.et_tz = pytz.timezone('America/New_York')  # NYSE/NASDAQ timezone
-        self.local_tz = pytz.timezone('Europe/Bucharest')  # Romanian timezone
+        # Market hours in Romanian time: 16:30 - 23:00
+        self.market_open_hour = 16
+        self.market_open_minute = 30
+        self.market_close_hour = 23
+        self.market_close_minute = 0
         
-    def get_current_et_time(self):
-        """Get current time in Eastern Time"""
-        return datetime.now(self.et_tz)
-    
-    def get_current_local_time(self):
-        """Get current time in local timezone (Romania)"""
-        return datetime.now(self.local_tz)
+    def get_current_time(self):
+        """Get current local time"""
+        return datetime.now()
         
     def is_market_open(self):
-        """Check if the US stock market is currently open"""
+        """Check if the market is currently open (16:30-23:00 local time, Mon-Fri)"""
         try:
-            # Get current time in Eastern Time
-            et_now = self.get_current_et_time()
+            now = self.get_current_time()
             
             # Market is closed on weekends (Saturday = 5, Sunday = 6)
-            if et_now.weekday() >= 5:
-                return False, self.get_time_until_next_open(et_now)
+            if now.weekday() >= 5:
+                return False, self.get_time_until_next_open(now)
             
-            # Regular market hours: 9:30 AM - 4:00 PM ET
-            market_open_time = et_now.replace(hour=9, minute=30, second=0, microsecond=0)
-            market_close_time = et_now.replace(hour=16, minute=0, second=0, microsecond=0)
+            # Market hours: 16:30 - 23:00 local time
+            market_open_time = now.replace(hour=self.market_open_hour, minute=self.market_open_minute, second=0, microsecond=0)
+            market_close_time = now.replace(hour=self.market_close_hour, minute=self.market_close_minute, second=0, microsecond=0)
             
             # Check if current time is within market hours
-            is_open = market_open_time <= et_now <= market_close_time
+            is_open = market_open_time <= now <= market_close_time
             
             if is_open:
                 return True, None
             else:
-                return False, self.get_time_until_next_open(et_now)
+                return False, self.get_time_until_next_open(now)
                 
         except Exception as e:
             logger.error(f"Error checking market status: {str(e)}")
             # Default to checking if it's a weekday and reasonable hours
-            et_now = self.get_current_et_time()
-            if et_now.weekday() < 5 and 9 <= et_now.hour < 16:
+            now = self.get_current_time()
+            if now.weekday() < 5 and self.market_open_hour <= now.hour < self.market_close_hour:
                 return True, None
             return False, timedelta(hours=1)  # Default wait time
     
-    def get_time_until_next_open(self, current_et_time):
-        """Calculate time until next market open in ET"""
+    def get_time_until_next_open(self, current_time):
+        """Calculate time until next market open"""
         try:
             # Start with today's market open time
-            next_open = current_et_time.replace(hour=9, minute=30, second=0, microsecond=0)
+            next_open = current_time.replace(hour=self.market_open_hour, minute=self.market_open_minute, second=0, microsecond=0)
             
             # If it's already past today's market open time, move to next day
-            if current_et_time >= next_open:
+            if current_time >= next_open:
                 next_open += timedelta(days=1)
             
             # Skip weekends - if next open falls on Saturday or Sunday, move to Monday
             while next_open.weekday() >= 5:  # 5 = Saturday, 6 = Sunday
                 next_open += timedelta(days=1)
             
-            time_diff = next_open - current_et_time
+            time_diff = next_open - current_time
             return time_diff
             
         except Exception as e:
@@ -93,7 +90,7 @@ class StockDataServer:
             return timedelta(hours=1)  # Default fallback
     
     def format_time_until_open(self, time_diff):
-        """Format time difference into readable string with local time info"""
+        """Format time difference into readable string"""
         if time_diff is None:
             return "Market is open"
         
@@ -102,16 +99,11 @@ class StockDataServer:
         minutes = (total_seconds % 3600) // 60
         
         # Calculate when market opens in local time
-        et_now = self.get_current_et_time()
-        local_now = self.get_current_local_time()
+        now = self.get_current_time()
+        next_open = now + time_diff
         
-        # Get next market open time in ET
-        next_open_et = et_now + time_diff
-        # Convert to local time
-        next_open_local = next_open_et.astimezone(self.local_tz)
-        
-        local_time_str = next_open_local.strftime('%H:%M %Z')
-        date_str = next_open_local.strftime('%A, %B %d')
+        local_time_str = next_open.strftime('%H:%M')
+        date_str = next_open.strftime('%A, %B %d')
         
         if hours > 24:
             days = hours // 24
@@ -123,12 +115,11 @@ class StockDataServer:
             return f"Market opens in {minutes} minutes ({local_time_str})"
     
     def cleanup_old_records(self):
-        """Remove all records that are not from today (in ET timezone)"""
-        # Use ET timezone for consistency with market hours
-        today_et = self.get_current_et_time().date()
+        """Remove all records that are not from today"""
+        today = self.get_current_time().date()
         
         # Only run cleanup once per day
-        if self.last_cleanup_date == today_et:
+        if self.last_cleanup_date == today:
             return
         
         logger.info("Performing daily cleanup of old records...")
@@ -140,18 +131,18 @@ class StockDataServer:
             if symbol in self.ticker_data:
                 original_count = len(self.ticker_data[symbol])
                 
-                # Filter to keep only today's records (in ET)
+                # Filter to keep only today's records
                 today_records = deque(maxlen=self.max_records)
                 for record in self.ticker_data[symbol]:
                     try:
-                        # Parse timestamp and convert to ET for comparison
+                        # Parse timestamp
                         record_dt = datetime.fromisoformat(record['timestamp'].replace('Z', '+00:00'))
-                        if record_dt.tzinfo is None:
-                            record_dt = record_dt.replace(tzinfo=timezone.utc)
-                        record_et = record_dt.astimezone(self.et_tz)
-                        record_date = record_et.date()
+                        if record_dt.tzinfo is not None:
+                            # Convert to naive datetime (local time)
+                            record_dt = record_dt.replace(tzinfo=None)
+                        record_date = record_dt.date()
                         
-                        if record_date == today_et:
+                        if record_date == today:
                             today_records.append(record)
                     except (ValueError, KeyError, AttributeError) as e:
                         logger.warning(f"Skipping malformed record: {e}")
@@ -167,7 +158,7 @@ class StockDataServer:
         if cleaned_tickers > 0:
             logger.info(f"Cleaned up {total_removed} old records from {cleaned_tickers} tickers")
         
-        self.last_cleanup_date = today_et
+        self.last_cleanup_date = today
     
     def add_initial_market_open_record(self, symbol, current_price):
         """Add an initial record with volume 0 when market opens"""
