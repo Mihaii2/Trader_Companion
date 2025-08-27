@@ -366,19 +366,36 @@ class StockTradingBot:
         
         return condition_met
     
-    def check_day_low_condition(self, day_low: float, max_day_low: float) -> bool:
-        """Check if day's low is at most max_day_low"""
-        if day_low is None or max_day_low is None:
-            logger.info(f"   Day low condition check skipped - missing data: day_low={day_low}, max_day_low={max_day_low}")
-            return True  # Skip check if no limit set or no data
+    def check_day_low_condition(self, day_low: float, max_day_low: float = None, min_day_low: float = None) -> bool:
+        """Check if day's low is within acceptable range"""
+        if day_low is None:
+            logger.info(f"   Day low condition check skipped - missing day_low data")
+            return True  # Skip check if no data
         
-        condition_met = day_low <= max_day_low
+        conditions_passed = True
         
-        logger.info(f"   Day low: {day_low:.4f}")
-        logger.info(f"   Max allowed day low: {max_day_low:.4f}")
-        logger.info(f"   Condition: {'PASSED' if condition_met else 'FAILED'}")
+        # Check maximum day low
+        if max_day_low is not None:
+            max_condition_met = day_low <= max_day_low
+            logger.info(f"   Day low: {day_low:.4f}")
+            logger.info(f"   Max allowed day low: {max_day_low:.4f}")
+            logger.info(f"   Max condition: {'PASSED' if max_condition_met else 'FAILED'}")
+            conditions_passed = conditions_passed and max_condition_met
         
-        return condition_met
+        # Check minimum day low
+        if min_day_low is not None:
+            min_condition_met = day_low >= min_day_low
+            logger.info(f"   Day low: {day_low:.4f}")
+            logger.info(f"   Min required day low: {min_day_low:.4f}")
+            logger.info(f"   Min condition: {'PASSED' if min_condition_met else 'FAILED'}")
+            conditions_passed = conditions_passed and min_condition_met
+        
+        if max_day_low is None and min_day_low is None:
+            logger.info(f"   Day low condition check skipped - no limits set")
+            return True
+        
+        logger.info(f"   Overall day low condition: {'PASSED' if conditions_passed else 'FAILED'}")
+        return conditions_passed
     
     def get_pivot_position(self, current_price: float, lower_price: float, higher_price: float) -> str:
         """Determine which part of the pivot range the current price is in"""
@@ -461,11 +478,12 @@ class StockTradingBot:
             return False
     
     def monitor_and_trade(self, ticker: str, lower_price: float, higher_price: float,
-                     volume_requirements: List[Tuple[int, int]], pivot_adjustment: float = 0.0,
-                     recent_interval_seconds: int = 20, historical_interval_seconds: int = 600,
-                     required_increase_percent: float = 0.05, day_high_max_percent_off: float = 0.5,
-                     time_in_pivot_seconds: int = 0, time_in_pivot_positions: List[str] = None, 
-                     volume_multipliers: List[float] = None, max_day_low: float = None):
+                 volume_requirements: List[Tuple[int, int]], pivot_adjustment: float = 0.0,
+                 recent_interval_seconds: int = 20, historical_interval_seconds: int = 600,
+                 required_increase_percent: float = 0.05, day_high_max_percent_off: float = 0.5,
+                 time_in_pivot_seconds: int = 0, time_in_pivot_positions: List[str] = None, 
+                 volume_multipliers: List[float] = None, max_day_low: float = None, 
+                 min_day_low: float = None):
         """Main monitoring and trading logic"""
         adjusted_higher_price = higher_price * (1 + pivot_adjustment)
         
@@ -475,11 +493,14 @@ class StockTradingBot:
         logger.info(f"Starting monitoring for {ticker}")
         logger.info(f"Pivot range: {lower_price} - {adjusted_higher_price}")
         logger.info(f"Volume requirements: {volume_requirements}")
+        logger.info(f"Volume multipliers: {volume_multipliers}")
+        logger.info(f"Pivot adjustment: {pivot_adjustment*100}%")
         logger.info(f"Momentum settings: recent={recent_interval_seconds}s, historical={historical_interval_seconds}s, "
                    f"required_increase={required_increase_percent}%")
         logger.info(f"Day high max percent off: {day_high_max_percent_off}%")
         logger.info(f"Time-in-pivot requirement: {time_in_pivot_seconds}s for positions {time_in_pivot_positions}")
         logger.info(f"Max day low: {max_day_low}")
+        logger.info(f"Min day low: {min_day_low}")
         
         wait_for_market_open()
 
@@ -570,7 +591,7 @@ class StockTradingBot:
                 # 2. Check day low condition  
                 if conditions_met:
                     logger.info("2. Checking day low condition...")
-                    if not self.check_day_low_condition(day_low, max_day_low):
+                    if not self.check_day_low_condition(day_low, max_day_low, min_day_low):  # Add min_day_low
                         conditions_met = False
                         failed_conditions.append("day_low")
                         logger.info("   ❌ Day low condition FAILED")
@@ -578,6 +599,7 @@ class StockTradingBot:
                         logger.info("   ✓ Day low condition PASSED")
                 else:
                     logger.info("2. Skipping day low check (previous condition failed)")
+
 
                 # 3. Check price momentum
                 if conditions_met:
@@ -722,42 +744,56 @@ def minutes_until_market_open() -> int:
 
 def wait_for_market_open():
     """Wait until market opens with precise timing"""
-    if is_market_open():
-        logger.info("Market is already open!")
-        return
-    
-    et = pytz.timezone('US/Eastern')
-    now = datetime.now(et)
-    
-    # Calculate next market open time
-    if now.weekday() > 4:  # Weekend
-        days_until_monday = (7 - now.weekday()) % 7
-        if days_until_monday == 0:  # Sunday
-            days_until_monday = 1
-        next_open = now.replace(hour=9, minute=30, second=0, microsecond=0) + timedelta(days=days_until_monday)
-    else:
-        # Weekday
-        market_open_today = now.replace(hour=9, minute=30, second=0, microsecond=0)
-        if now.time() < dt_time(9, 30):
-            next_open = market_open_today
+    while not is_market_open():
+        et = pytz.timezone('US/Eastern')
+        now = datetime.now(et)
+        
+        # Calculate next market open time
+        if now.weekday() > 4:  # Weekend
+            days_until_monday = 7 - now.weekday()
+            next_open = now.replace(hour=9, minute=30, second=0, microsecond=0) + timedelta(days=days_until_monday)
         else:
-            # After market close, next open is next business day
-            if now.weekday() == 4:  # Friday
-                next_open = market_open_today + timedelta(days=3)  # Monday
+            # Weekday
+            market_open_today = now.replace(hour=9, minute=30, second=0, microsecond=0)
+            if now.time() < dt_time(9, 30):
+                next_open = market_open_today
             else:
-                next_open = market_open_today + timedelta(days=1)
-    
-    # Calculate wait time
-    wait_seconds = (next_open - now).total_seconds()
-    hours = int(wait_seconds // 3600)
-    minutes = int((wait_seconds % 3600) // 60)
-    
-    logger.info(f"Market closed. Waiting {hours}h {minutes}m until market open at {next_open.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-    
-    # Sleep until market open (with 1 second buffer to ensure market is open)
-    time.sleep(wait_seconds + 1)
+                # After market close, next open is next business day
+                if now.weekday() == 4:  # Friday
+                    next_open = market_open_today + timedelta(days=3)  # Monday
+                else:
+                    next_open = market_open_today + timedelta(days=1)
+        
+        # Calculate wait time
+        wait_seconds = (next_open - now).total_seconds()
+        
+        if wait_seconds <= 0:
+            break  # Market should be open, exit loop
+            
+        hours = int(wait_seconds // 3600)
+        minutes = int((wait_seconds % 3600) // 60)
+        
+        logger.info(f"Market closed. Waiting {hours}h {minutes}m until market open at {next_open.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        
+        # Sleep in smaller chunks to check more frequently
+        sleep_time = min(60, wait_seconds)  # Check at least every minute
+        time.sleep(sleep_time)
     
     logger.info("Market is now open!")
+    
+def debug_timezone_info():
+    import pytz
+    from datetime import datetime
+    
+    et = pytz.timezone('US/Eastern')
+    now_et = datetime.now(et)
+    now_local = datetime.now()
+    
+    logger.info(f"DEBUG: Local system time: {now_local}")
+    logger.info(f"DEBUG: Eastern time: {now_et}")
+    logger.info(f"DEBUG: Market should be open: {9.5 <= now_et.hour + now_et.minute/60 <= 16}")
+
+
 
 
 def main():
@@ -790,8 +826,13 @@ def main():
                     help='Volume multipliers for lower, middle, and upper pivot positions (default: 1.0 0.75 0.5)')
     parser.add_argument('--max-day-low', type=float, default=None,
                    help='Maximum day low price allowed (default: None = no limit)')
-    
+    parser.add_argument('--min-day-low', type=float, default=None,
+                   help='Minimum day low price allowed (default: None = no limit)')
+
     args = parser.parse_args()
+    
+    debug_timezone_info()
+
     
     # Parse volume requirements
     volume_requirements = parse_volume_requirements(args.volume)
@@ -807,20 +848,21 @@ def main():
     
     try:
         bot.monitor_and_trade(
-        ticker=args.ticker.upper(),
-        lower_price=args.lower_price,
-        higher_price=args.higher_price,
-        volume_requirements=volume_requirements,
-        pivot_adjustment=pivot_adjustment,
-        recent_interval_seconds=args.recent_interval,
-        historical_interval_seconds=args.historical_interval,
-        required_increase_percent=args.momentum_increase,
-        day_high_max_percent_off=args.day_high_max_percent_off,
-        time_in_pivot_seconds=args.time_in_pivot,
-        time_in_pivot_positions=time_in_pivot_positions,
-        volume_multipliers=args.volume_multipliers,
-        max_day_low=args.max_day_low
-    )
+            ticker=args.ticker.upper(),
+            lower_price=args.lower_price,
+            higher_price=args.higher_price,
+            volume_requirements=volume_requirements,
+            pivot_adjustment=pivot_adjustment,
+            recent_interval_seconds=args.recent_interval,
+            historical_interval_seconds=args.historical_interval,
+            required_increase_percent=args.momentum_increase,
+            day_high_max_percent_off=args.day_high_max_percent_off,
+            time_in_pivot_seconds=args.time_in_pivot,
+            time_in_pivot_positions=time_in_pivot_positions,
+            volume_multipliers=args.volume_multipliers,
+            max_day_low=args.max_day_low,
+            min_day_low=args.min_day_low  # Add this line
+        )
 
         
         # Wait for user to stop the bot

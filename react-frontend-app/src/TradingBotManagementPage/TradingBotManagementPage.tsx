@@ -29,6 +29,7 @@ interface BotConfig {
   trade_server: string;
   volume_multipliers: number[];
   max_day_low: number | null;
+  min_day_low?: number | null; // New optional field for minimum day low
 
 }
 
@@ -87,6 +88,7 @@ export function TradingBotPage() {
     trade_server: 'http://localhost:5002',
     volume_multipliers: [1.0, 1.0, 1.0],
     max_day_low: null,
+    min_day_low: null,
   });
 
   const [pivotPositions, setPivotPositions] = useState({
@@ -478,6 +480,21 @@ export function TradingBotPage() {
                   onChange={(e) => setBotConfig(prev => ({ 
                     ...prev, 
                     max_day_low: e.target.value ? parseFloat(e.target.value) : null 
+                  }))}
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                  step="0.01"
+                  placeholder="Optional"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Min Day Low</label>
+                <input
+                  type="number"
+                  value={botConfig.min_day_low || ''}
+                  onChange={(e) => setBotConfig(prev => ({ 
+                    ...prev, 
+                    min_day_low: e.target.value ? parseFloat(e.target.value) : null 
                   }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"

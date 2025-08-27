@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import cmd
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import subprocess
@@ -70,7 +71,11 @@ class TradingBotManager:
 
         if params.get('max_day_low'):
             cmd[2] += f" --max-day-low {params['max_day_low']}"
-        
+            
+        if params.get('min_day_low'):
+            cmd[2] += f" --min-day-low {params['min_day_low']}"
+
+
         if params.get('time_in_pivot'):
             cmd[2] += f" --time-in-pivot {params['time_in_pivot']}"
         
@@ -80,7 +85,6 @@ class TradingBotManager:
         if params.get('volume_multipliers') and len(params['volume_multipliers']) == 3:
             multipliers_str = ' '.join(str(m) for m in params['volume_multipliers'])
             cmd[2] += f" --volume-multipliers {multipliers_str}"
-
         
         if params.get('data_server'):
             cmd[2] += f" --data-server {params['data_server']}"

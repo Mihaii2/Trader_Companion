@@ -2,7 +2,7 @@ import yfinance as yf
 import time
 import threading
 from collections import deque
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone, date, timedelta, time as dt_time
 from flask import Flask, jsonify, request
 import json
 import logging
@@ -29,31 +29,33 @@ class StockDataServer:
         self.market_just_opened = False
         self.last_market_status = None
         
-        # Market hours in Romanian time: 16:30 - 23:00
-        self.market_open_hour = 16
+        # Use Eastern Time for market hours (9:30 AM - 4:00 PM ET)
+        self.market_open_hour = 9
         self.market_open_minute = 30
-        self.market_close_hour = 23
+        self.market_close_hour = 16
         self.market_close_minute = 0
         
     def get_current_time(self):
-        """Get current local time"""
-        return datetime.now()
+        """Get current Eastern Time"""
+        et = pytz.timezone('US/Eastern')
+        return datetime.now(et)
         
     def is_market_open(self):
-        """Check if the market is currently open (16:30-23:00 local time, Mon-Fri)"""
+        """Check if the market is currently open (9:30 AM - 4:00 PM ET, Monday-Friday)"""
         try:
-            now = self.get_current_time()
+            et = pytz.timezone('US/Eastern')
+            now = datetime.now(et)
             
             # Market is closed on weekends (Saturday = 5, Sunday = 6)
             if now.weekday() >= 5:
                 return False, self.get_time_until_next_open(now)
             
-            # Market hours: 16:30 - 23:00 local time
-            market_open_time = now.replace(hour=self.market_open_hour, minute=self.market_open_minute, second=0, microsecond=0)
-            market_close_time = now.replace(hour=self.market_close_hour, minute=self.market_close_minute, second=0, microsecond=0)
+            # Market hours: 9:30 AM - 4:00 PM ET
+            market_open_time = dt_time(self.market_open_hour, self.market_open_minute)
+            market_close_time = dt_time(self.market_close_hour, self.market_close_minute)
+            current_time = now.time()
             
-            # Check if current time is within market hours
-            is_open = market_open_time <= now <= market_close_time
+            is_open = market_open_time <= current_time <= market_close_time
             
             if is_open:
                 return True, None
@@ -63,13 +65,14 @@ class StockDataServer:
         except Exception as e:
             logger.error(f"Error checking market status: {str(e)}")
             # Default to checking if it's a weekday and reasonable hours
-            now = self.get_current_time()
+            et = pytz.timezone('US/Eastern')
+            now = datetime.now(et)
             if now.weekday() < 5 and self.market_open_hour <= now.hour < self.market_close_hour:
                 return True, None
             return False, timedelta(hours=1)  # Default wait time
     
     def get_time_until_next_open(self, current_time):
-        """Calculate time until next market open"""
+        """Calculate time until next market open (Eastern Time)"""
         try:
             # Start with today's market open time
             next_open = current_time.replace(hour=self.market_open_hour, minute=self.market_open_minute, second=0, microsecond=0)
@@ -98,21 +101,21 @@ class StockDataServer:
         hours = total_seconds // 3600
         minutes = (total_seconds % 3600) // 60
         
-        # Calculate when market opens in local time
+        # Calculate when market opens in Eastern Time
         now = self.get_current_time()
         next_open = now + time_diff
         
-        local_time_str = next_open.strftime('%H:%M')
+        et_time_str = next_open.strftime('%H:%M ET')
         date_str = next_open.strftime('%A, %B %d')
         
         if hours > 24:
             days = hours // 24
             remaining_hours = hours % 24
-            return f"Market opens in {days} days, {remaining_hours} hours ({local_time_str} on {date_str})"
+            return f"Market opens in {days} days, {remaining_hours} hours ({et_time_str} on {date_str})"
         elif hours > 0:
-            return f"Market opens in {hours}h {minutes}m ({local_time_str} on {date_str})"
+            return f"Market opens in {hours}h {minutes}m ({et_time_str} on {date_str})"
         else:
-            return f"Market opens in {minutes} minutes ({local_time_str})"
+            return f"Market opens in {minutes} minutes ({et_time_str})"
     
     def cleanup_old_records(self):
         """Remove all records that are not from today"""
@@ -378,15 +381,15 @@ class StockDataServer:
         """Get current market status"""
         market_open, time_until_open = self.is_market_open()
         
-        # Add current time information
+        # Add current time information in ET
         current_time = self.get_current_time()
         
         return {
             'is_open': market_open,
             'message': "Market is open" if market_open else self.format_time_until_open(time_until_open),
-            'current_time': current_time.strftime('%Y-%m-%d %H:%M:%S'),
-            'market_hours': f"{self.market_open_hour:02d}:{self.market_open_minute:02d} - {self.market_close_hour:02d}:{self.market_close_minute:02d}",
-            'next_open': None if market_open else (current_time + time_until_open).strftime('%Y-%m-%d %H:%M:%S')
+            'current_time': current_time.strftime('%Y-%m-%d %H:%M:%S ET'),
+            'market_hours': f"{self.market_open_hour:02d}:{self.market_open_minute:02d} - {self.market_close_hour:02d}:{self.market_close_minute:02d} ET",
+            'next_open': None if market_open else (current_time + time_until_open).strftime('%Y-%m-%d %H:%M:%S ET')
         }
 
 # Initialize the server
