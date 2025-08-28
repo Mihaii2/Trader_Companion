@@ -26,9 +26,7 @@ class StockDataServer:
         self.data_thread = None
         self.market_check_interval = 30  # Check market status every 30 seconds when closed
         self.last_cleanup_date = None
-        self.market_just_opened = False
         self.last_market_status = None
-        self.initial_records_added = set()  # Add this line
         
         # Use Eastern Time for market hours (9:30 AM - 4:00 PM ET)
         self.market_open_hour = 9
@@ -183,7 +181,6 @@ class StockDataServer:
             self.ticker_initial_prices[symbol] = current_price
 
             logger.info(f"Added market open record for {symbol}: ${current_price} with volume 0")
-            self.initial_records_added.add(symbol)  # Add this line
             
         except Exception as e:
             logger.error(f"Error adding initial market open record for {symbol}: {str(e)}")
@@ -258,11 +255,6 @@ class StockDataServer:
                 'volume': int(volume) if volume is not None else 0
             }
             
-            # If market just opened and we don't have an initial price, add initial record
-            if self.market_just_opened and self.ticker_initial_prices.get(symbol) is None:
-                self.add_initial_market_open_record(symbol, current_price)
-                return  # Don't add the regular record yet
-            
             # Check for duplicates before adding (skip if same price and volume)
             if not self.ticker_data[symbol] or (
                 abs(self.ticker_data[symbol][-1]['currentPrice'] - record['currentPrice']) > 0.001 or 
@@ -299,19 +291,22 @@ class StockDataServer:
                 
                 # Check if market just opened
                 if market_open and self.last_market_status is False:
-                    self.market_just_opened = True
-                    self.initial_records_added.clear()  # Reset the set of tickers that got initial records
                     logger.info("Market just opened! Waiting 15 seconds before starting data collection...")
                     time.sleep(15)
-                    logger.info("15-second delay complete. Will add initial records with volume 0.")
-                    # Reset initial prices for all tickers
+                    logger.info("15-second delay complete. Adding initial records with volume 0 for all tickers.")
+                    
+                    # Add initial records for ALL tickers at once
                     for symbol in self.tickers:
-                        self.ticker_initial_prices[symbol] = None
-                # Keep market_just_opened True until all tickers have initial records
-                elif self.market_just_opened and len(self.initial_records_added) >= len(self.tickers):
-                    self.market_just_opened = False
-                    logger.info("Initial records added for all tickers. Normal data collection mode.")
-
+                        try:
+                            ticker = yf.Ticker(symbol)
+                            info = ticker.info
+                            current_price = info.get('currentPrice') or info.get('regularMarketPrice')
+                            if current_price:
+                                self.add_initial_market_open_record(symbol, current_price)
+                        except Exception as e:
+                            logger.error(f"Error adding initial record for {symbol}: {e}")
+                
+                self.last_market_status = market_open
                 
                 # If market is closed, wait and continue
                 if not market_open:
