@@ -28,6 +28,7 @@ class StockDataServer:
         self.last_cleanup_date = None
         self.market_just_opened = False
         self.last_market_status = None
+        self.initial_records_added = set()  # Add this line
         
         # Use Eastern Time for market hours (9:30 AM - 4:00 PM ET)
         self.market_open_hour = 9
@@ -180,8 +181,9 @@ class StockDataServer:
             self.ticker_data[symbol].clear()
             self.ticker_data[symbol].append(initial_record)
             self.ticker_initial_prices[symbol] = current_price
-            
+
             logger.info(f"Added market open record for {symbol}: ${current_price} with volume 0")
+            self.initial_records_added.add(symbol)  # Add this line
             
         except Exception as e:
             logger.error(f"Error adding initial market open record for {symbol}: {str(e)}")
@@ -298,16 +300,18 @@ class StockDataServer:
                 # Check if market just opened
                 if market_open and self.last_market_status is False:
                     self.market_just_opened = True
+                    self.initial_records_added.clear()  # Reset the set of tickers that got initial records
                     logger.info("Market just opened! Waiting 15 seconds before starting data collection...")
                     time.sleep(15)
                     logger.info("15-second delay complete. Will add initial records with volume 0.")
                     # Reset initial prices for all tickers
                     for symbol in self.tickers:
                         self.ticker_initial_prices[symbol] = None
-                else:
+                # Keep market_just_opened True until all tickers have initial records
+                elif self.market_just_opened and len(self.initial_records_added) >= len(self.tickers):
                     self.market_just_opened = False
-                
-                self.last_market_status = market_open
+                    logger.info("Initial records added for all tickers. Normal data collection mode.")
+
                 
                 # If market is closed, wait and continue
                 if not market_open:
