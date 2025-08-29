@@ -517,6 +517,13 @@ class StockTradingBot:
                 logger.info(f"MONITORING CYCLE #{cycle_count} - {cycle_start.strftime('%H:%M:%S.%f')[:-3]}")
                 logger.info(f"{'='*60}")
                 
+                # Check if market is still open
+                if not is_market_open():
+                    logger.info("Market has closed. Returning to wait for next market open...")
+                    self.pivot_entry_time = None  # Reset pivot timer
+                    wait_for_market_open()
+                    continue
+                
                 # Get current data
                 latest_data = self.get_latest_data(ticker)
                 if not latest_data:
