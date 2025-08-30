@@ -114,9 +114,9 @@ export const TradesTable: React.FC<TradesTableProps> = ({
     const profitPercent = ((trade.Exit_Price - trade.Entry_Price) / trade.Entry_Price) * 100;
     
     if (profitPercent > 0) {
-      return 'bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-950/50 dark:hover:bg-emerald-950/70';
-    } 
-    
+      return 'bg-emerald-500/10 hover:bg-emerald-500/20 dark:bg-emerald-600/20 dark:hover:bg-emerald-600/35';
+    }
+
     return 'hover:bg-muted/50';
   };
 

@@ -819,18 +819,28 @@ class StockTradingServer:
                 return trade
         return None
     
-    def _validate_trade(self, trade: Trade) -> bool:
-        """Validate trade data"""
+    def _validate_trade(self, trade: Trade) -> tuple[bool, str]:
+        """Validate trade data and return detailed error message"""
         total_stop_shares = sum(stop.shares for stop in trade.sell_stops)
+        
         if abs(total_stop_shares - trade.shares) > 0.001:
-            print(f"ERROR: Sell stop shares ({total_stop_shares}) don't match total shares ({trade.shares})")
-            return False
+            error_msg = f"Sell stop shares ({total_stop_shares}) don't match total shares ({trade.shares})"
+            print(f"ERROR: {error_msg}")
+            return False, error_msg
         
-        if trade.risk_amount > self.available_risk:
-            print(f"ERROR: Insufficient risk capital. Required: ${trade.risk_amount}, Available: ${self.available_risk}")
-            return False
+        if trade.shares <= 0:
+            error_msg = f"Invalid shares amount: {trade.shares}"
+            return False, error_msg
         
-        return True
+        if trade.risk_amount <= 0:
+            error_msg = f"Invalid risk amount: {trade.risk_amount}"
+            return False, error_msg
+        
+        if len(trade.sell_stops) == 0:
+            error_msg = "No sell stop orders defined"
+            return False, error_msg
+        
+        return True, ""
     
     def _execute_trade_internal(self, data: dict) -> dict:
         """Internal method to execute trade"""
@@ -852,8 +862,8 @@ class StockTradingServer:
         print(f"✅ Found trade for {trade.ticker}")
         
         # Validate trade
-        if not self._validate_trade(trade):
-            error_msg = "Trade validation failed"
+        is_valid, error_msg = self._validate_trade(trade)
+        if not is_valid:
             print(f"❌ {error_msg}. Removing invalid trade.")
             self._log_error("TRADE_VALIDATION_FAILED", ticker, error_msg)
             self.trades.remove(trade)
@@ -926,8 +936,9 @@ class StockTradingServer:
                 sell_stops=sell_stops
             )
             
-            if not self._validate_trade(trade):
-                return {'success': False, 'error': 'Trade validation failed'}
+            is_valid, error_msg = self._validate_trade(trade)
+            if not is_valid:
+                return {'success': False, 'error': error_msg}
             
             self.trades.append(trade)
             

@@ -18,23 +18,47 @@ import glob
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Find the next available log file number
-existing_log_files = glob.glob("stock_data_server_*.log")
-if existing_log_files:
-    # Extract numbers from existing files
-    numbers = []
+def manage_log_files(max_files=20):
+    """Manage log files with round-robin rotation"""
+    log_pattern = "stock_data_server_*.log"
+    existing_log_files = glob.glob(log_pattern)
+    
+    if not existing_log_files:
+        return 1
+    
+    # Extract numbers and sort by modification time (oldest first)
+    log_files_with_info = []
     for file in existing_log_files:
         try:
-            # Extract number from filename like "stock_data_server_1234.log"
             num = int(file.split("_")[-1].split(".")[0])
-            numbers.append(num)
-        except (ValueError, IndexError):
+            mtime = os.path.getmtime(file)
+            log_files_with_info.append((file, num, mtime))
+        except (ValueError, IndexError, OSError):
             continue
     
-    next_num = max(numbers) + 1 if numbers else 1
-else:
-    next_num = 1
+    # Sort by modification time (oldest first)
+    log_files_with_info.sort(key=lambda x: x[2])
+    
+    # If we have max_files or more, delete the oldest ones
+    while len(log_files_with_info) >= max_files:
+        oldest_file = log_files_with_info.pop(0)[0]
+        try:
+            os.remove(oldest_file)
+            logger.info(f"Deleted old log file: {oldest_file}")
+        except OSError as e:
+            logger.warning(f"Could not delete {oldest_file}: {e}")
+    
+    # Find next available number
+    existing_numbers = [info[1] for info in log_files_with_info]
+    if existing_numbers:
+        next_num = max(existing_numbers) + 1
+    else:
+        next_num = 1
+    
+    return next_num
 
+# Use the function to get the next log file number
+next_num = manage_log_files()
 log_filename = f"stock_data_server_{next_num}.log"
 
 # File handler
@@ -780,14 +804,32 @@ def wait_for_market_open():
         hours = int(wait_seconds // 3600)
         minutes = int((wait_seconds % 3600) // 60)
         
-        logger.info(f"Market closed. Waiting {hours}h {minutes}m until market open at {next_open.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+        sleep_time = min(get_adaptive_sleep_time(wait_seconds), wait_seconds)
+        sleep_minutes = int(sleep_time // 60)
+        sleep_seconds_remainder = int(sleep_time % 60)
+        logger.info(f"Market closed. Waiting {hours}h {minutes}m until market open at {next_open.strftime('%Y-%m-%d %H:%M:%S %Z')} (sleeping for {sleep_minutes}m {sleep_seconds_remainder}s)")
         
-        # Sleep in smaller chunks to check more frequently
-        sleep_time = min(60, wait_seconds)  # Check at least every minute
+        # Sleep with adaptive timing based on distance from market open
+        sleep_time = min(get_adaptive_sleep_time(wait_seconds), wait_seconds)
         time.sleep(sleep_time)
     
     logger.info("Market is now open!")
     
+def get_adaptive_sleep_time(wait_seconds: float) -> float:
+    """Calculate adaptive sleep time based on how long until market open"""
+    if wait_seconds > 24 * 3600:  # More than 24 hours
+        return 7200  # Sleep for 2 hours
+    elif wait_seconds > 12 * 3600:  # More than 12 hours
+        return 3600  # Sleep for 1 hour
+    elif wait_seconds > 6 * 3600:  # More than 6 hours
+        return 1800  # Sleep for 30 minutes
+    elif wait_seconds > 3 * 3600:  # More than 3 hours
+        return 600   # Sleep for 10 minutes
+    elif wait_seconds > 1 * 3600:  # More than 1 hour
+        return 240   # Sleep for 4 minutes
+    else:
+        return 60   # Sleep for 1 minute
+
 def debug_timezone_info():
     import pytz
     from datetime import datetime
