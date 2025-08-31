@@ -55,29 +55,28 @@ const TradeGrader: React.FC<{
 
   if (metrics.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-background rounded-lg shadow p-6 mb-6">
         <h2 className="text-2xl font-bold mb-4 flex items-center">
           <Save className="mr-2" />
           Trade Grader
         </h2>
-        <p className="text-gray-600">Please create some metrics first to start grading trades.</p>
+        <p className="text-muted-foreground">Please create some metrics first to start grading trades.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+  <div className="bg-background rounded-lg shadow p-6 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold flex items-center">
           <Save className="mr-2" />
           Trade Grader
         </h2>
-        
         {hasUnsavedChanges && (
           <button
             onClick={handleSaveGrades}
             disabled={saving}
-            className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 flex items-center"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center"
           >
             {saving ? (
               <>
@@ -97,10 +96,12 @@ const TradeGrader: React.FC<{
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="border border-gray-300 px-4 py-2 text-left">Ticker</th>
+            <tr className="bg-muted">
+              <th className="border border-border px-4 py-2 text-left">Ticker</th>
+              <th className="border border-border px-4 py-2 text-left">Entry Date</th>
+              <th className="border border-border px-4 py-2 text-left">Exit Date</th>
               {metrics.map(metric => (
-                <th key={metric.id} className="border border-gray-300 px-4 py-2 text-left">
+                <th key={metric.id} className="border border-border px-4 py-2 text-left">
                   {metric.name}
                 </th>
               ))}
@@ -108,12 +109,18 @@ const TradeGrader: React.FC<{
           </thead>
           <tbody>
             {trades.map(trade => (
-              <tr key={trade.ID} className="hover:bg-gray-50">
-                <td className="border border-gray-300 px-4 py-2 font-medium">
+              <tr key={trade.ID} className="hover:bg-muted">
+                <td className="border border-border px-4 py-2 font-medium">
                   {trade.Ticker}
                 </td>
+                <td className="border border-border px-4 py-2">
+                  {trade.Entry_Date}
+                </td>
+                <td className="border border-border px-4 py-2">
+                  {trade.Exit_Date}
+                </td>
                 {metrics.map(metric => (
-                  <td key={metric.id} className="border border-gray-300 px-4 py-2">
+                  <td key={metric.id} className="border border-border px-4 py-2">
                     <div className="space-y-1">
                       {metric.options.map(option => (
                         <label key={option.id} className="flex items-center">
@@ -138,8 +145,8 @@ const TradeGrader: React.FC<{
       </div>
       
       {hasUnsavedChanges && (
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-yellow-800 text-sm">
+        <div className="mt-4 p-3 bg-warning border border-warning rounded-md">
+          <p className="text-warning-foreground text-sm">
             You have unsaved changes. Don't forget to save your grades!
           </p>
         </div>

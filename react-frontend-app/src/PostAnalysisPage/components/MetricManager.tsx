@@ -80,14 +80,14 @@ const MetricManager: React.FC<{
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+  <div className="rounded-lg shadow-md p-6 mb-6 bg-background text-foreground">
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <Edit2 className="mr-2" />
         Metric Manager
       </h2>
       
       {/* Add new metric */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+  <div className="mb-6 p-4 bg-muted rounded-lg">
         <h3 className="text-lg font-semibold mb-3">Create New Metric</h3>
         <div className="space-y-3">
           <input
@@ -95,14 +95,14 @@ const MetricManager: React.FC<{
             value={newMetricName}
             onChange={(e) => setNewMetricName(e.target.value)}
             placeholder="Enter metric name (e.g., Entry Point, Fundamentals)"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground border-input"
             disabled={loading}
           />
           
           <button
             onClick={handleAddMetric}
             disabled={loading || !newMetricName.trim()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
           >
             {loading ? <Loader className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-1" />}
             Add Metric
@@ -113,18 +113,18 @@ const MetricManager: React.FC<{
       {/* Existing metrics */}
       <div className="space-y-4">
         {metrics.map(metric => (
-          <div key={metric.id} className="border border-gray-200 rounded-lg p-4">
+          <div key={metric.id} className="border rounded-lg p-4 border-border bg-card text-card-foreground">
             <div className="flex justify-between items-start mb-3">
               <div className="flex-1">
                 <h4 className="text-lg font-medium">{metric.name}</h4>
                 {metric.description && (
-                  <p className="text-sm text-gray-600 mt-1">{metric.description}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{metric.description}</p>
                 )}
               </div>
               <button
                 onClick={() => handleRemoveMetric(metric.id)}
                 disabled={loading}
-                className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                className="text-destructive hover:text-destructive/80 disabled:opacity-50"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -134,12 +134,12 @@ const MetricManager: React.FC<{
             <div className="mb-3">
               <div className="flex flex-wrap gap-2 mb-2">
                 {metric.options.map(option => (
-                  <div key={option.id} className="flex items-center bg-blue-100 rounded-full px-3 py-1">
+                  <div key={option.id} className="flex items-center bg-accent text-accent-foreground rounded-full px-3 py-1">
                     <span className="text-sm">{option.name}</span>
                     <button
                       onClick={() => handleRemoveOption(metric.id, option.id)}
                       disabled={loading}
-                      className="ml-2 text-red-500 hover:text-red-700 disabled:opacity-50"
+                      className="ml-2 text-destructive hover:text-destructive/80 disabled:opacity-50"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -156,13 +156,13 @@ const MetricManager: React.FC<{
                   value={newOptionName}
                   onChange={(e) => setNewOptionName(e.target.value)}
                   placeholder="Enter option name"
-                  className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="flex-1 px-3 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-primary bg-background text-foreground border-input"
                   disabled={loading}
                 />
                 <button
                   onClick={() => handleAddOption(metric.id)}
                   disabled={loading || !newOptionName.trim()}
-                  className="px-3 py-1 bg-green-500 text-white text-sm rounded-md hover:bg-green-600 disabled:opacity-50"
+                  className="px-3 py-1 bg-primary text-primary-foreground text-sm rounded-md hover:bg-primary/90 disabled:opacity-50"
                 >
                   {loading ? <Loader className="w-3 h-3 animate-spin" /> : 'Add'}
                 </button>
@@ -172,7 +172,7 @@ const MetricManager: React.FC<{
                     setNewOptionName('');
                   }}
                   disabled={loading}
-                  className="px-3 py-1 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 disabled:opacity-50"
+                  className="px-3 py-1 bg-muted text-muted-foreground text-sm rounded-md hover:bg-muted/80 disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -181,7 +181,7 @@ const MetricManager: React.FC<{
               <button
                 onClick={() => setEditingMetric(metric.id)}
                 disabled={loading}
-                className="text-blue-500 hover:text-blue-700 text-sm flex items-center disabled:opacity-50"
+                className="text-primary hover:text-primary/80 text-sm flex items-center disabled:opacity-50"
               >
                 <Plus className="w-3 h-3 mr-1" />
                 Add Option

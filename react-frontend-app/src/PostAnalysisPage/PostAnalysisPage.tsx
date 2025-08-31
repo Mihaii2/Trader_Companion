@@ -129,10 +129,10 @@ const PostAnalysisPage: React.FC = () => {
   // Handle errors
   if (hasError) {
     return (
-      <div className="min-h-screen bg-gray-100 py-8 px-4">
+  <div className="min-h-screen bg-background py-8 px-4">
         <div className="max-w-7xl mx-auto">
           <header className="mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+    <h1 className="text-4xl font-bold text-foreground mb-2">
               Trade Analysis Dashboard
             </h1>
           </header>
@@ -163,13 +163,13 @@ const PostAnalysisPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+  <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+      <h1 className="text-4xl font-bold text-foreground mb-2">
             Trade Analysis Dashboard
           </h1>
-          <p className="text-lg text-gray-600">
+      <p className="text-lg text-muted-foreground">
             Analyze your trading patterns and improve your performance
           </p>
           
@@ -186,6 +186,7 @@ const PostAnalysisPage: React.FC = () => {
               trades={trades || []}
               metrics={metrics || []}
               tradeGrades={tradeGrades || []}
+              trailingWindow={50} 
             />
 
             <TradeGrader

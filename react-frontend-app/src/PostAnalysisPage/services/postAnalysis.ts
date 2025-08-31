@@ -17,7 +17,9 @@ export const tradeService = {
     const response = await tradesAPI.get('/trades/', {
       params: { limit }
     });
-    return response.data;
+    return response.data.sort((a: Trade, b: Trade) => {
+      return new Date(b.Entry_Date).getTime() - new Date(a.Entry_Date).getTime();
+    });
   }
 };
 
