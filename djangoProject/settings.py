@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "personal_ranking_list_app",
     "rest_framework",
     "trades_history",
+    "post_analysis",
 ]
 
 MICROSERVICE_SETTINGS = {

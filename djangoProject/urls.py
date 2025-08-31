@@ -23,4 +23,5 @@ urlpatterns = [
     path('stock_filtering_app/', include('Stocks_Filtering_App.urls')),
     path('personal_ranking/', include('personal_ranking_list_app.urls')),
     path('trades_app/', include('trades_history.urls')),
+    path('post_analysis/', include('post_analysis.urls')),
 ]

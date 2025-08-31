@@ -8,6 +8,7 @@ import { TradingBotPage } from './TradingBotManagementPage/TradingBotManagementP
 import { TickerManagementPage } from './TickerManagementPage/TickerManagementPage';
 import { Navigation } from './components/Navigation';
 import './App.css';
+import PostAnalysisPage from './PostAnalysisPage/PostAnalysisPage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/trading_stats" element={<TradingStatsPage />} />
             <Route path="/trading_bots" element={<TradingBotPage />} />
             <Route path="/ticker_management" element={<TickerManagementPage />} />
+            <Route path="/post_analysis" element={<PostAnalysisPage />} />
             {/* Redirect to stocks screeners if no path matches */}
             {/* Redirect root path to stocks screeners */}
             <Route path="/" element={<Navigate to="/stocks_screeners" replace />} />

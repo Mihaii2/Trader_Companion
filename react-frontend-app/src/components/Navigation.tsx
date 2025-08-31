@@ -71,6 +71,16 @@ export function Navigation() {
             >
               Trading Bots
             </Link>
+            <Link
+              to="/post_analysis"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'post_analysis' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Post Analysis
+            </Link>
           </div>
           <div>
             <ThemeToggle />
