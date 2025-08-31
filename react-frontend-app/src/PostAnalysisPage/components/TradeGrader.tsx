@@ -30,9 +30,68 @@ const TradeGrader: React.FC<{
     latestDeletionsRef.current = pendingDeletions;
   }, [pendingDeletions]);
 
-  const toggleTradeDetails = (tradeId: number) => {
-    setExpandedTradeId(prev => (prev === tradeId ? null : tradeId));
-  };
+  const tradeDropZoneRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const expandedTradeIdRef = useRef<number | null>(null);
+  useEffect(() => { expandedTradeIdRef.current = expandedTradeId; }, [expandedTradeId]);
+
+  const centerImageWithRetry = useCallback((tradeId: number, attempt = 0) => {
+    if (expandedTradeIdRef.current !== tradeId) return; // trade no longer expanded
+    const container = tradeDropZoneRefs.current[tradeId];
+    if (!container) {
+      if (attempt < 10) setTimeout(() => centerImageWithRetry(tradeId, attempt + 1), 80);
+      return;
+    }
+    const img = container.querySelector('img');
+    if (!img || !img.complete || (img as HTMLImageElement).naturalHeight === 0) {
+      if (attempt < 15) setTimeout(() => centerImageWithRetry(tradeId, attempt + 1), 120);
+      return;
+    }
+    const rect = img.getBoundingClientRect();
+    const docTop = window.scrollY + rect.top;
+    const targetScrollTop = docTop + rect.height / 2 - window.innerHeight / 2;
+    window.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
+  }, []);
+
+  const toggleTradeDetails = useCallback((tradeId: number, focusAfter = false) => {
+    setExpandedTradeId(prev => {
+      const newId = prev === tradeId ? null : tradeId;
+      if (focusAfter && newId !== null) {
+        // Initial slight delay for render, then run retry-based centering
+        setTimeout(() => {
+          const container = tradeDropZoneRefs.current[newId];
+            if (container) {
+              container.focus();
+            }
+            centerImageWithRetry(newId, 0);
+        }, 50);
+      }
+      return newId;
+    });
+  }, [centerImageWithRetry]);
+
+  // Keyboard navigation: left/right arrows move between trades and auto-focus image drop zone
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      if (!trades.length) return;
+      e.preventDefault();
+      let currentIndex = expandedTradeId !== null ? trades.findIndex(t => t.ID === expandedTradeId) : -1;
+      if (currentIndex === -1) {
+        // If none expanded, start at first/last depending on direction
+        currentIndex = e.key === 'ArrowRight' ? -1 : trades.length; // so adding +/- 1 works below
+      }
+      const delta = e.key === 'ArrowRight' ? 1 : -1;
+      let nextIndex = currentIndex + delta;
+      if (nextIndex < 0) nextIndex = trades.length - 1; // wrap
+      if (nextIndex >= trades.length) nextIndex = 0; // wrap
+      const nextTrade = trades[nextIndex];
+      toggleTradeDetails(nextTrade.ID, true);
+    }
+  }, [expandedTradeId, trades, toggleTradeDetails]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   // Initialize local grades from props
   useEffect(() => {
@@ -215,7 +274,10 @@ const TradeGrader: React.FC<{
                 {expandedTradeId === trade.ID && (
                   <tr>
                     <td colSpan={3 + metrics.length} className="p-2 bg-muted/30">
-                      <TradeCaseDetails trade={trade} />
+                      <TradeCaseDetails
+                        trade={trade}
+                        ref={(el) => { tradeDropZoneRefs.current[trade.ID] = el; }}
+                      />
                     </td>
                   </tr>
                 )}

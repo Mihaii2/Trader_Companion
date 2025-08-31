@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, forwardRef } from "react";
 import { Trade } from "@/TradeHistoryPage/types/Trade";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -11,7 +11,8 @@ interface TradeCaseDetailsProps {
   trade: Trade;
 }
 
-const TradeCaseDetails: React.FC<TradeCaseDetailsProps> = ({ trade }) => {
+// forwardRef so parent can focus the drop zone when navigating trades via keyboard
+const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ trade }, ref) => {
   // Hooks must be first
   const [existingAnalyses, setExistingAnalyses] = useState<PostTradeAnalysis[]>([]);
   const [notes, setNotes] = useState("");
@@ -117,6 +118,63 @@ const TradeCaseDetails: React.FC<TradeCaseDetailsProps> = ({ trade }) => {
   return (
     <Card className="mt-2 border border-border shadow-md rounded-xl">
       <CardContent className="p-4 space-y-6">
+        <div className="space-y-3">
+          <h4 className="font-semibold text-md">Post Analysis</h4>
+          <div className="flex flex-col gap-4">
+            {/* Image drop zone full-width first for maximum horizontal space */}
+            <div
+              ref={ref}
+              tabIndex={-1} // allow programmatic focus
+              aria-label="Trade analysis image drop zone"
+              className="border-2 border-dashed rounded-md p-3 w-full text-center cursor-pointer hover:bg-muted/40 transition focus:outline-none focus:ring-2 focus:ring-ring/60"
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onClick={() => fileInputRef.current?.click()}
+              data-drop-zone
+            >
+              {previewUrl ? (
+                <div className="space-y-2">
+                  <img src={previewUrl} alt="new upload preview" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+                  <p className="text-xs text-muted-foreground">(Unsaved) {imageFile?.name} — click or drop to replace</p>
+                </div>
+              ) : currentImage ? (
+                <div className="space-y-2">
+                  <img src={currentImage} alt="analysis" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+                  <p className="text-xs text-muted-foreground">Drag & drop or click to replace image</p>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>
+              )}
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFiles(e.target.files)}
+              />
+            </div>
+
+            <Textarea
+              placeholder="Write your observations about this trade..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="min-h-[140px]"
+            />
+
+            {error && <p className="text-xs text-red-500">{error}</p>}
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" disabled={isSubmitting} onClick={submitAnalysis}>
+                {isSubmitting ? 'Saving...' : 'Save Image & Notes'}
+              </Button>
+              {imageFile && (
+                <Button size="sm" variant="secondary" onClick={() => setImageFile(null)}>Clear Image</Button>
+              )}
+            </div>
+            {existingAnalyses.length > 1 && (
+              <p className="text-xs text-muted-foreground">{existingAnalyses.length - 1} older revision(s) stored.</p>
+            )}
+          </div>
+        </div>
         {showCaseDetails && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Case Details</h3>
@@ -151,62 +209,11 @@ const TradeCaseDetails: React.FC<TradeCaseDetailsProps> = ({ trade }) => {
           </div>
         )}
 
-        <div className="space-y-3">
-          <h4 className="font-semibold text-md">Post Analysis</h4>
-          <div className="flex flex-col gap-4">
-            {/* Image drop zone full-width first for maximum horizontal space */}
-            <div
-              className="border-2 border-dashed rounded-md p-3 w-full text-center cursor-pointer hover:bg-muted/40 transition"
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              {previewUrl ? (
-                <div className="space-y-2">
-                  <img src={previewUrl} alt="new upload preview" className="w-full h-auto max-h-[70vh] object-contain rounded" />
-                  <p className="text-xs text-muted-foreground">(Unsaved) {imageFile?.name} — click or drop to replace</p>
-                </div>
-              ) : currentImage ? (
-                <div className="space-y-2">
-                  <img src={currentImage} alt="analysis" className="w-full h-auto max-h-[70vh] object-contain rounded" />
-                  <p className="text-xs text-muted-foreground">Drag & drop or click to replace image</p>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>
-              )}
-              <Input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleFiles(e.target.files)}
-              />
-            </div>
-
-            <Textarea
-              placeholder="Write your observations about this trade..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[140px]"
-            />
-
-            {error && <p className="text-xs text-red-500">{error}</p>}
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" disabled={isSubmitting} onClick={submitAnalysis}>
-                {isSubmitting ? 'Saving...' : 'Save Analysis'}
-              </Button>
-              {imageFile && (
-                <Button size="sm" variant="secondary" onClick={() => setImageFile(null)}>Clear Image</Button>
-              )}
-            </div>
-            {existingAnalyses.length > 1 && (
-              <p className="text-xs text-muted-foreground">{existingAnalyses.length - 1} older revision(s) stored.</p>
-            )}
-          </div>
-        </div>
       </CardContent>
     </Card>
   );
-};
+});
+
+TradeCaseDetails.displayName = "TradeCaseDetails";
 
 export default TradeCaseDetails;
