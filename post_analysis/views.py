@@ -2,10 +2,10 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from .models import Metric, MetricOption, TradeGrade
+from .models import Metric, MetricOption, TradeGrade, PostTradeAnalysis
 from .serializers import (
     MetricSerializer, CreateMetricSerializer, MetricOptionSerializer,
-    TradeGradeSerializer, BulkTradeGradeSerializer
+    TradeGradeSerializer, BulkTradeGradeSerializer, PostTradeAnalysisSerializer
 )
 
 
@@ -137,4 +137,19 @@ class TradeGradeViewSet(viewsets.ModelViewSet):
             })
         
         return Response(analytics_data)
+
+
+class PostTradeAnalysisViewSet(viewsets.ModelViewSet):
+    queryset = PostTradeAnalysis.objects.all()
+    serializer_class = PostTradeAnalysisSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        trade_id = self.request.query_params.get('trade_id')
+        if trade_id:
+            qs = qs.filter(trade_id=trade_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user if self.request.user.is_authenticated else None)
 

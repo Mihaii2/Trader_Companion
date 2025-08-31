@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
 
 class Metric(models.Model):
     """Custom metrics for grading trades"""
@@ -52,4 +53,35 @@ class TradeGrade(models.Model):
         
     def __str__(self):
         return f"Trade {self.trade_id} - {self.metric.name}: {self.selected_option.name}"
+
+
+class PostTradeAnalysis(models.Model):
+    """Stores supplementary post-trade analysis artifacts (images, notes).
+
+    We deliberately use trade_id int (points to Trades.ID) to avoid FK coupling
+    across apps/migrations.
+    """
+    trade_id = models.IntegerField(db_index=True)
+    # optional short title in case of multiple images later
+    title = models.CharField(max_length=200, blank=True)
+    notes = models.TextField(blank=True)
+    # single image for now; if multiple images desired, create separate rows per image
+    image = models.ImageField(
+        upload_to="post_analysis_images/",
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(["png", "jpg", "jpeg", "gif"])]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        indexes = [models.Index(fields=["trade_id"])]
+        verbose_name = "Post Trade Analysis"
+        verbose_name_plural = "Post Trade Analyses"
+
+    def __str__(self):
+        return f"PostAnalysis(trade={self.trade_id}, title={self.title or '—'})"
 

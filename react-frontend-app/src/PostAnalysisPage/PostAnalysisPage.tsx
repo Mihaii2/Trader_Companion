@@ -129,78 +129,59 @@ const PostAnalysisPage: React.FC = () => {
   // Handle errors
   if (hasError) {
     return (
-  <div className="min-h-screen bg-background py-8 px-4">
-        <div className="max-w-7xl mx-auto">
-          <header className="mb-8">
-    <h1 className="text-4xl font-bold text-foreground mb-2">
-              Trade Analysis Dashboard
-            </h1>
-          </header>
-
-          <div className="space-y-4">
-            {tradesError && (
-              <ErrorDisplay 
-                error={tradesError} 
-                onRetry={refetchTrades}
-              />
-            )}
-            {metricsError && (
-              <ErrorDisplay 
-                error={metricsError} 
-                onRetry={refetchMetrics}
-              />
-            )}
-            {gradesError && (
-              <ErrorDisplay 
-                error={gradesError} 
-                onRetry={refetchGrades}
-              />
-            )}
-          </div>
+      <div className="min-h-screen bg-background p-2">
+        <header className="mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Trade Analysis Dashboard</h1>
+        </header>
+        <div className="space-y-2 md:space-y-4">
+          {tradesError && (
+            <ErrorDisplay error={tradesError} onRetry={refetchTrades} />
+          )}
+          {metricsError && (
+            <ErrorDisplay error={metricsError} onRetry={refetchMetrics} />
+          )}
+          {gradesError && (
+            <ErrorDisplay error={gradesError} onRetry={refetchGrades} />
+          )}
         </div>
       </div>
     );
   }
 
   return (
-  <div className="min-h-screen bg-background py-8 px-4">
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-8">
-      <h1 className="text-4xl font-bold text-foreground mb-2">
-            Trade Analysis Dashboard
-          </h1>
-      <p className="text-lg text-muted-foreground">
-            Analyze your trading patterns and improve your performance
-          </p>
-          
-          {isLoading && (
-            <div className="mt-4">
-              <LoadingSpinner message="Loading dashboard data..." />
-            </div>
-          )}
-        </header>
-
-        {!isLoading && (
-          <>
-            <MetricAnalytics
-              trades={trades || []}
-              metrics={metrics || []}
-              tradeGrades={tradeGrades || []}
-            />
-
-            <TradeGrader
-              trades={trades || []}
-              metrics={metrics || []}
-              tradeGrades={tradeGrades || []}
-            />
-
-            <MetricManager 
-              metrics={metrics || []}
-              onRefetch={refetchMetrics}
-            />
-          </>
+    <div className="min-h-screen bg-background p-2 md:p-3">
+      <header className="mb-4 md:mb-6">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">Trade Analysis Dashboard</h1>
+        <p className="text-base md:text-lg text-muted-foreground">
+          Analyze your trading patterns and improve your performance
+        </p>
+        {isLoading && (
+          <div className="mt-3">
+            <LoadingSpinner message="Loading dashboard data..." />
+          </div>
         )}
-      </div>
+      </header>
+
+      {!isLoading && (
+        <>
+          <MetricAnalytics
+            trades={trades || []}
+            metrics={metrics || []}
+            tradeGrades={tradeGrades || []}
+          />
+
+          <TradeGrader
+            trades={trades || []}
+            metrics={metrics || []}
+            tradeGrades={tradeGrades || []}
+          />
+
+          <MetricManager
+            metrics={metrics || []}
+            onRefetch={refetchMetrics}
+          />
+        </>
+      )}
     </div>
   );
 };

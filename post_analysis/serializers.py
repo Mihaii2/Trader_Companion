@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Metric, MetricOption, TradeGrade
+from .models import Metric, MetricOption, TradeGrade, PostTradeAnalysis
 
 
 class MetricOptionSerializer(serializers.ModelSerializer):
@@ -77,6 +77,23 @@ class BulkTradeGradeSerializer(serializers.Serializer):
                     "Each grade must contain tradeId, metricId, and selectedOptionId"
                 )
         return value
+
+
+class PostTradeAnalysisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostTradeAnalysis
+        fields = [
+            'id', 'trade_id', 'title', 'notes', 'image', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Provide absolute URL if request in context
+        request = self.context.get('request')
+        if instance.image and request:
+            data['image'] = request.build_absolute_uri(instance.image.url)
+        return data
 
     def validate_deletions(self, value):
         for deletion in value:
