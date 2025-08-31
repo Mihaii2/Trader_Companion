@@ -24,24 +24,48 @@ const MetricAnalytics: React.FC<{
   // ✅ Configurable window size (default 50)
   const [trailingWindow, setTrailingWindow] = useState(50);
 
+  interface ChartRowBase {
+    tradeIndex: number;
+    ticker: string;
+    date: string;
+    // Dynamic metric option counts will be added as numeric properties
+    [optionName: string]: string | number; // counts are numbers, metadata are strings
+  }
+
   const chartData = useMemo(() => {
     const sortedTrades = [...trades].sort(
       (a, b) => new Date(a.Entry_Date).getTime() - new Date(b.Entry_Date).getTime()
     );
 
-    const data: { [key: string]: any[] } = {};
+    // Determine the last trade (by Entry_Date order) that has at least one metric grade.
+    // We only want to include trades up to (and including) this one in the analytics charts.
+    let lastGradedIndex = -1;
+    if (tradeGrades.length > 0) {
+      // Create a quick lookup of graded trade IDs
+      const gradedTradeIds = new Set(tradeGrades.map(g => g.tradeId));
+      for (let i = 0; i < sortedTrades.length; i++) {
+        if (gradedTradeIds.has(sortedTrades[i].ID)) {
+          lastGradedIndex = i; // because sorted ascending, this will end at the last graded trade
+        }
+      }
+    }
+
+    // If no trades have been graded yet, we produce empty datasets so user doesn't see future stats.
+    const effectiveTrades = lastGradedIndex >= 0 ? sortedTrades.slice(0, lastGradedIndex + 1) : [];
+
+  const data: { [key: string]: ChartRowBase[] } = {};
 
     metrics.forEach(metric => {
-      const metricData: any[] = [];
+  const metricData: ChartRowBase[] = [];
 
-      for (let i = 0; i < sortedTrades.length; i++) {
+      for (let i = 0; i < effectiveTrades.length; i++) {
         const windowStart = Math.max(0, i - (trailingWindow - 1));
-        const windowTrades = sortedTrades.slice(windowStart, i + 1);
+        const windowTrades = effectiveTrades.slice(windowStart, i + 1);
 
-        const dataPoint: any = {
+  const dataPoint: ChartRowBase = {
           tradeIndex: i + 1,
-          ticker: sortedTrades[i].Ticker,
-          date: sortedTrades[i].Entry_Date,
+          ticker: effectiveTrades[i].Ticker,
+          date: effectiveTrades[i].Entry_Date,
         };
 
         metric.options.forEach(option => {
@@ -58,7 +82,7 @@ const MetricAnalytics: React.FC<{
         metricData.push(dataPoint);
       }
 
-      data[metric.id] = metricData;
+  data[metric.id] = metricData;
     });
 
     return data;
@@ -128,7 +152,7 @@ const MetricAnalytics: React.FC<{
                     <YAxis label={{ value: 'Count', angle: -90, position: 'insideLeft' }} stroke="hsl(var(--foreground))" tick={{ fill: 'hsl(var(--foreground))' }} />
                     <Tooltip
                       labelFormatter={value => `Trade #${value}`}
-                      formatter={(value: any, name: string) => [`${value} trades`, name]}
+                      formatter={(value: number, name: string) => [`${value} trades`, name]}
                       labelStyle={{ color: 'hsl(var(--foreground))' }}
                       contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }}
                     />
