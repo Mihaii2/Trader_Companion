@@ -1,21 +1,38 @@
 import { Trade } from '@/TradeHistoryPage/types/Trade';
 import React from 'react';
-import { Metric, TradeGrade } from '../types/types';
+import { Metric, TradeGrade, TradeGradeDeletion } from '../types/types';
 import { Loader, Save } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { gradeService } from '../services/postAnalysis';
-
+import TradeCaseDetails from './TradeCaseDetailsProps';
 
 
 const TradeGrader: React.FC<{
   trades: Trade[];
   metrics: Metric[];
   tradeGrades: TradeGrade[];
-  onGradesUpdate: () => void;
-}> = ({ trades, metrics, tradeGrades, onGradesUpdate }) => {
+}> = ({ trades, metrics, tradeGrades }) => {
   const [localGrades, setLocalGrades] = useState<TradeGrade[]>([]);
   const [saving, setSaving] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // internal flag before auto-save completes
+  const [expandedTradeId, setExpandedTradeId] = useState<number | null>(null);
+  const [pendingDeletions, setPendingDeletions] = useState<TradeGradeDeletion[]>([]);
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightSave = useRef<Promise<void> | null>(null);
+  const latestGradesRef = useRef<TradeGrade[]>([]);
+  const latestDeletionsRef = useRef<TradeGradeDeletion[]>([]);
+
+  // Keep refs synced
+  useEffect(() => {
+    latestGradesRef.current = localGrades;
+  }, [localGrades]);
+  useEffect(() => {
+    latestDeletionsRef.current = pendingDeletions;
+  }, [pendingDeletions]);
+
+  const toggleTradeDetails = (tradeId: number) => {
+    setExpandedTradeId(prev => (prev === tradeId ? null : tradeId));
+  };
 
   // Initialize local grades from props
   useEffect(() => {
@@ -28,30 +45,85 @@ const TradeGrader: React.FC<{
     return grade?.selectedOptionId || null;
   };
 
+  const scheduleAutoSave = useCallback(() => {
+    setHasUnsavedChanges(true);
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      const run = async () => {
+        setSaving(true);
+        const gradesSnapshot = [...latestGradesRef.current];
+        const deletionsSnapshot = [...latestDeletionsRef.current];
+        try {
+          const saved = await gradeService.bulkUpdateGrades(gradesSnapshot, deletionsSnapshot);
+          // Replace local grades with authoritative response if provided
+          if (Array.isArray(saved)) {
+            setLocalGrades(saved);
+            latestGradesRef.current = saved;
+          }
+          // Clear only deletions we sent (simple approach: clear all)
+          setPendingDeletions([]);
+          latestDeletionsRef.current = [];
+          setHasUnsavedChanges(false);
+          // Intentionally NOT calling onGradesUpdate to avoid page refresh
+        } catch (err) {
+          console.error('Auto-save failed:', err);
+        } finally {
+          setSaving(false);
+        }
+      };
+      const p = inFlightSave.current ? inFlightSave.current.then(run) : run();
+      inFlightSave.current = p;
+    }, 600);
+  }, []);
+
   const updateLocalGrade = (tradeId: number, metricId: number, optionId: number) => {
-    const newGrades = localGrades.filter(g => !(g.tradeId === tradeId && parseInt(g.metricId) === metricId));
+    // Remove any previous grade for this trade/metric
+    const newGrades = localGrades.filter(
+      g => !(g.tradeId === tradeId && parseInt(g.metricId) === metricId)
+    );
+
+    // Add new one
     newGrades.push({
       tradeId,
       metricId: metricId.toString(),
       selectedOptionId: optionId.toString()
     });
-    
-    setLocalGrades(newGrades);
-    setHasUnsavedChanges(true);
+
+  setLocalGrades(newGrades);
+  scheduleAutoSave();
   };
 
-  const handleSaveGrades = async () => {
-    setSaving(true);
-    try {
-      await gradeService.bulkUpdateGrades(localGrades);
-      setHasUnsavedChanges(false);
-      onGradesUpdate();
-    } catch (error) {
-      console.error('Failed to save grades:', error);
-    } finally {
-      setSaving(false);
+  const clearLocalGrade = (tradeId: number, metricId: number) => {
+    // Remove the grade for this trade/metric entirely (no selection)
+    const newGrades = localGrades.filter(
+      g => !(g.tradeId === tradeId && parseInt(g.metricId) === metricId)
+    );
+    setLocalGrades(newGrades);
+    // Record deletion so backend can delete persisted grade
+    setPendingDeletions(prev => {
+      const exists = prev.find(d => d.tradeId === tradeId && parseInt(d.metricId) === metricId);
+      if (exists) return prev; // avoid duplicates
+      return [...prev, { tradeId, metricId: metricId.toString() }];
+    });
+  scheduleAutoSave();
+  };
+
+  const toggleGrade = (tradeId: number, metricId: number, optionId: number) => {
+    const current = getGradeForTrade(tradeId, metricId);
+    if (current === optionId.toString()) {
+      // Clicking the already selected option -> unselect (clear)
+      clearLocalGrade(tradeId, metricId);
+    } else {
+      updateLocalGrade(tradeId, metricId, optionId);
     }
   };
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, []);
 
   if (metrics.length === 0) {
     return (
@@ -72,25 +144,12 @@ const TradeGrader: React.FC<{
           <Save className="mr-2" />
           Trade Grader
         </h2>
-        {hasUnsavedChanges && (
-          <button
-            onClick={handleSaveGrades}
-            disabled={saving}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 flex items-center"
-          >
-            {saving ? (
-              <>
-                <Loader className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </button>
-        )}
+        <div className="text-sm text-muted-foreground h-5 flex items-center">
+          {saving && (
+            <span className="flex items-center"><Loader className="w-4 h-4 mr-1 animate-spin" /> Saving</span>
+          )}
+          {!saving && hasUnsavedChanges && <span>Pending…</span>}
+        </div>
       </div>
       
       <div className="overflow-x-auto">
@@ -109,48 +168,64 @@ const TradeGrader: React.FC<{
           </thead>
           <tbody>
             {trades.map(trade => (
-              <tr key={trade.ID} className="hover:bg-muted">
-                <td className="border border-border px-4 py-2 font-medium">
-                  {trade.Ticker}
-                </td>
-                <td className="border border-border px-4 py-2">
-                  {trade.Entry_Date}
-                </td>
-                <td className="border border-border px-4 py-2">
-                  {trade.Exit_Date}
-                </td>
-                {metrics.map(metric => (
-                  <td key={metric.id} className="border border-border px-4 py-2">
-                    <div className="space-y-1">
-                      {metric.options.map(option => (
-                        <label key={option.id} className="flex items-center">
-                          <input
-                            type="radio"
-                            name={`trade-${trade.ID}-metric-${metric.id}`}
-                            value={option.id}
-                            checked={getGradeForTrade(trade.ID, metric.id) === option.id.toString()}
-                            onChange={() => updateLocalGrade(trade.ID, metric.id, option.id)}
-                            className="mr-2"
-                          />
-                          <span className="text-sm">{option.name}</span>
-                        </label>
-                      ))}
-                    </div>
+              <React.Fragment key={trade.ID}>
+                <tr className="hover:bg-muted">
+                  {/* Clickable cells */}
+                  <td
+                    className="border border-border px-4 py-2 font-medium cursor-pointer"
+                    onClick={() => toggleTradeDetails(trade.ID)}
+                  >
+                    {trade.Ticker}
                   </td>
-                ))}
-              </tr>
+                  <td
+                    className="border border-border px-4 py-2 cursor-pointer"
+                    onClick={() => toggleTradeDetails(trade.ID)}
+                  >
+                    {trade.Entry_Date}
+                  </td>
+                  <td
+                    className="border border-border px-4 py-2 cursor-pointer"
+                    onClick={() => toggleTradeDetails(trade.ID)}
+                  >
+                    {trade.Exit_Date}
+                  </td>
+
+                  {/* Non-clickable grading cells */}
+                  {metrics.map(metric => (
+                    <td key={metric.id} className="border border-border px-4 py-2">
+                      <div className="space-y-1">
+                        {metric.options.map(option => (
+                          <label key={option.id} className="flex items-center">
+                            <input
+                              type="checkbox" /* Using checkbox to allow unchecking by clicking again */
+                              value={option.id}
+                              checked={getGradeForTrade(trade.ID, metric.id) === option.id.toString()}
+                              onChange={() => toggleGrade(trade.ID, metric.id, option.id)}
+                              className="mr-2"
+                            />
+                            <span className="text-sm">{option.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </td>
+                  ))}
+                </tr>
+
+                {/* Dropdown row */}
+                {expandedTradeId === trade.ID && (
+                  <tr>
+                    <td colSpan={3 + metrics.length} className="p-2 bg-muted/30">
+                      <TradeCaseDetails trade={trade} />
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
       </div>
       
-      {hasUnsavedChanges && (
-        <div className="mt-4 p-3 bg-warning border border-warning rounded-md">
-          <p className="text-warning-foreground text-sm">
-            You have unsaved changes. Don't forget to save your grades!
-          </p>
-        </div>
-      )}
+  {/* Quiet auto-save: no manual save warning banner */}
     </div>
   );
 };

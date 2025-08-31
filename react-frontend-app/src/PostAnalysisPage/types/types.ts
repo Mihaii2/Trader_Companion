@@ -16,8 +16,14 @@ export interface Metric {
 
 export interface TradeGrade {
   tradeId: number;
+  metricId: string; // kept as string to align with existing API
+  selectedOptionId: string; // always present for actual saved grades
+}
+
+// For bulk deletion (unchecking a metric)
+export interface TradeGradeDeletion {
+  tradeId: number;
   metricId: string;
-  selectedOptionId: string;
 }
 
 export interface APIError {

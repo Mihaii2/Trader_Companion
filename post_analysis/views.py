@@ -75,25 +75,32 @@ class TradeGradeViewSet(viewsets.ModelViewSet):
         serializer = BulkTradeGradeSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         grades_data = serializer.validated_data['grades']
-        
+        deletions_data = serializer.validated_data.get('deletions', [])
+
         with transaction.atomic():
+            # Process deletions first so re-added grades in same payload work
+            for deletion in deletions_data:
+                trade_id = int(deletion['tradeId'])
+                metric_id = int(deletion['metricId'])
+                TradeGrade.objects.filter(trade_id=trade_id, metric_id=metric_id).delete()
+
             for grade_data in grades_data:
                 trade_id = int(grade_data['tradeId'])
                 metric_id = int(grade_data['metricId'])
                 selected_option_id = int(grade_data['selectedOptionId'])
-                
+
                 # Validate that metric and option exist
                 try:
                     metric = Metric.objects.get(id=metric_id)
                     option = MetricOption.objects.get(id=selected_option_id, metric=metric)
                 except (Metric.DoesNotExist, MetricOption.DoesNotExist):
                     return Response(
-                        {'error': f'Invalid metric or option for grade: {grade_data}'}, 
+                        {'error': f'Invalid metric or option for grade: {grade_data}'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-                
+
                 # Update or create the grade
                 TradeGrade.objects.update_or_create(
                     trade_id=trade_id,

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_CONFIG } from "@/config";
 import { Trade } from "@/TradeHistoryPage/types/Trade";
-import { Metric, MetricOption, TradeGrade } from "../types/types";
+import { Metric, MetricOption, TradeGrade, TradeGradeDeletion } from "../types/types";
 
 
 export const tradesAPI = axios.create({
@@ -54,8 +54,12 @@ export const gradeService = {
     return response.data;
   },
 
-  bulkUpdateGrades: async (grades: TradeGrade[]): Promise<TradeGrade[]> => {
-    const response = await postAnalysisAPI.post('/grades/bulk_update/', { grades });
+  bulkUpdateGrades: async (grades: TradeGrade[], deletions: TradeGradeDeletion[] = []): Promise<TradeGrade[]> => {
+    const payload: any = { grades };
+    if (deletions.length) {
+      payload.deletions = deletions;
+    }
+    const response = await postAnalysisAPI.post('/grades/bulk_update/', payload);
     return response.data;
   }
 };

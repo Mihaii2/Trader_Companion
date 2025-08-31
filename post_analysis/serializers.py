@@ -63,6 +63,11 @@ class BulkTradeGradeSerializer(serializers.Serializer):
             child=serializers.CharField()
         )
     )
+    deletions = serializers.ListField(
+        child=serializers.DictField(child=serializers.CharField()),
+        required=False,
+        allow_empty=True
+    )
     
     def validate_grades(self, value):
         """Validate each grade entry"""
@@ -70,5 +75,13 @@ class BulkTradeGradeSerializer(serializers.Serializer):
             if not all(key in grade for key in ['tradeId', 'metricId', 'selectedOptionId']):
                 raise serializers.ValidationError(
                     "Each grade must contain tradeId, metricId, and selectedOptionId"
+                )
+        return value
+
+    def validate_deletions(self, value):
+        for deletion in value:
+            if not all(key in deletion for key in ['tradeId', 'metricId']):
+                raise serializers.ValidationError(
+                    "Each deletion must contain tradeId and metricId"
                 )
         return value

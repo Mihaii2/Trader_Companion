@@ -186,14 +186,12 @@ const PostAnalysisPage: React.FC = () => {
               trades={trades || []}
               metrics={metrics || []}
               tradeGrades={tradeGrades || []}
-              trailingWindow={50} 
             />
 
             <TradeGrader
               trades={trades || []}
               metrics={metrics || []}
               tradeGrades={tradeGrades || []}
-              onGradesUpdate={refetchGrades}
             />
 
             <MetricManager 
