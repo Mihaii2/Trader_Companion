@@ -1,6 +1,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+import os
+import logging
 
 class Metric(models.Model):
     """Custom metrics for grading trades"""
@@ -87,4 +92,60 @@ class PostTradeAnalysis(models.Model):
 
     def __str__(self):
         return f"PostAnalysis(trade={self.trade_id}, title={self.title or '—'})"
+
+
+# --- Cleanup logic for orphaned images ---
+logger = logging.getLogger(__name__)
+
+def _cleanup_unreferenced_post_analysis_images():
+    """Remove files in post_analysis_images/ not referenced by any PostTradeAnalysis.image.
+
+    Runs after a new image is saved to prevent accumulation of orphan files.
+    Safe-guards:
+      * Only touches the upload_to directory (no recursion beyond it)
+      * Skips if MEDIA_ROOT or directory missing
+    """
+    upload_subdir = 'post_analysis_images'
+    base_dir = getattr(settings, 'MEDIA_ROOT', None)
+    if not base_dir:
+        return
+    target_dir = os.path.join(base_dir, upload_subdir)
+    if not os.path.isdir(target_dir):
+        return
+
+    # All referenced relative paths (e.g. 'post_analysis_images/filename.png')
+    referenced = set(
+        PostTradeAnalysis.objects.exclude(image='').values_list('image', flat=True)
+    )
+    # Normalize to forward slashes for consistency
+    referenced_norm = {p.replace('\\', '/') for p in referenced}
+
+    removed = 0
+    try:
+        for entry in os.listdir(target_dir):
+            abs_path = os.path.join(target_dir, entry)
+            if not os.path.isfile(abs_path):
+                continue
+            rel_path = f"{upload_subdir}/{entry}"  # matches ImageField stored path
+            if rel_path not in referenced_norm:
+                try:
+                    os.remove(abs_path)
+                    removed += 1
+                except OSError as e:
+                    logger.warning("Failed to delete orphan image %s: %s", abs_path, e)
+    finally:
+        if removed:
+            logger.info("PostTradeAnalysis cleanup: removed %d orphan image(s)", removed)
+
+
+@receiver(post_save, sender=PostTradeAnalysis)
+def post_trade_analysis_image_cleanup(sender, instance, created, **kwargs):
+    """Trigger cleanup after saving a new image.
+
+    We run only when an instance has an image file and was newly created OR when an
+    existing instance's image field is set (instance.image and instance.image.name).
+    """
+    # instance.image may be a FieldFile; ensure it has a name and isn't empty.
+    if instance.image and getattr(instance.image, 'name', ''):
+        _cleanup_unreferenced_post_analysis_images()
 

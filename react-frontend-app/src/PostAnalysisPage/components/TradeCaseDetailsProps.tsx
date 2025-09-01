@@ -9,10 +9,12 @@ import { Input } from "@/components/ui/input";
 
 interface TradeCaseDetailsProps {
   trade: Trade;
+  // Optional callback to request fullscreen view of the persisted image
+  onRequestFullscreen?: () => void;
 }
 
 // forwardRef so parent can focus the drop zone when navigating trades via keyboard
-const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ trade }, ref) => {
+const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ trade, onRequestFullscreen }, ref) => {
   // Hooks must be first
   const [existingAnalyses, setExistingAnalyses] = useState<PostTradeAnalysis[]>([]);
   const [notes, setNotes] = useState("");
@@ -149,14 +151,34 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
               data-drop-zone
             >
               {previewUrl ? (
-                <div className="space-y-2">
-                  <img src={previewUrl} alt="new upload preview" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+                <div className="space-y-2 relative group">
+                  <img
+                    src={previewUrl}
+                    alt="new upload preview"
+                    className="w-full h-auto max-h-[70vh] object-contain rounded"
+                  />
                   <p className="text-xs text-muted-foreground">(Unsaved) {imageFile?.name} — click or drop to replace</p>
                 </div>
               ) : currentImage ? (
-                <div className="space-y-2">
-                  <img src={currentImage} alt="analysis" className="w-full h-auto max-h-[70vh] object-contain rounded" />
+                <div className="space-y-2 relative group">
+                  <img
+                    src={currentImage}
+                    alt="analysis"
+                    className="w-full h-auto max-h-[70vh] object-contain rounded cursor-zoom-in"
+                    onClick={(e) => { e.stopPropagation(); onRequestFullscreen?.(); }}
+                    title="Click to open fullscreen (F)"
+                  />
                   <p className="text-xs text-muted-foreground">Drag & drop or click to replace image</p>
+                  {onRequestFullscreen && (
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); onRequestFullscreen(); }}
+                      className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+                      aria-label="Open image fullscreen"
+                    >
+                      Fullscreen
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>

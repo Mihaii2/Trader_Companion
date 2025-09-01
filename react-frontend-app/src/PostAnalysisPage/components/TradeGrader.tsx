@@ -34,6 +34,10 @@ const TradeGrader: React.FC<{
   const expandedTradeIdRef = useRef<number | null>(null);
   useEffect(() => { expandedTradeIdRef.current = expandedTradeId; }, [expandedTradeId]);
 
+  // Fullscreen image viewer state (declared after toggleTradeDetails so dependencies order is valid)
+  const [fullscreenTradeId, setFullscreenTradeId] = useState<number | null>(null);
+  const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null);
+
   const centerImageWithRetry = useCallback((tradeId: number, attempt = 0) => {
     if (expandedTradeIdRef.current !== tradeId) return; // trade no longer expanded
     const container = tradeDropZoneRefs.current[tradeId];
@@ -69,24 +73,68 @@ const TradeGrader: React.FC<{
     });
   }, [centerImageWithRetry]);
 
+  const getTradeIndexById = useCallback((id: number | null) => {
+    if (id == null) return -1;
+    return trades.findIndex(t => t.ID === id);
+  }, [trades]);
+
+  const openFullscreenForTrade = useCallback((tradeId: number) => {
+    const container = tradeDropZoneRefs.current[tradeId];
+    if (container) {
+      const img = container.querySelector('img');
+      if (img && (img as HTMLImageElement).src) {
+        setFullscreenImageUrl((img as HTMLImageElement).src);
+        setFullscreenTradeId(tradeId);
+      }
+    }
+  }, []);
+
+  const closeFullscreen = useCallback(() => {
+    setFullscreenTradeId(null);
+    setFullscreenImageUrl(null);
+  }, []);
+
+  const navigateFullscreen = useCallback((direction: 1 | -1) => {
+    if (fullscreenTradeId == null || !trades.length) return;
+    let idx = getTradeIndexById(fullscreenTradeId);
+    if (idx === -1) return;
+    idx = (idx + direction + trades.length) % trades.length;
+    const nextTrade = trades[idx];
+    if (expandedTradeId !== nextTrade.ID) {
+      toggleTradeDetails(nextTrade.ID);
+      setTimeout(() => openFullscreenForTrade(nextTrade.ID), 80);
+    } else {
+      openFullscreenForTrade(nextTrade.ID);
+    }
+  }, [fullscreenTradeId, trades, expandedTradeId, toggleTradeDetails, openFullscreenForTrade, getTradeIndexById]);
+
   // Keyboard navigation: left/right arrows move between trades and auto-focus image drop zone
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (fullscreenTradeId !== null) {
+      if (e.key === 'Escape') { e.preventDefault(); closeFullscreen(); return; }
+      if (e.key === 'ArrowRight') { e.preventDefault(); navigateFullscreen(1); return; }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); navigateFullscreen(-1); return; }
+      if (e.key.toLowerCase() === 'f') { e.preventDefault(); closeFullscreen(); return; }
+    }
     if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
       if (!trades.length) return;
       e.preventDefault();
       let currentIndex = expandedTradeId !== null ? trades.findIndex(t => t.ID === expandedTradeId) : -1;
       if (currentIndex === -1) {
-        // If none expanded, start at first/last depending on direction
-        currentIndex = e.key === 'ArrowRight' ? -1 : trades.length; // so adding +/- 1 works below
+        currentIndex = e.key === 'ArrowRight' ? -1 : trades.length;
       }
       const delta = e.key === 'ArrowRight' ? 1 : -1;
       let nextIndex = currentIndex + delta;
-      if (nextIndex < 0) nextIndex = trades.length - 1; // wrap
-      if (nextIndex >= trades.length) nextIndex = 0; // wrap
+      if (nextIndex < 0) nextIndex = trades.length - 1;
+      if (nextIndex >= trades.length) nextIndex = 0;
       const nextTrade = trades[nextIndex];
       toggleTradeDetails(nextTrade.ID, true);
     }
-  }, [expandedTradeId, trades, toggleTradeDetails]);
+    if (e.key.toLowerCase() === 'f' && expandedTradeId !== null) {
+      e.preventDefault();
+      openFullscreenForTrade(expandedTradeId);
+    }
+  }, [expandedTradeId, trades, toggleTradeDetails, fullscreenTradeId, closeFullscreen, navigateFullscreen, openFullscreenForTrade]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -271,11 +319,12 @@ const TradeGrader: React.FC<{
                 </tr>
 
                 {/* Dropdown row */}
-                {expandedTradeId === trade.ID && (
+    {expandedTradeId === trade.ID && (
                   <tr>
                     <td colSpan={3 + metrics.length} className="p-2 bg-muted/30">
                       <TradeCaseDetails
                         trade={trade}
+      onRequestFullscreen={() => openFullscreenForTrade(trade.ID)}
                         ref={(el) => { tradeDropZoneRefs.current[trade.ID] = el; }}
                       />
                     </td>
@@ -288,6 +337,47 @@ const TradeGrader: React.FC<{
       </div>
       
   {/* Quiet auto-save: no manual save warning banner */}
+      {fullscreenTradeId !== null && fullscreenImageUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <img
+            src={fullscreenImageUrl}
+            alt="analysis fullscreen"
+            className="max-w-[100vw] max-h-[100vh] object-contain select-none"
+            draggable={false}
+            onClick={closeFullscreen}
+          />
+          <div className="absolute top-3 left-4 text-xs text-white/70 space-x-4">
+            <span className="hidden sm:inline">Esc / Click: Close</span>
+            <span>← → Navigate</span>
+            <span>F Close</span>
+          </div>
+          <button
+            onClick={() => navigateFullscreen(-1)}
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3"
+            aria-label="Previous image"
+          >
+            ‹
+          </button>
+          <button
+            onClick={() => navigateFullscreen(1)}
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white rounded-full p-3"
+            aria-label="Next image"
+          >
+            ›
+          </button>
+          <button
+            onClick={closeFullscreen}
+            className="absolute top-2 right-2 md:top-4 md:right-4 bg-white/10 hover:bg-white/20 text-white rounded-full px-3 py-1 text-sm"
+            aria-label="Close fullscreen"
+          >
+            ✕
+          </button>
+        </div>
+      )}
     </div>
   );
 };
