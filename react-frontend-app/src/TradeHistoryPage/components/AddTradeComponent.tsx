@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trade } from '../types/Trade';
+import { stockPicksApi } from '@/StockRankingPage/services/stockPick';
+import { globalCharacteristicsApi } from '@/StockRankingPage/services/globalCharacteristics';
+import type { StockPick, GlobalCharacteristic } from '@/StockRankingPage/types';
 import { AxiosError } from 'axios';
 
 interface AddTradeComponentProps {
@@ -70,6 +73,71 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
   const [newTrade, setNewTrade] = useState<Trade>(initialTrade);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrefilling, setIsPrefilling] = useState(false);
+  const globalCharsRef = useRef<GlobalCharacteristic[] | null>(null);
+  const fetchedStockCacheRef = useRef<Record<string, StockPick | null>>({});
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const userEditedCaseRef = useRef(false);
+
+  // Load global characteristics once (lazy on first ticker attempt)
+  const ensureGlobalCharacteristics = async () => {
+    if (!globalCharsRef.current) {
+      try {
+        const resp = await globalCharacteristicsApi.getAllGlobalCharacteristics();
+        globalCharsRef.current = resp.data;
+  } catch {
+        // Silent fail; prefill just won't happen
+        globalCharsRef.current = [];
+      }
+    }
+    return globalCharsRef.current || [];
+  };
+
+  // Build JSON (same structure as RankingItem download) for a stock pick
+  const buildCaseJson = async (stock: StockPick): Promise<string> => {
+    const globalChars = await ensureGlobalCharacteristics();
+    const selectedIds = new Set(stock.characteristics.map(c => c.characteristic_id));
+    const characteristicsStatus: Record<string, boolean> = {};
+    globalChars.forEach(gc => {
+      characteristicsStatus[gc.name] = selectedIds.has(gc.id);
+    });
+    const data = {
+      symbol: stock.symbol,
+      total_score: stock.total_score,
+      personal_opinion_score: stock.personal_opinion_score,
+      details: stock.case_text || '',
+      demand_reason: stock.demand_reason || '',
+      note: stock.note || '',
+      characteristics: characteristicsStatus
+    };
+    return JSON.stringify(data, null, 2);
+  };
+
+  const attemptPrefillCase = async (tickerRaw: string) => {
+    const ticker = tickerRaw.trim().toUpperCase();
+    if (!ticker) return;
+    // Don't override if user manually edited case after prefill
+    if (userEditedCaseRef.current && newTrade.Case) return;
+    setIsPrefilling(true);
+    try {
+      // Cached lookup
+      if (!(ticker in fetchedStockCacheRef.current)) {
+        // Fetch all stock picks once (could optimize later with backend filter)
+        const resp = await stockPicksApi.getAllStockPicks();
+        const all: StockPick[] = resp.data;
+        const found = all.find(sp => sp.symbol.toUpperCase() === ticker) || null;
+        fetchedStockCacheRef.current[ticker] = found;
+      }
+      const stock = fetchedStockCacheRef.current[ticker];
+      if (!stock) return; // nothing to prefill
+      const caseJson = await buildCaseJson(stock);
+      setNewTrade(prev => ({ ...prev, Case: caseJson, Ticker: ticker }));
+  } catch {
+      // Ignore errors silently
+    } finally {
+      setIsPrefilling(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
@@ -81,6 +149,17 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
               type === 'number' ? (value === '' ? 0 : Number(value)) : 
               value
     }));
+
+    if (name === 'Ticker') {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        attemptPrefillCase(value);
+      }, 600);
+    }
+
+    if (name === 'Case') {
+      userEditedCaseRef.current = true; // prevent overriding after user edits
+    }
 
     // Clear error when user starts typing
     if (error) setError(null);
@@ -167,6 +246,9 @@ export const AddTradeComponent: React.FC<AddTradeComponentProps> = ({ onAdd }) =
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 mb-4">
               {Object.entries(newTrade).map(([key, value]) => 
                 renderFormField(key as keyof Trade, value as InputValue)
+              )}
+              {isPrefilling && (
+                <div className="text-xs text-muted-foreground mt-2">Prefilling case from ranking data...</div>
               )}
             </div>
           </ScrollArea>

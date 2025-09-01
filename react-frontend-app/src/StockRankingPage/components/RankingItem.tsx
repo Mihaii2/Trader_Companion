@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, X, Edit, Check, MoreHorizontal, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Edit, Check, MoreHorizontal, Download, AlertTriangle } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/checkbox";
 import { globalCharacteristicsApi } from '../services/globalCharacteristics';
 import { stockPicksApi } from '../services/stockPick';
+import { tradeAPI } from '@/TradeStatisticsPage/services/tradeAPI';
+import type { Trade } from '@/TradeHistoryPage/types/Trade';
 
 interface Props {
   stock: StockPick;
@@ -169,6 +171,8 @@ export const RankingItem: React.FC<Props> = ({
   const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
   const [note, setNote] = useState<string>(initialStock.note || '');
   const [lastClickedCharacteristic, setLastClickedCharacteristic] = useState<number | null>(null);
+  const [hasTradeInHistory, setHasTradeInHistory] = useState<boolean | null>(null);
+  const [isCheckingTrades, setIsCheckingTrades] = useState(false);
 
   
   // Track pending characteristic changes
@@ -179,6 +183,21 @@ export const RankingItem: React.FC<Props> = ({
   
   // Ref for the characteristics container
   const charContainerRef = useRef<HTMLDivElement>(null);
+
+  // Trade existence checker (memoized)
+  const checkTradeExists = useCallback(async () => {
+    try {
+      setIsCheckingTrades(true);
+      const resp = await tradeAPI.getTrades();
+      const trades: Trade[] = resp.data;
+      const exists = trades.some(t => t.Ticker.toUpperCase() === stock.symbol.toUpperCase());
+      setHasTradeInHistory(exists);
+    } catch {
+      setHasTradeInHistory(false);
+    } finally {
+      setIsCheckingTrades(false);
+    }
+  }, [stock.symbol]);
 
   // Update local state when prop changes
   useEffect(() => {
@@ -192,7 +211,11 @@ export const RankingItem: React.FC<Props> = ({
       char => PRIORITY_CHARACTERISTICS.includes(char.name)
     );
     setPriorityCharacteristics(priorityChars);
-  }, [initialStock]);
+    // Trigger a trade existence check when item expands for first time
+    if (isExpanded && hasTradeInHistory === null) {
+      checkTradeExists();
+    }
+  }, [initialStock, isExpanded, hasTradeInHistory, checkTradeExists]);
 
   // Calculate which characteristics should be visible based on container height
   // Use useCallback to memoize the function and prevent unnecessary re-renders
@@ -312,8 +335,11 @@ export const RankingItem: React.FC<Props> = ({
   useEffect(() => {
     if (isExpanded) {
       fetchGlobalCharacteristics();
+      if (hasTradeInHistory === null) {
+        checkTradeExists();
+      }
     }
-  }, [isExpanded]);
+  }, [isExpanded, hasTradeInHistory, checkTradeExists]);
 
   // Check visible characteristics on stock change or window resize
   useEffect(() => {
@@ -350,6 +376,8 @@ export const RankingItem: React.FC<Props> = ({
       setError('Failed to load global characteristics');
     }
   };
+
+  // checkTradeExists now defined via useCallback above
 
   // Handle case text changes - use debounce to prevent API calls on every keystroke
   // Update the handleDetailsTextChange function to use the latest stock state
@@ -733,6 +761,10 @@ export const RankingItem: React.FC<Props> = ({
                   className="p-1"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (hasTradeInHistory === null) {
+                      // Fire async check; no need to await
+                      checkTradeExists();
+                    }
                   }}
                 >
                   <X className="h-3 w-3 text-destructive" />
@@ -743,6 +775,17 @@ export const RankingItem: React.FC<Props> = ({
                   <AlertDialogTitle>Remove {stock.symbol}</AlertDialogTitle>
                   <AlertDialogDescription>
                     Are you sure you want to remove this stock from your ranking? This action cannot be undone.
+                    {!hasTradeInHistory && hasTradeInHistory !== null && (
+                      <div className="mt-3 flex items-start gap-2 text-amber-600 dark:text-amber-400 text-sm">
+                        <AlertTriangle className="h-4 w-4 mt-0.5" />
+                        <span>
+                          No trade exists in history for <strong>{stock.symbol}</strong> yet. If you add a trade first, the full ranking JSON (characteristics, scores, notes, catalyst, details) will be auto-saved into the trade Case field so you can review it later even after removing this ranking.
+                        </span>
+                      </div>
+                    )}
+                    {isCheckingTrades && (
+                      <div className="mt-2 text-xs text-muted-foreground">Checking trade history...</div>
+                    )}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -16,6 +16,26 @@ const vibrantColors = [
   '#6366f1', // indigo
 ];
 
+// Hard-coded mapping of specific metric option names (or IDs) to colors.
+// Edit / extend this object to force particular options to always have the same color
+// irrespective of ordering. Keys should match option.name exactly (case-sensitive) unless
+// you normalize below.
+const optionColorMap: Record<string, string> = {
+  // EXAMPLES (replace with your real option names):
+  'Bought perfect': '#10b981',
+  'Bought too soon': '#3b82f6',
+  'Bought too late': '#f59e42',
+  'Faulty set-up': '#a21caf',
+  'Cut loss perfect': '#10b981',
+  'Cut loss too late': '#ef4444',
+  'Cut loss too soon': '#f59e42',
+  'Sold perfect': '#10b981',
+  'Sold too late': '#f59e42',
+  'Excellent': '#10b981',
+  'Mediocre': '#3b82f6',
+  'Poor': '#a21caf'
+};
+
 const MetricAnalytics: React.FC<{
   trades: Trade[];
   metrics: Metric[];
@@ -88,8 +108,11 @@ const MetricAnalytics: React.FC<{
     return data;
   }, [trades, metrics, tradeGrades, trailingWindow]);
 
-  // Use vibrant palette for chart lines
-  const colors = vibrantColors;
+  // Helper to fetch a color for a given option name with fallback to palette order.
+  const getOptionColor = (name: string, index: number) => {
+    // Direct lookup; customize (e.g. toLowerCase) if you prefer case-insensitive keys.
+    return optionColorMap[name] || vibrantColors[index % vibrantColors.length];
+  };
 
   if (metrics.length === 0) {
     return (
@@ -105,10 +128,10 @@ const MetricAnalytics: React.FC<{
 
   return (
     <div className="bg-background rounded-lg shadow-md p-6 mb-6">
-      <h2 className="text-2xl font-bold mb-6 flex items-center text-foreground">
+      {/* <h2 className="text-2xl font-bold mb-6 flex items-center text-foreground">
         <BarChart3 className="mr-2" />
         Analytics Dashboard
-      </h2>
+      </h2> */}
 
       {/* ✅ Simple control to tweak trailing window */}
       <div className="mb-6">
@@ -157,18 +180,21 @@ const MetricAnalytics: React.FC<{
                       contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', color: 'hsl(var(--foreground))' }}
                     />
                     <Legend wrapperStyle={{ color: 'hsl(var(--foreground))' }} />
-                    {metric.options.map((option, index) => (
-                      <Line
-                        key={option.id}
-                        type="monotone"
-                        dataKey={option.name}
-                        stroke={colors[index % colors.length]}
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 5 }}
-                        connectNulls={true}
-                      />
-                    ))}
+                    {metric.options.map((option, index) => {
+                      const strokeColor = getOptionColor(option.name, index);
+                      return (
+                        <Line
+                          key={option.id}
+                          type="monotone"
+                          dataKey={option.name}
+                          stroke={strokeColor}
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 5 }}
+                          connectNulls={true}
+                        />
+                      );
+                    })}
                   </LineChart>
                 </ResponsiveContainer>
               </div>

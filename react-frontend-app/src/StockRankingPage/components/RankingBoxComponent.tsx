@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { RankingBox } from '../types';
 import { useStockOperations } from '../hooks/useStockPickOperations';
 import { stockPicksApi } from '../services/stockPick';
@@ -8,7 +8,7 @@ import { RankingItem } from './RankingItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { X, Plus, Check } from 'lucide-react';
+import { X, Plus, Check, AlertTriangle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
@@ -21,6 +21,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { tradeAPI } from '@/TradeStatisticsPage/services/tradeAPI';
+import type { Trade } from '@/TradeHistoryPage/types/Trade';
 
 interface Props {
   box: RankingBox;
@@ -39,6 +41,9 @@ export const RankingBoxComponent: React.FC<Props> = ({
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(box.title);
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [isCheckingTrades, setIsCheckingTrades] = useState(false);
+  const [missingTradeSymbols, setMissingTradeSymbols] = useState<string[]>([]);
+  const checkedOnceRef = useRef(false);
 
   const { error, handleStockUpdate, handleRemoveStock, sortStocksByScore } = useStockOperations({
     onUpdateBox
@@ -183,6 +188,26 @@ export const RankingBoxComponent: React.FC<Props> = ({
                 variant="ghost" 
                 size="icon" 
                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                onClick={async () => {
+                  // Lazy check only once per open lifecycle unless stocks change
+                  if (!checkedOnceRef.current) {
+                    try {
+                      setIsCheckingTrades(true);
+                      const resp = await tradeAPI.getTrades();
+                      const trades: Trade[] = resp.data;
+                      const tradeSet = new Set(trades.map(t => t.Ticker.toUpperCase()));
+                      const missing = box.stock_picks
+                        .map(s => s.symbol.toUpperCase())
+                        .filter(sym => !tradeSet.has(sym));
+                      setMissingTradeSymbols(missing);
+                      checkedOnceRef.current = true;
+                    } catch {
+                      setMissingTradeSymbols([]);
+                    } finally {
+                      setIsCheckingTrades(false);
+                    }
+                  }
+                }}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -192,6 +217,17 @@ export const RankingBoxComponent: React.FC<Props> = ({
                 <AlertDialogTitle>Delete Ranking Box</AlertDialogTitle>
                 <AlertDialogDescription>
                   Are you sure you want to delete "{box.title}"? This action cannot be undone.
+                  {isCheckingTrades && (
+                    <div className="mt-2 text-xs text-muted-foreground">Checking trade history...</div>
+                  )}
+                  {!isCheckingTrades && missingTradeSymbols.length > 0 && (
+                    <div className="mt-3 text-amber-600 dark:text-amber-400 text-sm flex gap-2">
+                      <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <span>
+                        The following tickers have <strong>no trade</strong> in history yet: {missingTradeSymbols.slice(0,8).join(', ')}{missingTradeSymbols.length>8?'…':''}. If you add trades first, each trade's Case field will auto-store the ranking JSON so you can review it after deletion.
+                      </span>
+                    </div>
+                  )}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

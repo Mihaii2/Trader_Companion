@@ -79,6 +79,9 @@ class PostTradeAnalysis(models.Model):
     class Meta:
         ordering = ["-updated_at"]
         indexes = [models.Index(fields=["trade_id"])]
+        constraints = [
+            models.UniqueConstraint(fields=["trade_id"], name="uniq_post_analysis_trade")
+        ]
         verbose_name = "Post Trade Analysis"
         verbose_name_plural = "Post Trade Analyses"
 

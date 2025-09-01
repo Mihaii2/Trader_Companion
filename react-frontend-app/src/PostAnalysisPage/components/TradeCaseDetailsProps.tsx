@@ -43,9 +43,19 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
 
   const loadAnalyses = useCallback(async () => {
     try {
-      const data = await analysisService.listByTrade(trade.ID);
-      setExistingAnalyses(data);
-      if (data.length) setNotes(data[0].notes || "");
+  const data = await analysisService.listByTrade(trade.ID);
+  // Ensure newest first (fallback if backend not already sorted)
+  const sorted = [...data].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+  // If more than one exists, keep only the newest to save space
+  if (sorted.length > 1) {
+    // fire-and-forget deletions sequentially to avoid hammering API
+    for (let i = 1; i < sorted.length; i++) {
+      try { await analysisService.delete(sorted[i].id); } catch (err) { console.warn('Failed to delete old analysis', sorted[i].id, err); }
+    }
+    sorted.splice(1); // retain only first in local state
+  }
+  setExistingAnalyses(sorted);
+  if (sorted.length) setNotes(sorted[0].notes || "");
     } catch (e) {
       console.error(e);
     }
@@ -80,8 +90,14 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
     setIsSubmitting(true);
     setError(null);
     try {
-      await analysisService.create({ trade_id: trade.ID, notes, imageFile: imageFile || undefined });
-      setImageFile(null);
+      if (existingAnalyses.length) {
+        // Update latest analysis. Only send image if user picked a new one so existing image isn't cleared.
+        await analysisService.update(existingAnalyses[0].id, { notes, imageFile: imageFile || undefined });
+      } else {
+        // No existing record -> create new
+        await analysisService.create({ trade_id: trade.ID, notes, imageFile: imageFile || undefined });
+      }
+      if (imageFile) setImageFile(null); // clear only if we just used a new image
       await loadAnalyses();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -170,9 +186,7 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
                 <Button size="sm" variant="secondary" onClick={() => setImageFile(null)}>Clear Image</Button>
               )}
             </div>
-            {existingAnalyses.length > 1 && (
-              <p className="text-xs text-muted-foreground">{existingAnalyses.length - 1} older revision(s) stored.</p>
-            )}
+            {/* No older revision retention; only latest kept to save storage */}
           </div>
         </div>
         {showCaseDetails && (
