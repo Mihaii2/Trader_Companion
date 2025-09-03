@@ -3,7 +3,7 @@ import React from 'react';
 import { Metric, TradeGrade, TradeGradeDeletion } from '../types/types';
 import { Loader, Save } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { gradeService } from '../services/postAnalysis';
+import { gradeService, analysisService } from '../services/postAnalysis';
 import TradeCaseDetails from './TradeCaseDetailsProps';
 
 
@@ -16,6 +16,10 @@ const TradeGrader: React.FC<{
   const [saving, setSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // internal flag before auto-save completes
   const [expandedTradeId, setExpandedTradeId] = useState<number | null>(null);
+  // Keep a stable positional index for navigation to avoid relying solely on ID lookups (which can cause skips if the array mutates)
+  const [currentTradeIndex, setCurrentTradeIndex] = useState<number>(-1);
+  const currentTradeIndexRef = useRef<number>(-1);
+  useEffect(() => { currentTradeIndexRef.current = currentTradeIndex; }, [currentTradeIndex]);
   const [pendingDeletions, setPendingDeletions] = useState<TradeGradeDeletion[]>([]);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlightSave = useRef<Promise<void> | null>(null);
@@ -34,9 +38,39 @@ const TradeGrader: React.FC<{
   const expandedTradeIdRef = useRef<number | null>(null);
   useEffect(() => { expandedTradeIdRef.current = expandedTradeId; }, [expandedTradeId]);
 
+  // Prefetch analyses for all trades so navigation never skips just because a trade wasn't expanded yet
+  useEffect(() => {
+    let cancelled = false;
+    if (!trades.length) return;
+    (async () => {
+      for (const t of trades) {
+        if (cancelled) break;
+        if (!analysesByTradeRef.current[t.ID]) {
+          try {
+            const data = await analysisService.listByTrade(t.ID);
+            const images = data.filter(a => !!a.image).map(a => a.image as string);
+            analysesByTradeRef.current[t.ID] = { ids: data.map(a => a.id), images };
+            if (!(t.ID in currentImageIndexRef.current)) {
+              currentImageIndexRef.current[t.ID] = 0;
+            } else {
+              const cur = currentImageIndexRef.current[t.ID];
+              if (cur >= images.length) currentImageIndexRef.current[t.ID] = Math.max(0, images.length - 1);
+            }
+          } catch {
+            // Ignore prefetch errors
+          }
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [trades]);
+
   // Fullscreen image viewer state (declared after toggleTradeDetails so dependencies order is valid)
   const [fullscreenTradeId, setFullscreenTradeId] = useState<number | null>(null);
   const [fullscreenImageUrl, setFullscreenImageUrl] = useState<string | null>(null);
+  // Track analyses per trade and current image index per trade for keyboard navigation
+  const analysesByTradeRef = useRef<Record<number, { ids: number[]; images: string[] }>>({});
+  const currentImageIndexRef = useRef<Record<number, number>>({});
 
   const centerImageWithRetry = useCallback((tradeId: number, attempt = 0) => {
     if (expandedTradeIdRef.current !== tradeId) return; // trade no longer expanded
@@ -69,24 +103,30 @@ const TradeGrader: React.FC<{
             centerImageWithRetry(newId, 0);
         }, 50);
       }
+      // Sync positional index
+      if (newId !== null) {
+        const idx = trades.findIndex(t => t.ID === newId);
+        setCurrentTradeIndex(idx);
+      } else {
+        setCurrentTradeIndex(-1);
+      }
       return newId;
     });
-  }, [centerImageWithRetry]);
+  }, [centerImageWithRetry, trades]);
 
   const getTradeIndexById = useCallback((id: number | null) => {
     if (id == null) return -1;
     return trades.findIndex(t => t.ID === id);
   }, [trades]);
 
-  const openFullscreenForTrade = useCallback((tradeId: number) => {
-    const container = tradeDropZoneRefs.current[tradeId];
-    if (container) {
-      const img = container.querySelector('img');
-      if (img && (img as HTMLImageElement).src) {
-        setFullscreenImageUrl((img as HTMLImageElement).src);
-        setFullscreenTradeId(tradeId);
-      }
-    }
+  const openFullscreenForTrade = useCallback((tradeId: number, imageIdx?: number) => {
+    const data = analysesByTradeRef.current[tradeId];
+    if (!data || !data.images.length) return;
+    const idx = imageIdx != null ? imageIdx : (currentImageIndexRef.current[tradeId] || 0);
+    const bounded = ((idx % data.images.length) + data.images.length) % data.images.length;
+    currentImageIndexRef.current[tradeId] = bounded;
+    setFullscreenImageUrl(data.images[bounded]);
+    setFullscreenTradeId(tradeId);
   }, []);
 
   const closeFullscreen = useCallback(() => {
@@ -96,15 +136,36 @@ const TradeGrader: React.FC<{
 
   const navigateFullscreen = useCallback((direction: 1 | -1) => {
     if (fullscreenTradeId == null || !trades.length) return;
-    let idx = getTradeIndexById(fullscreenTradeId);
-    if (idx === -1) return;
-    idx = (idx + direction + trades.length) % trades.length;
-    const nextTrade = trades[idx];
-    if (expandedTradeId !== nextTrade.ID) {
-      toggleTradeDetails(nextTrade.ID);
-      setTimeout(() => openFullscreenForTrade(nextTrade.ID), 80);
-    } else {
-      openFullscreenForTrade(nextTrade.ID);
+    const tradeId = fullscreenTradeId;
+    const data = analysesByTradeRef.current[tradeId];
+    if (data && data.images.length > 1) {
+      // Move within same trade's images first
+      const cur = currentImageIndexRef.current[tradeId] || 0;
+      const nextIdx = cur + direction;
+      if (nextIdx >= 0 && nextIdx < data.images.length) {
+        openFullscreenForTrade(tradeId, nextIdx);
+        return;
+      }
+    }
+    // Move to next/prev trade with images
+    const tradeIndex = getTradeIndexById(tradeId);
+    if (tradeIndex === -1) return;
+    for (let i = 1; i <= trades.length; i++) { // at most one full loop
+      const candidateIndex = (tradeIndex + direction * i + trades.length) % trades.length;
+      const candidate = trades[candidateIndex];
+      const candData = analysesByTradeRef.current[candidate.ID];
+      if (candData && candData.images.length) {
+        currentImageIndexRef.current[candidate.ID] = direction === 1 ? 0 : candData.images.length - 1;
+        if (expandedTradeId !== candidate.ID) {
+          toggleTradeDetails(candidate.ID);
+          setTimeout(() => openFullscreenForTrade(candidate.ID), 80);
+        } else {
+          openFullscreenForTrade(candidate.ID);
+        }
+        setCurrentTradeIndex(candidateIndex);
+        return;
+      }
+      // No images: skip while staying in fullscreen
     }
   }, [fullscreenTradeId, trades, expandedTradeId, toggleTradeDetails, openFullscreenForTrade, getTradeIndexById]);
 
@@ -114,25 +175,45 @@ const TradeGrader: React.FC<{
       if (e.key === 'Escape') { e.preventDefault(); closeFullscreen(); return; }
       if (e.key === 'ArrowRight') { e.preventDefault(); navigateFullscreen(1); return; }
       if (e.key === 'ArrowLeft') { e.preventDefault(); navigateFullscreen(-1); return; }
-      if (e.key.toLowerCase() === 'f') { e.preventDefault(); closeFullscreen(); return; }
     }
     if (['ArrowLeft', 'ArrowRight'].includes(e.key)) {
+      // Enhanced navigation: cycle through images of current trade using left/right without fullscreen
+      if (expandedTradeId !== null) {
+        const data = analysesByTradeRef.current[expandedTradeId];
+        if (data && data.images.length) {
+          const dir = e.key === 'ArrowRight' ? 1 : -1;
+          let cur = currentImageIndexRef.current[expandedTradeId] || 0;
+            cur += dir;
+          if (cur >= 0 && cur < data.images.length) {
+            currentImageIndexRef.current[expandedTradeId] = cur;
+            // Open fullscreen for a focused viewing experience
+            openFullscreenForTrade(expandedTradeId, cur);
+            e.preventDefault();
+            return;
+          }
+          // If we've moved past ends, fall through to change trade
+        }
+      }
       if (!trades.length) return;
       e.preventDefault();
-      let currentIndex = expandedTradeId !== null ? trades.findIndex(t => t.ID === expandedTradeId) : -1;
-      if (currentIndex === -1) {
-        currentIndex = e.key === 'ArrowRight' ? -1 : trades.length;
-      }
       const delta = e.key === 'ArrowRight' ? 1 : -1;
-      let nextIndex = currentIndex + delta;
+      let baseIndex = currentTradeIndexRef.current;
+      if (expandedTradeId === null || baseIndex === -1) {
+        // Start navigation from before first / after last depending on direction
+        baseIndex = (e.key === 'ArrowRight') ? -1 : trades.length;
+      }
+      let nextIndex = baseIndex + delta;
       if (nextIndex < 0) nextIndex = trades.length - 1;
       if (nextIndex >= trades.length) nextIndex = 0;
       const nextTrade = trades[nextIndex];
+      setCurrentTradeIndex(nextIndex);
       toggleTradeDetails(nextTrade.ID, true);
-    }
-    if (e.key.toLowerCase() === 'f' && expandedTradeId !== null) {
-      e.preventDefault();
-      openFullscreenForTrade(expandedTradeId);
+      const nextData = analysesByTradeRef.current[nextTrade.ID];
+      if (nextData && nextData.images.length) {
+        currentImageIndexRef.current[nextTrade.ID] = e.key === 'ArrowRight' ? 0 : nextData.images.length - 1;
+      } else {
+        currentImageIndexRef.current[nextTrade.ID] = 0; // reset
+      }
     }
   }, [expandedTradeId, trades, toggleTradeDetails, fullscreenTradeId, closeFullscreen, navigateFullscreen, openFullscreenForTrade]);
 
@@ -324,8 +405,24 @@ const TradeGrader: React.FC<{
                     <td colSpan={3 + metrics.length} className="p-2 bg-muted/30">
                       <TradeCaseDetails
                         trade={trade}
-      onRequestFullscreen={() => openFullscreenForTrade(trade.ID)}
                         ref={(el) => { tradeDropZoneRefs.current[trade.ID] = el; }}
+                        onAnalysesChanged={(tId, analyses) => {
+                          analysesByTradeRef.current[tId] = {
+                            ids: analyses.map(a => a.id),
+                            images: analyses.filter(a => !!a.image).map(a => a.image as string)
+                          };
+                          if (!(tId in currentImageIndexRef.current)) {
+                            currentImageIndexRef.current[tId] = 0;
+                          } else {
+                            const cur = currentImageIndexRef.current[tId];
+                            const data = analysesByTradeRef.current[tId];
+                            if (cur >= data.images.length) currentImageIndexRef.current[tId] = Math.max(0, data.images.length - 1);
+                          }
+                        }}
+                        onRequestFullscreen={(imgIdx) => {
+                          currentImageIndexRef.current[trade.ID] = imgIdx;
+                          openFullscreenForTrade(trade.ID, imgIdx);
+                        }}
                       />
                     </td>
                   </tr>
@@ -353,7 +450,6 @@ const TradeGrader: React.FC<{
           <div className="absolute top-3 left-4 text-xs text-white/70 space-x-4">
             <span className="hidden sm:inline">Esc / Click: Close</span>
             <span>← → Navigate</span>
-            <span>F Close</span>
           </div>
           <button
             onClick={() => navigateFullscreen(-1)}

@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Plus, Eye, AlertCircle, DollarSign, RefreshCw, Trash2 } from 'lucide-react';
 
-interface Trade {
-  id: string;
-  ticker: string;
-  shares: number;
-  risk_amount: number;
-  lower_price_range: number;
-  higher_price_range: number;
-  sell_stops: Array<{ price: number; shares: number }>;
-  timestamp: string;
-  status: string;
-}
 
 interface BotConfig {
   ticker: string;
@@ -29,8 +18,9 @@ interface BotConfig {
   trade_server: string;
   volume_multipliers: number[];
   max_day_low: number | null;
-  min_day_low?: number | null; // New optional field for minimum day low
-
+  min_day_low?: number | null;
+  momentum_required_at_open?: boolean; // NEW
+  wait_after_open_minutes?: number; // NEW custom wait time after market open (float)
 }
 
 interface ServerStatus {
@@ -89,6 +79,8 @@ export function TradingBotPage() {
     volume_multipliers: [1.0, 1.0, 1.0],
     max_day_low: null,
     min_day_low: null,
+    momentum_required_at_open: false,
+    wait_after_open_minutes: 1.05,
   });
 
   const [pivotPositions, setPivotPositions] = useState({
@@ -107,13 +99,14 @@ export function TradingBotPage() {
     sell_stops: [{ price: 0, shares: 0 }]
   });
   
-  const [trades, setTrades] = useState<Trade[]>([]);
+  // Removed unused trades state (was: const [trades, setTrades] = useState<Trade[]>([]);)
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
   const [errors, setErrors] = useState<ErrorLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [newVolumeReq, setNewVolumeReq] = useState('');
   const [riskAmount, setRiskAmount] = useState(0);
   const [showVolumeWarningModal, setShowVolumeWarningModal] = useState(false);
+  const [addFractionalVolumes, setAddFractionalVolumes] = useState(true); // NEW: auto add 1/2 & 1/4
 
   
   
@@ -240,8 +233,8 @@ export function TradingBotPage() {
     // Update the botConfig with the selected positions
     const newPositions = { ...pivotPositions, [position]: checked };
     const selectedPositions = Object.entries(newPositions)
-      .filter(([_, isSelected]) => isSelected)
-      .map(([pos, _]) => pos);
+      .filter(([, isSelected]) => isSelected)
+      .map(([pos]) => pos);
     
     setBotConfig(prev => ({
       ...prev,
@@ -301,10 +294,46 @@ export function TradingBotPage() {
 
   const addVolumeRequirement = () => {
     if (newVolumeReq.trim()) {
-      setBotConfig(prev => ({
-        ...prev,
-        volume_requirements: [...prev.volume_requirements, newVolumeReq.trim()]
-      }));
+      const baseReq = newVolumeReq.trim();
+
+      setBotConfig(prev => {
+        const existing = new Set(prev.volume_requirements.map(v => v.trim()))
+        const additions: string[] = [];
+
+        // Always add the base requirement if not already present
+        if (!existing.has(baseReq)) {
+          additions.push(baseReq);
+          existing.add(baseReq);
+        }
+
+        // If checkbox enabled and pattern matches minutes=volume (both integers)
+        const match = baseReq.match(/^(\d+)\s*=\s*(\d+)$/);
+        if (addFractionalVolumes && match) {
+          const minutes = parseInt(match[1], 10);
+            const volume = parseInt(match[2], 10);
+          if (minutes > 1) {
+            const halfMinutes = Math.round(minutes / 2);
+            const quarterMinutes = Math.round(minutes / 4);
+            const halfVolume = Math.round(volume / 2);
+            const quarterVolume = Math.round(volume / 4);
+            const halfReq = `${halfMinutes}=${halfVolume}`;
+            const quarterReq = `${quarterMinutes}=${quarterVolume}`;
+            if (!existing.has(halfReq)) {
+              additions.push(halfReq);
+              existing.add(halfReq);
+            }
+            if (!existing.has(quarterReq)) {
+              additions.push(quarterReq);
+              existing.add(quarterReq);
+            }
+          }
+        }
+
+        return {
+          ...prev,
+          volume_requirements: [...prev.volume_requirements, ...additions]
+        };
+      });
       setNewVolumeReq('');
     }
   };
@@ -438,7 +467,7 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (minutes), can be float</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (minutes)</label>
                 <input
                   type="number"
                   value={botConfig.historical_interval}
@@ -451,7 +480,7 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Momentum Increase</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Momentum Increase(%)</label>
                 <input
                   type="number"
                   value={botConfig.momentum_increase}
@@ -501,6 +530,23 @@ export function TradingBotPage() {
                   placeholder="Optional"
                 />
               </div>
+
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Wait After Open (minutes)</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={botConfig.wait_after_open_minutes ?? 0}
+                  onChange={(e) => setBotConfig(prev => ({
+                    ...prev,
+                    wait_after_open_minutes: parseFloat(e.target.value) || 0
+                  }))}
+                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                  min={0}
+                  placeholder="0 = no extra wait"
+                />
+              </div>
               
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Time in Pivot Positions</label>
@@ -532,34 +578,50 @@ export function TradingBotPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Volume Requirements</label>
-              <div className="space-y-2">
-                {botConfig.volume_requirements.map((req, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <span className="flex-1 p-2 bg-muted text-muted-foreground rounded">{req}</span>
-                    <button
-                      onClick={() => removeVolumeRequirement(index)}
-                      className="p-2 text-destructive hover:bg-destructive/10 rounded"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                <div className="flex gap-2">
+              <label className="block text-sm font-medium text-foreground mb-2">Volume Requirements (passed if only one met)</label>
+              <div className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-2 items-start md:items-end">
                   <input
                     type="text"
                     value={newVolumeReq}
                     onChange={(e) => setNewVolumeReq(e.target.value)}
-                    className="flex-1 p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                    placeholder="minutes=volume or day=volume"
+                    className="flex-1 w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                    placeholder="e.g. 60=100000 (minutes=volume)"
                   />
                   <button
                     onClick={addVolumeRequirement}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
-                  >
-                    Add
-                  </button>
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50"
+                    disabled={!newVolumeReq.trim()}
+                  >Add</button>
                 </div>
+                <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4"
+                    checked={addFractionalVolumes}
+                    onChange={(e) => setAddFractionalVolumes(e.target.checked)}
+                  />
+                  Add 1/2 & 1/4 requirements automatically (e.g. 60=100000 adds 30=50000 & 15=25000)
+                </label>
+                {botConfig.volume_requirements.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No volume requirements added yet.</p>
+                )}
+                {botConfig.volume_requirements.length > 0 && (
+                  <ul className="space-y-2">
+                    {botConfig.volume_requirements.map((req, index) => (
+                      <li key={index} className="flex items-center gap-2 bg-muted/40 px-3 py-2 rounded-md text-sm">
+                        <span className="flex-1 font-mono">{req}</span>
+                        <button
+                          onClick={() => removeVolumeRequirement(index)}
+                          className="p-1 text-destructive hover:bg-destructive/10 rounded"
+                          title="Remove requirement"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </div>
 
@@ -584,6 +646,17 @@ export function TradingBotPage() {
               </div>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Momentum Required At Open?</label>
+              <div className="flex items-center gap-2 p-3 border border-input rounded-lg">
+                <input
+                  type="checkbox"
+                  checked={botConfig.momentum_required_at_open !== false}
+                  onChange={(e) => setBotConfig(prev => ({ ...prev, momentum_required_at_open: e.target.checked }))}
+                />
+                <span className="text-sm text-muted-foreground">Wait full historical interval after open. By default it uses the historical data it can and passes the momentum check with lack of historical data</span>
+              </div>
+            </div>
             
             <button
               onClick={startBot}

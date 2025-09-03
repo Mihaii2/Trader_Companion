@@ -76,6 +76,7 @@ class TradingBotManager:
             cmd[2] += f" --min-day-low {params['min_day_low']}"
 
 
+
         if params.get('time_in_pivot'):
             cmd[2] += f" --time-in-pivot {params['time_in_pivot']}"
         
@@ -91,6 +92,14 @@ class TradingBotManager:
         
         if params.get('trade_server'):
             cmd[2] += f" --trade-server {params['trade_server']}"
+
+        # Momentum at open flag: default True; if explicitly false, append disabling flag
+        if 'momentum_required_at_open' in params and params['momentum_required_at_open'] is False:
+            cmd[2] += " --disable-momentum-required-at-open"
+
+        # Additional custom wait after market open (float minutes)
+        if params.get('wait_after_open_minutes'):
+            cmd[2] += f" --wait-after-open {params['wait_after_open_minutes']}"
         
         return cmd
     

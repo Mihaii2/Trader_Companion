@@ -9,15 +9,18 @@ import { Input } from "@/components/ui/input";
 
 interface TradeCaseDetailsProps {
   trade: Trade;
-  // Optional callback to request fullscreen view of the persisted image
-  onRequestFullscreen?: () => void;
+  onAnalysesChanged?: (tradeId: number, analyses: PostTradeAnalysis[]) => void;
+  onRequestFullscreen?: (imageIndex: number) => void; // index within current images list
 }
 
 // forwardRef so parent can focus the drop zone when navigating trades via keyboard
-const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ trade, onRequestFullscreen }, ref) => {
+const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ trade, onAnalysesChanged, onRequestFullscreen }, ref) => {
   // Hooks must be first
   const [existingAnalyses, setExistingAnalyses] = useState<PostTradeAnalysis[]>([]);
-  const [notes, setNotes] = useState("");
+  // Trade-level description (not per image)
+  const [description, setDescription] = useState("");
+  const [descriptionAnalysisId, setDescriptionAnalysisId] = useState<number | null>(null);
+  // Form state for creating a NEW image entry (image only)
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,23 +48,23 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
 
   const loadAnalyses = useCallback(async () => {
     try {
-  const data = await analysisService.listByTrade(trade.ID);
-  // Ensure newest first (fallback if backend not already sorted)
-  const sorted = [...data].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
-  // If more than one exists, keep only the newest to save space
-  if (sorted.length > 1) {
-    // fire-and-forget deletions sequentially to avoid hammering API
-    for (let i = 1; i < sorted.length; i++) {
-      try { await analysisService.delete(sorted[i].id); } catch (err) { console.warn('Failed to delete old analysis', sorted[i].id, err); }
-    }
-    sorted.splice(1); // retain only first in local state
-  }
-  setExistingAnalyses(sorted);
-  if (sorted.length) setNotes(sorted[0].notes || "");
+      const data = await analysisService.listByTrade(trade.ID);
+      const sorted = [...data].sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      // Identify description record: first with notes and (no image OR treat first notes as description)
+      const desc = sorted.find(a => (a.notes && a.notes.trim().length > 0));
+      if (desc) {
+        setDescription(desc.notes || "");
+        setDescriptionAnalysisId(desc.image ? null : desc.id); // Only bind id if it's a pure description (no image)
+      } else {
+        setDescription("");
+        setDescriptionAnalysisId(null);
+      }
+      setExistingAnalyses(sorted);
+      onAnalysesChanged?.(trade.ID, sorted);
     } catch (e) {
       console.error(e);
     }
-  }, [trade.ID]);
+  }, [trade.ID, onAnalysesChanged]);
 
   useEffect(() => {
     loadAnalyses();
@@ -88,27 +91,45 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
     e.stopPropagation();
   };
 
-  const submitAnalysis = async () => {
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      if (existingAnalyses.length) {
-        // Update latest analysis. Only send image if user picked a new one so existing image isn't cleared.
-        await analysisService.update(existingAnalyses[0].id, { notes, imageFile: imageFile || undefined });
-      } else {
-        // No existing record -> create new
-        await analysisService.create({ trade_id: trade.ID, notes, imageFile: imageFile || undefined });
-      }
-      if (imageFile) setImageFile(null); // clear only if we just used a new image
-      await loadAnalyses();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const submitNewImage = async () => {
+    if (!imageFile) { setError("Choose an image first"); return; }
+    setIsSubmitting(true); setError(null);
+    try { await analysisService.create({ trade_id: trade.ID, imageFile }); setImageFile(null); await loadAnalyses(); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed to save image"); }
+    finally { setIsSubmitting(false); }
   };
 
-  const currentImage = existingAnalyses[0]?.image;
+  const saveDescription = async () => {
+    setIsSubmitting(true); setError(null);
+    try {
+      if (descriptionAnalysisId) {
+        await analysisService.update(descriptionAnalysisId, { notes: description });
+      } else {
+        // Create a pure description entry (no image)
+        const created = await analysisService.create({ trade_id: trade.ID, notes: description });
+        // If created without image and has notes, remember its id for updates
+        if (!created.image) setDescriptionAnalysisId(created.id);
+      }
+      await loadAnalyses();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to save description");
+    } finally { setIsSubmitting(false); }
+  };
+
+  const deleteAnalysis = async (id: number) => {
+    try {
+      await analysisService.delete(id);
+      setExistingAnalyses(prev => {
+        const next = prev.filter(a => a.id !== id);
+        if (descriptionAnalysisId === id) { setDescriptionAnalysisId(null); }
+        onAnalysesChanged?.(trade.ID, next);
+        return next;
+      });
+    } catch (e) {
+      console.error(e);
+      setError("Failed to delete image");
+    }
+  };
 
   // Determine whether we have meaningful case data (avoid blocking UI if invalid/missing)
   const showCaseDetails = Boolean(
@@ -136,52 +157,74 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
   return (
     <Card className="mt-2 border border-border shadow-md rounded-xl">
       <CardContent className="p-4 space-y-6">
-        <div className="space-y-3">
+        <div className="space-y-6">
           <h4 className="font-semibold text-md">Post Analysis</h4>
-          <div className="flex flex-col gap-4">
-            {/* Image drop zone full-width first for maximum horizontal space */}
+
+          {/* Trade-level description */}
+          <div className="space-y-2">
+            <Textarea
+              placeholder="Overall trade description / observations..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="min-h-[140px]"
+            />
+            <div className="flex gap-2">
+              <Button size="sm" disabled={isSubmitting} onClick={saveDescription}>
+                {isSubmitting ? 'Saving...' : 'Save Description'}
+              </Button>
+              {description && descriptionAnalysisId && (
+                <Button size="sm" variant="secondary" disabled={isSubmitting} onClick={() => { setDescription(''); setDescriptionAnalysisId(null); }}>
+                  Clear (not saved)
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Existing images list (before add form so centering finds first image) */}
+          <div className="space-y-6" ref={ref} tabIndex={-1}>
+            {existingAnalyses.filter(a => a.image).length === 0 && <p className="text-sm text-muted-foreground">No images yet.</p>}
+            {existingAnalyses.filter(a => a.image).map((analysis, idx) => (
+              <div key={analysis.id} className="space-y-2">
+                <div className="relative group">
+                  <img
+                    src={analysis.image}
+                    alt={analysis.title || 'analysis'}
+                    data-analysis-image
+                    className="w-full h-auto max-h-[65vh] object-contain rounded border border-border cursor-zoom-in"
+                    onClick={() => onRequestFullscreen?.(idx)}
+                    title="Click to open fullscreen"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => deleteAnalysis(analysis.id)}
+                    className="absolute top-2 right-2 bg-red-600/80 hover:bg-red-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+                  >Delete</button>
+                  <button
+                    type="button"
+                    onClick={() => onRequestFullscreen?.(idx)}
+                    className="absolute bottom-2 right-2 bg-black/60 hover:bg-black/70 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+                  >Fullscreen</button>
+                </div>
+                <hr className="border-border" />
+              </div>
+            ))}
+          </div>
+
+          {/* Add new image form */}
             <div
-              ref={ref}
-              tabIndex={-1} // allow programmatic focus
-              aria-label="Trade analysis image drop zone"
               className="border-2 border-dashed rounded-md p-3 w-full text-center cursor-pointer hover:bg-muted/40 transition focus:outline-none focus:ring-2 focus:ring-ring/60"
+              aria-label="New analysis image drop zone"
               onDrop={onDrop}
               onDragOver={onDragOver}
               onClick={() => fileInputRef.current?.click()}
-              data-drop-zone
             >
               {previewUrl ? (
-                <div className="space-y-2 relative group">
-                  <img
-                    src={previewUrl}
-                    alt="new upload preview"
-                    className="w-full h-auto max-h-[70vh] object-contain rounded"
-                  />
+                <div className="space-y-2 relative">
+                  <img src={previewUrl} alt="preview" className="w-full h-auto max-h-[60vh] object-contain rounded" />
                   <p className="text-xs text-muted-foreground">(Unsaved) {imageFile?.name} — click or drop to replace</p>
                 </div>
-              ) : currentImage ? (
-                <div className="space-y-2 relative group">
-                  <img
-                    src={currentImage}
-                    alt="analysis"
-                    className="w-full h-auto max-h-[70vh] object-contain rounded cursor-zoom-in"
-                    onClick={(e) => { e.stopPropagation(); onRequestFullscreen?.(); }}
-                    title="Click to open fullscreen (F)"
-                  />
-                  <p className="text-xs text-muted-foreground">Drag & drop or click to replace image</p>
-                  {onRequestFullscreen && (
-                    <button
-                      type="button"
-                      onClick={(e) => { e.stopPropagation(); onRequestFullscreen(); }}
-                      className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
-                      aria-label="Open image fullscreen"
-                    >
-                      Fullscreen
-                    </button>
-                  )}
-                </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Drop image here or click to browse</p>
+                <p className="text-sm text-muted-foreground">Drop new image here or click to browse</p>
               )}
               <Input
                 ref={fileInputRef}
@@ -191,25 +234,16 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
                 onChange={(e) => handleFiles(e.target.files)}
               />
             </div>
-
-            <Textarea
-              placeholder="Write your observations about this trade..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-[140px]"
-            />
-
-            {error && <p className="text-xs text-red-500">{error}</p>}
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" disabled={isSubmitting} onClick={submitAnalysis}>
-                {isSubmitting ? 'Saving...' : 'Save Image & Notes'}
+              <Button size="sm" disabled={isSubmitting || !imageFile} onClick={submitNewImage}>
+                {isSubmitting ? 'Saving...' : 'Add Image'}
               </Button>
               {imageFile && (
                 <Button size="sm" variant="secondary" onClick={() => setImageFile(null)}>Clear Image</Button>
               )}
             </div>
-            {/* No older revision retention; only latest kept to save storage */}
-          </div>
+
+            {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
         {showCaseDetails && (
           <div className="space-y-4">

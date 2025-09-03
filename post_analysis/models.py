@@ -63,14 +63,17 @@ class TradeGrade(models.Model):
 class PostTradeAnalysis(models.Model):
     """Stores supplementary post-trade analysis artifacts (images, notes).
 
+    Multi-image design:
+      * One row per image (and its optional notes/title) for a given trade_id.
+      * The previous single-image restriction (unique constraint on trade_id)
+        was removed so users can attach an arbitrary number of images.
     We deliberately use trade_id int (points to Trades.ID) to avoid FK coupling
     across apps/migrations.
     """
+
     trade_id = models.IntegerField(db_index=True)
-    # optional short title in case of multiple images later
     title = models.CharField(max_length=200, blank=True)
     notes = models.TextField(blank=True)
-    # single image for now; if multiple images desired, create separate rows per image
     image = models.ImageField(
         upload_to="post_analysis_images/",
         null=True,
@@ -84,9 +87,6 @@ class PostTradeAnalysis(models.Model):
     class Meta:
         ordering = ["-updated_at"]
         indexes = [models.Index(fields=["trade_id"])]
-        constraints = [
-            models.UniqueConstraint(fields=["trade_id"], name="uniq_post_analysis_trade")
-        ]
         verbose_name = "Post Trade Analysis"
         verbose_name_plural = "Post Trade Analyses"
 
