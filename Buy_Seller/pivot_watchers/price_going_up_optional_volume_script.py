@@ -263,48 +263,60 @@ class StockTradingBot:
     
     # ------------------------------------------------------------------
     # NEW (2025-09-04): Breakout style momentum detection
-    # Instead of comparing average prices, we look for a true breakout:
-    # Current price must be STRICTLY greater than every price observed in the
-    # interval (now - lookback_minutes, now - exclude_recent_minutes).
-    # This excludes the most recent N minutes (cool-down / formation window)
-    # so we don't count the current surge itself when defining the prior high.
+    # ORIGINAL: required the current_price to be strictly greater than every price
+    #           in the prior interval (lookback window minus the recent excluded window).
+    # UPDATED (2025-09-04 user request): Instead of only checking the latest/current price
+    # we now treat ANY price inside the previously "excluded" recent interval as a valid
+    # breakout candidate. A breakout occurs if there exists at least one price point in
+    # the recent window (now - exclude_recent_minutes, now] that is STRICTLY greater than
+    # every price in the older window (now - lookback_minutes, now - exclude_recent_minutes).
+    # In other words:  max(recent_window_prices) > max(prior_window_prices).
+    # If either window lacks price data we FAIL the breakout check (conservative).
     # ------------------------------------------------------------------
     def check_price_breakout(self, data: List[Dict], current_price: float,
                               lookback_minutes: int = 60,
                               exclude_recent_minutes: float = 1.0) -> bool:
-        """Return True if current_price is strictly greater than all prices
-        between (now - lookback_minutes) and (now - exclude_recent_minutes).
+        """Return True if ANY price in the recent excluded window is strictly
+        greater than ALL prices in the earlier (prior) window.
+
+        Windows:
+            PRIOR  WINDOW: (now - lookback_minutes, now - exclude_recent_minutes]
+            RECENT WINDOW: (now - exclude_recent_minutes, now]
+
+        We succeed if: max(recent) > max(prior).
 
         Args:
-            data: Raw historical records (dicts must contain 'timestamp' + 'currentPrice').
-            current_price: Latest trade / quote price.
-            lookback_minutes: Total minutes to look back from now.
-            exclude_recent_minutes: Minutes to exclude immediately prior to now
-                                    (fractional allowed, e.g. 1.25).
+            data: Historical records (needs 'timestamp' & 'currentPrice').
+            current_price: Kept for backward compatibility & logging; NOT the only
+                           candidate anymore.
+            lookback_minutes: Total minutes considered (must be > 0).
+            exclude_recent_minutes: Size of the RECENT window boundary; if 0 the
+                                    recent window collapses and breakout fails.
         """
-        if current_price is None:
-            logger.info("Breakout check skipped - current_price missing")
-            return False
-
         if lookback_minutes <= 0:
             logger.info("Breakout check skipped - non positive lookback_minutes")
             return False
-
         if exclude_recent_minutes < 0:
             logger.info("Breakout check skipped - exclude_recent_minutes negative")
             return False
 
         now = datetime.now()
-        interval_start = now - timedelta(minutes=lookback_minutes)
-        interval_end = now - timedelta(minutes=exclude_recent_minutes)
+        prior_start = now - timedelta(minutes=lookback_minutes)
+        prior_end = now - timedelta(minutes=exclude_recent_minutes)
+        recent_start = prior_end  # recent window is (recent_start, now]
+        recent_end = now
 
-        if interval_end <= interval_start:
-            logger.info("Breakout check skipped - interval_end <= interval_start (lookback too small or exclude too large)")
+        if prior_end <= prior_start:
+            logger.info("Breakout check skipped - prior_end <= prior_start (invalid window config)")
+            return False
+        if recent_end <= recent_start:
+            logger.info("Breakout check: exclude_recent_minutes too large (no recent window)")
             return False
 
         prior_prices = []
+        recent_prices = []
         parse_failures = 0
-        considered = 0
+        total_considered = 0
         for record in data:
             try:
                 ts = record.get('timestamp')
@@ -321,28 +333,38 @@ class StockTradingBot:
                     rec_time = datetime.fromisoformat(ts_work)
                 except ValueError:
                     rec_time = datetime.strptime(ts_work, '%Y-%m-%dT%H:%M:%S.%f')
-                if rec_time < interval_start or rec_time > interval_end:
-                    continue
-                considered += 1
                 price = record.get('currentPrice')
                 if price is None:
                     continue
-                prior_prices.append(price)
+                # Classify into windows
+                if prior_start < rec_time <= prior_end:
+                    prior_prices.append(price)
+                    total_considered += 1
+                elif recent_start < rec_time <= recent_end:
+                    recent_prices.append(price)
+                    total_considered += 1
             except Exception:
                 parse_failures += 1
                 continue
 
         if not prior_prices:
-            logger.info(f"Breakout check: insufficient data in interval ({lookback_minutes}m lookback, exclude {exclude_recent_minutes}m): 0 price points (parse_failures={parse_failures})")
+            logger.info(f"Breakout check: FAIL (no prior window prices) lookback={lookback_minutes} exclude_recent={exclude_recent_minutes}")
+            return False
+        if not recent_prices:
+            logger.info(f"Breakout check: FAIL (no recent window prices) lookback={lookback_minutes} exclude_recent={exclude_recent_minutes}")
             return False
 
-        interval_high = max(prior_prices)
-        is_breakout = current_price > interval_high  # STRICTLY greater per requirement
+        prior_high = max(prior_prices)
+        recent_high = max(recent_prices)
+        is_breakout = recent_high > prior_high
         logger.info(
-            f"Breakout check: current_price={current_price:.4f} | prior_interval_high={interval_high:.4f} | "
-            f"points={len(prior_prices)} (considered={considered}, parse_failures={parse_failures}) | "
-            f"interval=({interval_start.strftime('%H:%M:%S')} -> {interval_end.strftime('%H:%M:%S')}) | "
-            f"RESULT={'PASSED' if is_breakout else 'FAILED'}"
+            "Breakout check (ANY recent > ALL prior): "
+            f"prior_high={prior_high:.4f} | recent_high={recent_high:.4f} | "
+            f"prior_pts={len(prior_prices)} recent_pts={len(recent_prices)} | "
+            f"parse_failures={parse_failures} considered={total_considered} | "
+            f"prior_window=({prior_start.strftime('%H:%M:%S')} -> {prior_end.strftime('%H:%M:%S')}) | "
+            f"recent_window=({recent_start.strftime('%H:%M:%S')} -> {recent_end.strftime('%H:%M:%S')}) | "
+            f"current_price={current_price if current_price is not None else 'NA'} | RESULT={'PASSED' if is_breakout else 'FAILED'}"
         )
         return is_breakout
     
@@ -684,7 +706,6 @@ class StockTradingBot:
                         logger.error(f"❌ Trade execution failed for {ticker}")
                 else:
                     logger.info(f"❌ CONDITIONS NOT MET - Failed: {', '.join(failed_conditions)}")
-                time.sleep(2)
             except KeyboardInterrupt:
                 logger.info("Stopping due to keyboard interrupt")
                 time.sleep(10)

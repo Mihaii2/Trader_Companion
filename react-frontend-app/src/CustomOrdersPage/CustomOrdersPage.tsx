@@ -78,9 +78,9 @@ export function CustomOrdersPage() {
     volume_multipliers: [1.0, 1.0, 1.0],
     max_day_low: null,
     min_day_low: null,
-    wait_after_open_minutes: 1.05,
+    wait_after_open_minutes: 1.01,
     breakout_lookback_minutes: 60,
-    breakout_exclude_minutes: 1.0,
+    breakout_exclude_minutes: 0.5,
   };
 
   const defaultPivotPositions = { any: false, lower: false, middle: false, upper: false };
@@ -414,9 +414,9 @@ export function CustomOrdersPage() {
   };
 
   const clearSavedTrade = () => {
-    if (!confirm('Clear saved Trade draft?')) return;
+    // Instant reset (no confirmation per user request)
     setNewTrade(defaultNewTrade);
-  try { localStorage.removeItem(NEW_TRADE_STORAGE_KEY); } catch { /* ignore */ }
+    try { localStorage.removeItem(NEW_TRADE_STORAGE_KEY); } catch { /* ignore */ }
   };
 
   // Removed global clearAll per user feedback (was duplicating Reset Order intention visually)
@@ -485,7 +485,7 @@ export function CustomOrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Lower Price</label>
+                <label className="block text-xs font-medium text-foreground mb-1">Lower Pivot Price</label>
                 <input
                   type="number"
                   value={orderConfig.lower_price}
@@ -495,7 +495,7 @@ export function CustomOrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Higher Price</label>
+                <label className="block text-xs font-medium text-foreground mb-1">Higher Pivot Price</label>
                 <input
                   type="number"
                   value={orderConfig.higher_price}
@@ -543,7 +543,7 @@ export function CustomOrdersPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Wait After Open (m)</label>
+                <label className="block text-xs font-medium text-foreground mb-1">Wait After Open (minutes)</label>
                 <input
                   type="number"
                   step="0.1"
@@ -561,14 +561,14 @@ export function CustomOrdersPage() {
 
             {/* Volume Requirements */}
             <div className="space-y-2">
-              <label className="block text-xs font-medium text-foreground">Volume Requirements (any passes)</label>
+              <label className="block text-xs font-medium text-foreground">Volume Requirements (passed if any passes)</label>
               <div className="flex flex-col md:flex-row gap-2 items-start md:items-end">
                 <input
                   type="text"
                   value={newVolumeReq}
                   onChange={(e) => setNewVolumeReq(e.target.value)}
                   className="flex-1 w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                  placeholder="60=100000"
+                  placeholder="minutes=volume or day=volume (e.g. 60=100000, meaning 60min volume ≥100k)"
                 />
                 <button
                   onClick={addVolumeRequirement}
@@ -586,7 +586,7 @@ export function CustomOrdersPage() {
                 Auto add 1/2 & 1/4 (e.g. 60=100000 ➜ 30=50000 & 15=25000)
               </label>
               {orderConfig.volume_requirements.length === 0 && (
-                <p className="text-xs text-muted-foreground">None added yet.</p>
+                <p className="text-xs text-muted-foreground">No volume requirements added yet.</p>
               )}
               {orderConfig.volume_requirements.length > 0 && (
                 <ul className="space-y-1 max-h-40 overflow-auto pr-1">
@@ -666,7 +666,7 @@ export function CustomOrdersPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium mb-1">Exclude Recent (m)</label>
+                    <label className="block text-xs font-medium mb-1">Lookback Exclude Recent (m)</label>
                     <input
                       type="number"
                       step="0.1"
@@ -717,7 +717,7 @@ export function CustomOrdersPage() {
                   <button
                     type="button"
                     onClick={clearSavedTrade}
-                    className="text-xs px-3 py-1.5 rounded-md border border-destructive text-destructive hover:bg-destructive/10"
+                    className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60"
                   >
                     Reset Trade
                   </button>
