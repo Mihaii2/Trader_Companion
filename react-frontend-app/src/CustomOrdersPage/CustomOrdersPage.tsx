@@ -2,15 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Play, Plus, Eye, AlertCircle, DollarSign, RefreshCw, Trash2 } from 'lucide-react';
 
 
-interface BotConfig {
+interface OrderConfig {
   ticker: string;
   lower_price: number;
   higher_price: number;
   volume_requirements: string[];
   pivot_adjustment: string;
-  recent_interval: number;
-  historical_interval: number;
-  momentum_increase: number;
   day_high_max_percent_off: number;
   time_in_pivot: number;
   time_in_pivot_positions: string;
@@ -19,8 +16,9 @@ interface BotConfig {
   volume_multipliers: number[];
   max_day_low: number | null;
   min_day_low?: number | null;
-  momentum_required_at_open?: boolean; // NEW
   wait_after_open_minutes?: number; // NEW custom wait time after market open (float)
+  breakout_lookback_minutes?: number; // NEW
+  breakout_exclude_minutes?: number; // NEW
 }
 
 interface ServerStatus {
@@ -60,17 +58,14 @@ interface ErrorLog {
   trade_data: TradeData;
 }
 
-export function TradingBotPage() {
-  const [activeTab, setActiveTab] = useState<'bot' | 'trades' | 'status' | 'errors'>('bot');
-  const [botConfig, setBotConfig] = useState<BotConfig>({
+export function CustomOrdersPage() {
+  const [activeTab, setActiveTab] = useState<'order' | 'trades' | 'status' | 'errors'>('order');
+  const [orderConfig, setOrderConfig] = useState<OrderConfig>({
     ticker: '',
     lower_price: 0,
     higher_price: 0,
     volume_requirements: [],
     pivot_adjustment: '0.0',
-    recent_interval: 30,
-    historical_interval: 5.1,
-    momentum_increase: 0.05,
     day_high_max_percent_off: 3,
     time_in_pivot: 30,
     time_in_pivot_positions: '',
@@ -79,8 +74,9 @@ export function TradingBotPage() {
     volume_multipliers: [1.0, 1.0, 1.0],
     max_day_low: null,
     min_day_low: null,
-    momentum_required_at_open: false,
     wait_after_open_minutes: 1.05,
+    breakout_lookback_minutes: 60,
+    breakout_exclude_minutes: 1.0,
   });
 
   const [pivotPositions, setPivotPositions] = useState({
@@ -111,22 +107,21 @@ export function TradingBotPage() {
   
   
   // API calls
-  const startBot = async () => {
-    if (botConfig.volume_requirements.length === 0) {
+  const startOrder = async () => {
+    if (orderConfig.volume_requirements.length === 0) {
       setShowVolumeWarningModal(true);
       return;
     }
 
 
-    await performStartBot();
+    await performStartOrder();
   };
 
-  const performStartBot = async () => {
+  const performStartOrder = async () => {
     setLoading(true);
     try {
       const configToSend = {
-        ...botConfig,
-        historical_interval: Math.round(botConfig.historical_interval * 60)
+        ...orderConfig,
       };
 
       const response = await fetch('http://localhost:5003/start_bot', {
@@ -137,7 +132,7 @@ export function TradingBotPage() {
       
       const result = await response.json();
       if (result.success) {
-        alert('Bot started successfully!');
+        alert('Order started successfully!');
       } else {
         alert(`Error: ${result.error}`);
       }
@@ -150,7 +145,7 @@ export function TradingBotPage() {
 
   const handleConfirmStart = () => {
     setShowVolumeWarningModal(false);
-    performStartBot();
+    performStartOrder();
   };
 
   const handleCancelStart = () => {
@@ -230,13 +225,13 @@ export function TradingBotPage() {
       [position]: checked
     }));
     
-    // Update the botConfig with the selected positions
+    // Update the orderConfig with the selected positions
     const newPositions = { ...pivotPositions, [position]: checked };
     const selectedPositions = Object.entries(newPositions)
       .filter(([, isSelected]) => isSelected)
       .map(([pos]) => pos);
     
-    setBotConfig(prev => ({
+    setOrderConfig(prev => ({
       ...prev,
       time_in_pivot_positions: selectedPositions.join(',')
     }));
@@ -296,7 +291,7 @@ export function TradingBotPage() {
     if (newVolumeReq.trim()) {
       const baseReq = newVolumeReq.trim();
 
-      setBotConfig(prev => {
+      setOrderConfig(prev => {
         const existing = new Set(prev.volume_requirements.map(v => v.trim()))
         const additions: string[] = [];
 
@@ -339,7 +334,7 @@ export function TradingBotPage() {
   };
 
   const removeVolumeRequirement = (index: number) => {
-    setBotConfig(prev => ({
+    setOrderConfig(prev => ({
       ...prev,
       volume_requirements: prev.volume_requirements.filter((_, i) => i !== index)
     }));
@@ -380,7 +375,7 @@ export function TradingBotPage() {
 
   const TabButton = ({ tab, label, icon: Icon }: { tab: string; label: string; icon: React.ComponentType<{ className?: string }> }) => (
     <button
-      onClick={() => setActiveTab(tab as 'bot' | 'trades' | 'status' | 'errors')}
+      onClick={() => setActiveTab(tab as 'order' | 'trades' | 'status' | 'errors')}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
         activeTab === tab
           ? 'bg-primary text-primary-foreground'
@@ -396,26 +391,26 @@ export function TradingBotPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="bg-card text-card-foreground rounded-lg shadow-sm border p-6">
-        <h1 className="text-2xl font-bold mb-6">Trading Bot Management</h1>
+        <h1 className="text-2xl font-bold mb-6">Custom Order Management</h1>
         
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
-          <TabButton tab="bot" label="Bot Config" icon={Play} />
+          <TabButton tab="order" label="Order Config" icon={Play} />
           <TabButton tab="trades" label="Trades" icon={Plus} />
           <TabButton tab="status" label="Status" icon={Eye} />
           <TabButton tab="errors" label="Errors" icon={AlertCircle} />
         </div>
 
-        {/* Bot Configuration Tab */}
-        {activeTab === 'bot' && (
+        {/* Order Configuration Tab */}
+        {activeTab === 'order' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Ticker</label>
                 <input
                   type="text"
-                  value={botConfig.ticker}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, ticker: e.target.value }))}
+                  value={orderConfig.ticker}
+                  onChange={(e) => setOrderConfig(prev => ({ ...prev, ticker: e.target.value }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   placeholder="AAPL"
                 />
@@ -425,8 +420,8 @@ export function TradingBotPage() {
                 <label className="block text-sm font-medium text-foreground mb-2">Lower Price</label>
                 <input
                   type="number"
-                  value={botConfig.lower_price}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, lower_price: parseFloat(e.target.value) }))}
+                  value={orderConfig.lower_price}
+                  onChange={(e) => setOrderConfig(prev => ({ ...prev, lower_price: parseFloat(e.target.value) }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
@@ -436,8 +431,8 @@ export function TradingBotPage() {
                 <label className="block text-sm font-medium text-foreground mb-2">Higher Price</label>
                 <input
                   type="number"
-                  value={botConfig.higher_price}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, higher_price: parseFloat(e.target.value) }))}
+                  value={orderConfig.higher_price}
+                  onChange={(e) => setOrderConfig(prev => ({ ...prev, higher_price: parseFloat(e.target.value) }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
@@ -446,8 +441,8 @@ export function TradingBotPage() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Pivot Adjustment</label>
                 <select
-                  value={botConfig.pivot_adjustment}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
+                  value={orderConfig.pivot_adjustment}
+                  onChange={(e) => setOrderConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 >
                   <option value="0.0">0.0%</option>
@@ -457,45 +452,11 @@ export function TradingBotPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Recent Interval (seconds)</label>
-                <input
-                  type="number"
-                  value={botConfig.recent_interval}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, recent_interval: parseInt(e.target.value) }))}
-                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Historical Interval (minutes)</label>
-                <input
-                  type="number"
-                  value={botConfig.historical_interval}
-                  onChange={(e) => {
-                    const minutes = parseFloat(e.target.value);
-                    setBotConfig(prev => ({ ...prev, historical_interval: minutes }));
-                  }}
-                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Momentum Increase(%)</label>
-                <input
-                  type="number"
-                  value={botConfig.momentum_increase}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, momentum_increase: parseFloat(e.target.value) }))}
-                  className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                  step="0.01"
-                />
-              </div>
-              
-              <div>
                 <label className="block text-sm font-medium text-foreground mb-2">Day High Max % Off</label>
                 <input
                   type="number"
-                  value={botConfig.day_high_max_percent_off}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
+                  value={orderConfig.day_high_max_percent_off}
+                  onChange={(e) => setOrderConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
                   className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   step="0.01"
                 />
@@ -505,8 +466,8 @@ export function TradingBotPage() {
                 <label className="block text-sm font-medium text-foreground mb-2">Max Day Low</label>
                 <input
                   type="number"
-                  value={botConfig.max_day_low || ''}
-                  onChange={(e) => setBotConfig(prev => ({ 
+                  value={orderConfig.max_day_low || ''}
+                  onChange={(e) => setOrderConfig(prev => ({ 
                     ...prev, 
                     max_day_low: e.target.value ? parseFloat(e.target.value) : null 
                   }))}
@@ -520,8 +481,8 @@ export function TradingBotPage() {
                 <label className="block text-sm font-medium text-foreground mb-2">Min Day Low</label>
                 <input
                   type="number"
-                  value={botConfig.min_day_low || ''}
-                  onChange={(e) => setBotConfig(prev => ({ 
+                  value={orderConfig.min_day_low || ''}
+                  onChange={(e) => setOrderConfig(prev => ({ 
                     ...prev, 
                     min_day_low: e.target.value ? parseFloat(e.target.value) : null 
                   }))}
@@ -537,8 +498,8 @@ export function TradingBotPage() {
                 <input
                   type="number"
                   step="0.1"
-                  value={botConfig.wait_after_open_minutes ?? 0}
-                  onChange={(e) => setBotConfig(prev => ({
+                  value={orderConfig.wait_after_open_minutes ?? 0}
+                  onChange={(e) => setOrderConfig(prev => ({
                     ...prev,
                     wait_after_open_minutes: parseFloat(e.target.value) || 0
                   }))}
@@ -570,8 +531,8 @@ export function TradingBotPage() {
               <label className="block text-sm font-medium text-foreground mb-2">Time in Pivot</label>
               <input
                 type="number"
-                value={botConfig.time_in_pivot}
-                onChange={(e) => setBotConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
+                value={orderConfig.time_in_pivot}
+                onChange={(e) => setOrderConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
                 className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                 placeholder="Time in pivot (seconds)"
               />
@@ -603,12 +564,12 @@ export function TradingBotPage() {
                   />
                   Add 1/2 & 1/4 requirements automatically (e.g. 60=100000 adds 30=50000 & 15=25000)
                 </label>
-                {botConfig.volume_requirements.length === 0 && (
+                {orderConfig.volume_requirements.length === 0 && (
                   <p className="text-sm text-muted-foreground">No volume requirements added yet.</p>
                 )}
-                {botConfig.volume_requirements.length > 0 && (
+                {orderConfig.volume_requirements.length > 0 && (
                   <ul className="space-y-2">
-                    {botConfig.volume_requirements.map((req, index) => (
+                    {orderConfig.volume_requirements.map((req, index) => (
                       <li key={index} className="flex items-center gap-2 bg-muted/40 px-3 py-2 rounded-md text-sm">
                         <span className="flex-1 font-mono">{req}</span>
                         <button
@@ -632,11 +593,11 @@ export function TradingBotPage() {
                   <input
                     key={idx}
                     type="number"
-                    value={botConfig.volume_multipliers[idx]}
+                    value={orderConfig.volume_multipliers[idx]}
                     onChange={(e) => {
-                      const newMultipliers = [...botConfig.volume_multipliers];
+                      const newMultipliers = [...orderConfig.volume_multipliers];
                       newMultipliers[idx] = parseFloat(e.target.value);
-                      setBotConfig(prev => ({ ...prev, volume_multipliers: newMultipliers }));
+                      setOrderConfig(prev => ({ ...prev, volume_multipliers: newMultipliers }));
                     }}
                     className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
@@ -647,24 +608,34 @@ export function TradingBotPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Momentum Required At Open?</label>
-              <div className="flex items-center gap-2 p-3 border border-input rounded-lg">
-                <input
-                  type="checkbox"
-                  checked={botConfig.momentum_required_at_open !== false}
-                  onChange={(e) => setBotConfig(prev => ({ ...prev, momentum_required_at_open: e.target.checked }))}
-                />
-                <span className="text-sm text-muted-foreground">Wait full historical interval after open. By default it uses the historical data it can and passes the momentum check with lack of historical data</span>
-              </div>
+              <label className="block text-sm font-medium text-foreground mb-2">Breakout Lookback (minutes)</label>
+              <input
+                type="number"
+                value={orderConfig.breakout_lookback_minutes}
+                onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_lookback_minutes: parseInt(e.target.value) || 0 }))}
+                className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                min={1}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">Exclude Recent (minutes)</label>
+              <input
+                type="number"
+                step="0.1"
+                value={orderConfig.breakout_exclude_minutes}
+                onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_exclude_minutes: parseFloat(e.target.value) || 0 }))}
+                className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                min={0}
+              />
             </div>
             
             <button
-              onClick={startBot}
+              onClick={startOrder}
               disabled={loading}
               className="w-full bg-primary text-primary-foreground py-3 px-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-              {loading ? 'Starting Bot...' : 'Start Trading Bot'}
+              {loading ? 'Starting Order...' : 'Start Trading Order'}
             </button>
           </div>
         )}
@@ -980,7 +951,7 @@ export function TradingBotPage() {
             </div>
             
             <p className="text-muted-foreground mb-6">
-              You haven't set any volume requirements for the trading bot. This means the bot will trade without volume filters. Are you sure you want to continue?
+              You haven't set any volume requirements for the trading order. This means the order will trade without volume filters. Are you sure you want to continue?
             </p>
             
             <div className="flex gap-3 justify-end">

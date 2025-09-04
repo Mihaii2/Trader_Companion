@@ -57,14 +57,11 @@ class TradingBotManager:
         if params.get('pivot_adjustment'):
             cmd[2] += f" --pivot-adjustment {params['pivot_adjustment']}"
         
-        if params.get('recent_interval'):
-            cmd[2] += f" --recent-interval {params['recent_interval']}"
-        
-        if params.get('historical_interval'):
-            cmd[2] += f" --historical-interval {params['historical_interval']}"
-        
-        if params.get('momentum_increase'):
-            cmd[2] += f" --momentum-increase {params['momentum_increase']}"
+    # Removed legacy average momentum parameters
+        if params.get('breakout_lookback_minutes') is not None:
+            cmd[2] += f" --breakout-lookback-minutes {params['breakout_lookback_minutes']}"
+        if params.get('breakout_exclude_minutes') is not None:
+            cmd[2] += f" --breakout-exclude-minutes {params['breakout_exclude_minutes']}"
         
         if params.get('day_high_max_percent_off'):
             cmd[2] += f" --day-high-max-percent-off {params['day_high_max_percent_off']}"
@@ -93,9 +90,7 @@ class TradingBotManager:
         if params.get('trade_server'):
             cmd[2] += f" --trade-server {params['trade_server']}"
 
-        # Momentum at open flag: default True; if explicitly false, append disabling flag
-        if 'momentum_required_at_open' in params and params['momentum_required_at_open'] is False:
-            cmd[2] += " --disable-momentum-required-at-open"
+    # Removed momentum_required_at_open handling
 
         # Additional custom wait after market open (float minutes)
         if params.get('wait_after_open_minutes'):

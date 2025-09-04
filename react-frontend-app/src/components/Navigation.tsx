@@ -72,14 +72,14 @@ export function Navigation() {
               Ticker Monitoring
             </Link>
             <Link
-              to="/trading_bots"
+              to="/custom_orders"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
-                ${currentPage === 'trading_bots' 
+                ${currentPage === 'custom_orders' 
                   ? 'border-b-2 border-primary text-primary' 
                   : 'text-muted-foreground'
                 }`}
             >
-              Trading Bots
+              Custom Orders
             </Link>
           </div>
           <div>

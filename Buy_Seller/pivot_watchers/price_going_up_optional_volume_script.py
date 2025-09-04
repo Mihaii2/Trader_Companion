@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import json
 from typing import List, Dict, Optional, Tuple
-import statistics
 import random
 import os
 import glob
@@ -104,74 +103,6 @@ class StockTradingBot:
         except Exception as e:
             logger.error(f"Error fetching latest data for {symbol}: {str(e)}")
             return None
-    
-    def filter_unique_prices(self, data: List[Dict]) -> List[Dict]:
-        """Filter out duplicate price/volume combinations, keeping only unique entries"""
-        seen = set()
-        unique_data = []
-        
-        for record in data:
-            # Create a key from price and volume to identify duplicates
-            key = (record.get('currentPrice'), record.get('volume'))
-            if key not in seen and record.get('currentPrice') is not None:
-                seen.add(key)
-                unique_data.append(record)
-        
-        return unique_data
-    
-    def get_data_in_time_range(self, data: List[Dict], start_seconds: int, end_seconds: int) -> List[Dict]:
-        """Get data within a specific time range (seconds ago)"""
-        now = datetime.now()
-        start_time = now - timedelta(seconds=start_seconds)  # Further back in time
-        end_time = now - timedelta(seconds=end_seconds)      # More recent time
-        
-        logger.info(f"Time range: {start_time.strftime('%H:%M:%S.%f')} to {end_time.strftime('%H:%M:%S.%f')} (current: {now.strftime('%H:%M:%S.%f')})")
-        
-        filtered_data = []
-        for record in data:
-            try:
-                timestamp_str = record['timestamp']
-                
-                # Handle different timestamp formats
-                if timestamp_str.endswith('Z'):
-                    timestamp_str = timestamp_str[:-1]
-                elif '+' in timestamp_str:
-                    timestamp_str = timestamp_str.split('+')[0]
-                elif timestamp_str.endswith('+00:00'):
-                    timestamp_str = timestamp_str[:-6]
-                
-                # Parse the timestamp
-                try:
-                    record_time = datetime.fromisoformat(timestamp_str)
-                except ValueError:
-                    # Try alternative parsing if fromisoformat fails
-                    record_time = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
-                
-                # Check if the record time is within our range
-                # record_time should be between start_time (older) and end_time (newer)
-                if record_time >= start_time and record_time <= end_time:
-                    filtered_data.append(record)
-                    logger.debug(f"Record {record_time.strftime('%H:%M:%S.%f')} is within range")
-                else:
-                    logger.debug(f"Record {record_time.strftime('%H:%M:%S.%f')} is outside range")
-                    
-            except (ValueError, KeyError) as e:
-                logger.debug(f"Failed to parse timestamp {record.get('timestamp', 'N/A')}: {e}")
-                continue
-        
-        logger.info(f"Time range filter: {start_seconds}s to {end_seconds}s ago, found {len(filtered_data)} records")
-        return filtered_data
-    
-    def calculate_average_price(self, data: List[Dict]) -> Optional[float]:
-        """Calculate average price from data records"""
-        if not data:
-            return None
-        
-        prices = [record['currentPrice'] for record in data if record.get('currentPrice') is not None]
-        if not prices:
-            return None
-        
-        return statistics.mean(prices)
 
     def get_minutes_since_market_open(self) -> Optional[int]:
         """Get the number of minutes since market opened today"""
@@ -330,52 +261,90 @@ class StockTradingBot:
         logger.info(f"   {passed_count}/{len(requirement_results)} requirement(s) passed under OR logic")
         return any_passed
     
-    def check_price_momentum(self, data: List[Dict], recent_interval_seconds: int = 20, 
-                           historical_interval_seconds: int = 600, 
-                           required_increase_percent: float = 0.05) -> bool:
-        """Check if price momentum condition is met"""
-        unique_data = self.filter_unique_prices(data)
-        
-        logger.info(f"Total unique data points: {len(unique_data)}")
-        
-        # Get data for recent interval
-        recent_data = self.get_data_in_time_range(unique_data, recent_interval_seconds, 0)
-        
-        # Get data for historical interval
-        historical_data = self.get_data_in_time_range(unique_data, historical_interval_seconds, recent_interval_seconds)
-        
-        logger.info(f"Recent data points (last {recent_interval_seconds}s): {len(recent_data)}")
-        logger.info(f"Historical data points ({recent_interval_seconds}s-{historical_interval_seconds}s ago): {len(historical_data)}")
-        
-        # Debug: Show some sample timestamps
-        if len(unique_data) > 0:
-            logger.info(f"Sample timestamps from data:")
-            for i, record in enumerate(unique_data[-5:]):  # Show last 5 records
-                logger.info(f"  Record {i}: {record.get('timestamp', 'N/A')} - Price: {record.get('currentPrice', 'N/A')}")
-        
-        if not recent_data:
-            logger.info("No recent data available for momentum check")
+    # ------------------------------------------------------------------
+    # NEW (2025-09-04): Breakout style momentum detection
+    # Instead of comparing average prices, we look for a true breakout:
+    # Current price must be STRICTLY greater than every price observed in the
+    # interval (now - lookback_minutes, now - exclude_recent_minutes).
+    # This excludes the most recent N minutes (cool-down / formation window)
+    # so we don't count the current surge itself when defining the prior high.
+    # ------------------------------------------------------------------
+    def check_price_breakout(self, data: List[Dict], current_price: float,
+                              lookback_minutes: int = 60,
+                              exclude_recent_minutes: float = 1.0) -> bool:
+        """Return True if current_price is strictly greater than all prices
+        between (now - lookback_minutes) and (now - exclude_recent_minutes).
+
+        Args:
+            data: Raw historical records (dicts must contain 'timestamp' + 'currentPrice').
+            current_price: Latest trade / quote price.
+            lookback_minutes: Total minutes to look back from now.
+            exclude_recent_minutes: Minutes to exclude immediately prior to now
+                                    (fractional allowed, e.g. 1.25).
+        """
+        if current_price is None:
+            logger.info("Breakout check skipped - current_price missing")
             return False
-        
-        recent_avg = self.calculate_average_price(recent_data)
-        
-        if not historical_data:
-            logger.info("No historical data available, but recent data exists - condition passed")
-            return True
-        
-        historical_avg = self.calculate_average_price(historical_data)
-        
-        if recent_avg is None or historical_avg is None:
+
+        if lookback_minutes <= 0:
+            logger.info("Breakout check skipped - non positive lookback_minutes")
             return False
-        
-        # Check if recent average is at least the required percentage higher than historical average
-        required_increase = historical_avg * (required_increase_percent / 100.0)
-        momentum_met = recent_avg >= historical_avg + required_increase
-        
-        logger.info(f"Momentum check: recent_avg={recent_avg:.4f}, historical_avg={historical_avg:.4f}, "
-                   f"required_increase={required_increase:.4f} ({required_increase_percent}%), met={momentum_met}")
-        
-        return momentum_met
+
+        if exclude_recent_minutes < 0:
+            logger.info("Breakout check skipped - exclude_recent_minutes negative")
+            return False
+
+        now = datetime.now()
+        interval_start = now - timedelta(minutes=lookback_minutes)
+        interval_end = now - timedelta(minutes=exclude_recent_minutes)
+
+        if interval_end <= interval_start:
+            logger.info("Breakout check skipped - interval_end <= interval_start (lookback too small or exclude too large)")
+            return False
+
+        prior_prices = []
+        parse_failures = 0
+        considered = 0
+        for record in data:
+            try:
+                ts = record.get('timestamp')
+                if not ts:
+                    continue
+                ts_work = ts
+                if ts_work.endswith('Z'):
+                    ts_work = ts_work[:-1]
+                elif '+' in ts_work:
+                    ts_work = ts_work.split('+')[0]
+                elif ts_work.endswith('+00:00'):
+                    ts_work = ts_work[:-6]
+                try:
+                    rec_time = datetime.fromisoformat(ts_work)
+                except ValueError:
+                    rec_time = datetime.strptime(ts_work, '%Y-%m-%dT%H:%M:%S.%f')
+                if rec_time < interval_start or rec_time > interval_end:
+                    continue
+                considered += 1
+                price = record.get('currentPrice')
+                if price is None:
+                    continue
+                prior_prices.append(price)
+            except Exception:
+                parse_failures += 1
+                continue
+
+        if not prior_prices:
+            logger.info(f"Breakout check: insufficient data in interval ({lookback_minutes}m lookback, exclude {exclude_recent_minutes}m): 0 price points (parse_failures={parse_failures})")
+            return False
+
+        interval_high = max(prior_prices)
+        is_breakout = current_price > interval_high  # STRICTLY greater per requirement
+        logger.info(
+            f"Breakout check: current_price={current_price:.4f} | prior_interval_high={interval_high:.4f} | "
+            f"points={len(prior_prices)} (considered={considered}, parse_failures={parse_failures}) | "
+            f"interval=({interval_start.strftime('%H:%M:%S')} -> {interval_end.strftime('%H:%M:%S')}) | "
+            f"RESULT={'PASSED' if is_breakout else 'FAILED'}"
+        )
+        return is_breakout
     
     def check_day_high_condition(self, current_price: float, day_high: float, max_percent_off: float = 0.5) -> bool:
         """Check if current price is at most max_percent_off% down from day's high"""
@@ -512,12 +481,13 @@ class StockTradingBot:
     
     def monitor_and_trade(self, ticker: str, lower_price: float, higher_price: float,
                  volume_requirements: List[Tuple[int, int]], pivot_adjustment: float = 0.0,
-                 recent_interval_seconds: int = 20, historical_interval_seconds: int = 600,
-                 required_increase_percent: float = 0.05, day_high_max_percent_off: float = 0.5,
+                 day_high_max_percent_off: float = 0.5,
                  time_in_pivot_seconds: int = 0, time_in_pivot_positions: List[str] = None, 
                  volume_multipliers: List[float] = None, max_day_low: float = None, 
                  min_day_low: float = None,
-                 momentum_required_at_open: bool = True, wait_after_open_minutes: float = 0.0):
+                 wait_after_open_minutes: float = 0.0,
+                 breakout_lookback_minutes: int = 60,
+                 breakout_exclude_minutes: float = 1.0):
         """Main monitoring and trading logic"""
         adjusted_higher_price = higher_price * (1 + pivot_adjustment)
         
@@ -529,14 +499,13 @@ class StockTradingBot:
         logger.info(f"Volume requirements: {volume_requirements}")
         logger.info(f"Volume multipliers: {volume_multipliers}")
         logger.info(f"Pivot adjustment: {pivot_adjustment*100}%")
-        logger.info(f"Momentum settings: recent={recent_interval_seconds}s, historical={historical_interval_seconds}s, "
-                   f"required_increase={required_increase_percent}%")
+        logger.info(f"Breakout settings: lookback={breakout_lookback_minutes}m, exclude_recent={breakout_exclude_minutes}m")
         logger.info(f"Day high max percent off: {day_high_max_percent_off}%")
         logger.info(f"Time-in-pivot requirement: {time_in_pivot_seconds}s for positions {time_in_pivot_positions}")
         logger.info(f"Max day low: {max_day_low}")
         logger.info(f"Min day low: {min_day_low}")
         logger.info(f"Wait after open minutes: {wait_after_open_minutes}")
-        logger.info(f"Momentum required at open: {momentum_required_at_open}")
+        logger.info("Legacy average momentum removed; using breakout only")
 
         wait_for_market_open()
 
@@ -579,20 +548,7 @@ class StockTradingBot:
                     wait_for_market_open()
                     continue
 
-                # If momentum is required at open, ensure we have at least the full historical interval worth of time since open
-                if momentum_required_at_open:
-                    try:
-                        et = pytz.timezone('US/Eastern')
-                        now_et = datetime.now(et)
-                        market_open_dt = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
-                        seconds_since_open = (now_et - market_open_dt).total_seconds()
-                        if seconds_since_open < historical_interval_seconds:
-                            remaining = int(historical_interval_seconds - seconds_since_open)
-                            logger.info(f"Momentum required at open: waiting {remaining}s more to accumulate historical interval ({historical_interval_seconds}s) of data before evaluating conditions.")
-                            time.sleep(5)
-                            continue
-                    except Exception as e:
-                        logger.warning(f"Could not evaluate momentum-required-at-open wait condition: {e}")
+                # (Removed historical average momentum warm-up logic)
 
                 # (Removed min_time_since_open_minutes logic; superseded by wait_after_open_minutes initial delay)
                 
@@ -679,18 +635,19 @@ class StockTradingBot:
                     logger.info("2. Skipping day low check (previous condition failed)")
 
 
-                # 3. Check price momentum
+                # 3. Breakout condition
                 if conditions_met:
-                    logger.info("3. Checking price momentum...")
-                    if not self.check_price_momentum(historical_data, recent_interval_seconds, 
-                                                historical_interval_seconds, required_increase_percent):
+                    logger.info("3. Checking breakout (price > prior interval high)...")
+                    if not self.check_price_breakout(historical_data, current_price,
+                                                      lookback_minutes=breakout_lookback_minutes,
+                                                      exclude_recent_minutes=breakout_exclude_minutes):
                         conditions_met = False
-                        failed_conditions.append("momentum")
-                        logger.info("   ❌ Price momentum condition FAILED")
+                        failed_conditions.append("breakout")
+                        logger.info("   ❌ Breakout FAILED")
                     else:
-                        logger.info("   ✓ Price momentum condition PASSED")
+                        logger.info("   ✓ Breakout PASSED")
                 else:
-                    logger.info("3. Skipping price momentum check (previous condition failed)")
+                    logger.info("3. Skipping breakout check (previous condition failed)")
 
                 # 4. Check volume requirements
                 if conditions_met:
@@ -899,12 +856,7 @@ def main():
                        help='Volume requirements in format "minutes=volume" or "day=volume". Can be specified multiple times.')
     parser.add_argument('--pivot-adjustment', choices=['0.0', '0.5', '1.0'], default='0.0',
                        help='Increase upper pivot price by 0.0%, 0.5%, or 1.0%')
-    parser.add_argument('--recent-interval', type=int, default=20,
-                       help='Recent time interval in seconds for momentum check (default: 20)')
-    parser.add_argument('--historical-interval', type=int, default=600,
-                       help='Historical time interval in seconds for momentum check (default: 600 = 10 minutes)')
-    parser.add_argument('--momentum-increase', type=float, default=0.05,
-                       help='Required price increase percentage for momentum check (default: 0.05)')
+    # Removed legacy average momentum arguments
     parser.add_argument('--day-high-max-percent-off', type=float, default=0.5,
                        help='Maximum percentage the current price can be below day high (default: 0.5)')
     parser.add_argument('--time-in-pivot', type=int, default=0,
@@ -922,11 +874,14 @@ def main():
                    help='Maximum day low price allowed (default: None = no limit)')
     parser.add_argument('--min-day-low', type=float, default=None,
                    help='Minimum day low price allowed (default: None = no limit)')
-    parser.add_argument('--disable-momentum-required-at-open', action='store_false', dest='momentum_required_at_open',
-                   help='If set, skip waiting the historical interval at market open for momentum calculation (default: enabled)')
     parser.add_argument('--wait-after-open', type=float, default=0.0,
                    help='Additional float minutes to wait after market open before starting monitoring (default: 0 = no extra wait)')
-    parser.set_defaults(momentum_required_at_open=True)
+    # Only breakout momentum retained
+    parser.add_argument('--breakout-lookback-minutes', type=int, default=60,
+                    help='Lookback window in minutes for breakout momentum (default: 60)')
+    parser.add_argument('--breakout-exclude-minutes', type=float, default=1.0,
+                    help='Minutes immediately before now to exclude when computing prior high (default: 1.0)')
+    # momentum_required_at_open removed
 
     args = parser.parse_args()
     
@@ -952,17 +907,15 @@ def main():
             higher_price=args.higher_price,
             volume_requirements=volume_requirements,
             pivot_adjustment=pivot_adjustment,
-            recent_interval_seconds=args.recent_interval,
-            historical_interval_seconds=args.historical_interval,
-            required_increase_percent=args.momentum_increase,
             day_high_max_percent_off=args.day_high_max_percent_off,
             time_in_pivot_seconds=args.time_in_pivot,
             time_in_pivot_positions=time_in_pivot_positions,
             volume_multipliers=args.volume_multipliers,
             max_day_low=args.max_day_low,
             min_day_low=args.min_day_low,
-            momentum_required_at_open=args.momentum_required_at_open,
-            wait_after_open_minutes=args.wait_after_open
+            wait_after_open_minutes=args.wait_after_open,
+            breakout_lookback_minutes=args.breakout_lookback_minutes,
+            breakout_exclude_minutes=args.breakout_exclude_minutes
         )
 
         

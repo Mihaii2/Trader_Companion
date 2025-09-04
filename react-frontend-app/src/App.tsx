@@ -4,7 +4,7 @@ import { StocksRankingPage } from './StocksFilteringPage/StocksFilteringPage';
 import { PersonalRankingPage } from './StockRankingPage/PersonalRankingPage';
 import { TradeHistoryPage } from './TradeHistoryPage/TradeHistoryPage';
 import { TradingStatsPage } from './TradeStatisticsPage/TradeStatisticsPage';
-import { TradingBotPage } from './TradingBotManagementPage/TradingBotManagementPage';
+import { CustomOrdersPage } from './CustomOrdersPage/CustomOrdersPage';
 import { TickerManagementPage } from './TickerManagementPage/TickerManagementPage';
 import { Navigation } from './components/Navigation';
 import './App.css';
@@ -21,7 +21,7 @@ export default function App() {
             <Route path="/personal_ranking" element={<PersonalRankingPage />} />
             <Route path="/trade_history" element={<TradeHistoryPage />} />
             <Route path="/trading_stats" element={<TradingStatsPage />} />
-            <Route path="/trading_bots" element={<TradingBotPage />} />
+            <Route path="/custom_orders" element={<CustomOrdersPage />} />
             <Route path="/ticker_management" element={<TickerManagementPage />} />
             <Route path="/post_analysis" element={<PostAnalysisPage />} />
             {/* Redirect to stocks screeners if no path matches */}
