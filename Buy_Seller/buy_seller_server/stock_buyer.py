@@ -865,10 +865,6 @@ class StockTradingServer:
             error_msg = f"Invalid shares amount: {trade.shares}"
             return False, error_msg
         
-        if trade.risk_amount <= 0:
-            error_msg = f"Invalid risk amount: {trade.risk_amount}"
-            return False, error_msg
-        
         if len(trade.sell_stops) == 0:
             error_msg = "No sell stop orders defined"
             return False, error_msg

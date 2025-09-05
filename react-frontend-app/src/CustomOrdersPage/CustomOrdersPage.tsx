@@ -65,6 +65,7 @@ export function CustomOrdersPage() {
   const ORDER_CONFIG_STORAGE_KEY = 'customOrdersPage.orderConfig.v1';
   const NEW_TRADE_STORAGE_KEY = 'customOrdersPage.newTrade.v1';
   const PIVOT_POSITIONS_STORAGE_KEY = 'customOrdersPage.pivotPositions.v1';
+  const SHOW_ADVANCED_STORAGE_KEY = 'customOrdersPage.showAdvanced.v1';
 
   const defaultOrderConfig: OrderConfig = {
     ticker: '',
@@ -127,7 +128,15 @@ export function CustomOrdersPage() {
   const [riskAmount, setRiskAmount] = useState(0);
   const [showVolumeWarningModal, setShowVolumeWarningModal] = useState(false);
   const [addFractionalVolumes, setAddFractionalVolumes] = useState(true); // NEW: auto add 1/2 & 1/4
-  const [showAdvanced, setShowAdvanced] = useState(false); // UI: toggle advanced settings
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      const raw = localStorage.getItem(SHOW_ADVANCED_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : false;
+    } catch {
+      return false;
+    }
+  }); // UI: toggle advanced settings (persisted)
 
   
   
@@ -416,6 +425,10 @@ export function CustomOrdersPage() {
     try { localStorage.setItem(PIVOT_POSITIONS_STORAGE_KEY, JSON.stringify(pivotPositions)); } catch { /* ignore persistence error */ }
   }, [pivotPositions]);
 
+  useEffect(() => {
+    try { localStorage.setItem(SHOW_ADVANCED_STORAGE_KEY, JSON.stringify(showAdvanced)); } catch { /* ignore persistence error */ }
+  }, [showAdvanced]);
+
   const clearSavedOrderConfig = () => {
     // Instant reset (no confirmation per user request)
     setOrderConfig(defaultOrderConfig);
@@ -513,59 +526,6 @@ export function CustomOrdersPage() {
                   step="0.01"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Max Day Low</label>
-                <input
-                  type="number"
-                  value={orderConfig.max_day_low || ''}
-                  onChange={(e) => setOrderConfig(prev => ({
-                    ...prev,
-                    max_day_low: e.target.value ? parseFloat(e.target.value) : null
-                  }))}
-                  className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring"
-                  step="0.01"
-                  placeholder="Optional"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Min Day Low</label>
-                <input
-                  type="number"
-                  value={orderConfig.min_day_low || ''}
-                  onChange={(e) => setOrderConfig(prev => ({
-                    ...prev,
-                    min_day_low: e.target.value ? parseFloat(e.target.value) : null
-                  }))}
-                  className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring"
-                  step="0.01"
-                  placeholder="Optional"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Day High Max % Off</label>
-                <input
-                  type="number"
-                  value={orderConfig.day_high_max_percent_off}
-                  onChange={(e) => setOrderConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
-                  className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring"
-                  step="0.01"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-foreground mb-1">Wait After Open (minutes)</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={orderConfig.wait_after_open_minutes ?? 0}
-                  onChange={(e) => setOrderConfig(prev => ({
-                    ...prev,
-                    wait_after_open_minutes: parseFloat(e.target.value) || 0
-                  }))}
-                  className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring"
-                  min={0}
-                  placeholder="0"
-                />
-              </div>
             </div>
 
             {/* Volume Requirements */}
@@ -615,27 +575,6 @@ export function CustomOrdersPage() {
               )}
             </div>
 
-            {/* Volume Multipliers */}
-            <div className="space-y-2">
-              <label className="block text-xs font-medium text-foreground">Volume Multipliers</label>
-              <div className="grid grid-cols-3 gap-2">
-                {['Lower', 'Middle', 'Upper'].map((label, idx) => (
-                  <input
-                    key={idx}
-                    type="number"
-                    value={orderConfig.volume_multipliers[idx]}
-                    onChange={(e) => {
-                      const newMultipliers = [...orderConfig.volume_multipliers];
-                      newMultipliers[idx] = parseFloat(e.target.value);
-                      setOrderConfig(prev => ({ ...prev, volume_multipliers: newMultipliers }));
-                    }}
-                    className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                    step="0.01"
-                    placeholder={label}
-                  />
-                ))}
-              </div>
-            </div>
 
             {/* Advanced Section */}
             {showAdvanced && (
@@ -709,6 +648,60 @@ export function CustomOrdersPage() {
                       placeholder="0"
                     />
                   </div>
+                  
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Max Day Low</label>
+                    <input
+                      type="number"
+                      value={orderConfig.max_day_low || ''}
+                      onChange={(e) => setOrderConfig(prev => ({
+                        ...prev,
+                        max_day_low: e.target.value ? parseFloat(e.target.value) : null
+                      }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus-border-ring text-sm"
+                      step="0.01"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Min Day Low</label>
+                    <input
+                      type="number"
+                      value={orderConfig.min_day_low || ''}
+                      onChange={(e) => setOrderConfig(prev => ({
+                        ...prev,
+                        min_day_low: e.target.value ? parseFloat(e.target.value) : null
+                      }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus-border-ring text-sm"
+                      step="0.01"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Day High Max % Off</label>
+                    <input
+                      type="number"
+                      value={orderConfig.day_high_max_percent_off}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, day_high_max_percent_off: parseFloat(e.target.value) }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus-border-ring text-sm"
+                      step="0.01"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Wait After Open (minutes)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={orderConfig.wait_after_open_minutes ?? 0}
+                      onChange={(e) => setOrderConfig(prev => ({
+                        ...prev,
+                        wait_after_open_minutes: parseFloat(e.target.value) || 0
+                      }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus-border-ring text-sm"
+                      min={0}
+                      placeholder="0"
+                    />
+                  </div>
                   <div className="col-span-2 md:col-span-3 xl:col-span-4">
                     <label className="block text-xs font-medium mb-1">Time in Pivot Positions</label>
                     <div className="flex flex-wrap gap-3">
@@ -722,6 +715,26 @@ export function CustomOrdersPage() {
                           />
                           <span className="capitalize">{position}</span>
                         </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="col-span-2 md:col-span-3 xl:col-span-4 space-y-2">
+                    <label className="block text-xs font-medium text-foreground">Volume Multipliers</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['Lower', 'Middle', 'Upper'].map((label, idx) => (
+                        <input
+                          key={idx}
+                          type="number"
+                          value={orderConfig.volume_multipliers[idx]}
+                          onChange={(e) => {
+                            const newMultipliers = [...orderConfig.volume_multipliers];
+                            newMultipliers[idx] = parseFloat(e.target.value);
+                            setOrderConfig(prev => ({ ...prev, volume_multipliers: newMultipliers }));
+                          }}
+                          className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                          step="0.01"
+                          placeholder={label}
+                        />
                       ))}
                     </div>
                   </div>
