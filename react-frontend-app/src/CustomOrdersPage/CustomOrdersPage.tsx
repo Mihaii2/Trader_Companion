@@ -461,7 +461,7 @@ export function CustomOrdersPage() {
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="bg-card text-card-foreground rounded-lg shadow-sm border p-6">
-        <h1 className="text-2xl font-bold mb-6">Custom Order Management</h1>
+        <h1 className="text-2xl font-bold mb-6">Custom Breakout Order Management</h1>
         
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6">
@@ -476,7 +476,7 @@ export function CustomOrdersPage() {
           <div className="space-y-5">
             {/* Common (frequently used) fields */}
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h2 className="text-lg font-semibold">Order Basics</h2>
+              <h2 className="text-lg font-semibold">Basic Breakout Order Settings</h2>
               <div className="flex gap-2">
                 <button
                   type="button"

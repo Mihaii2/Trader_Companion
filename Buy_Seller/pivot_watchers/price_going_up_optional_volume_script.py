@@ -261,18 +261,6 @@ class StockTradingBot:
         logger.info(f"   {passed_count}/{len(requirement_results)} requirement(s) passed under OR logic")
         return any_passed
     
-    # ------------------------------------------------------------------
-    # NEW (2025-09-04): Breakout style momentum detection
-    # ORIGINAL: required the current_price to be strictly greater than every price
-    #           in the prior interval (lookback window minus the recent excluded window).
-    # UPDATED (2025-09-04 user request): Instead of only checking the latest/current price
-    # we now treat ANY price inside the previously "excluded" recent interval as a valid
-    # breakout candidate. A breakout occurs if there exists at least one price point in
-    # the recent window (now - exclude_recent_minutes, now] that is STRICTLY greater than
-    # every price in the older window (now - lookback_minutes, now - exclude_recent_minutes).
-    # In other words:  max(recent_window_prices) > max(prior_window_prices).
-    # If either window lacks price data we FAIL the breakout check (conservative).
-    # ------------------------------------------------------------------
     def check_price_breakout(self, data: List[Dict], current_price: float,
                               lookback_minutes: int = 60,
                               exclude_recent_minutes: float = 1.0) -> bool:
@@ -348,8 +336,19 @@ class StockTradingBot:
                 continue
 
         if not prior_prices:
-            logger.info(f"Breakout check: FAIL (no prior window prices) lookback={lookback_minutes} exclude_recent={exclude_recent_minutes}")
-            return False
+            if recent_prices or current_price is not None:
+                logger.info(
+                    "Breakout check: PASS (insufficient prior window prices; "
+                    f"auto-pass enabled) lookback={lookback_minutes} exclude_recent={exclude_recent_minutes} "
+                    f"recent_pts={len(recent_prices)} current_price={current_price}"
+                )
+                return True
+            else:
+                logger.info(
+                    "Breakout check: FAIL (no prior AND no usable recent prices) "
+                    f"lookback={lookback_minutes} exclude_recent={exclude_recent_minutes}"
+                )
+                return False
         if not recent_prices:
             logger.info(f"Breakout check: FAIL (no recent window prices) lookback={lookback_minutes} exclude_recent={exclude_recent_minutes}")
             return False
