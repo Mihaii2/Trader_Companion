@@ -478,7 +478,7 @@ export function CustomOrdersPage() {
                   className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60"
                   title="Reset & remove saved order config"
                 >
-                  Reset
+                  Reset Order
                 </button>
               </div>
             </div>
