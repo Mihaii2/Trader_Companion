@@ -758,6 +758,17 @@ class StockTradingBot:
             except Exception as e:
                 logger.error(f"Unexpected error: {str(e)}")
                 time.sleep(5)
+            
+            # Throttle extremely fast cycles: if this monitoring cycle finished in under 1s
+            # (i.e., little/no waiting occurred inside), sleep for 4 seconds to avoid
+            # hammering the data/trade servers.
+            try:
+                cycle_duration = (datetime.now() - cycle_start).total_seconds()
+                if cycle_duration < 1.0:
+                    logger.info(f"Cycle duration {cycle_duration:.3f}s < 1s; sleeping 4s to throttle requests.")
+                    time.sleep(4)
+            except Exception as throttle_err:
+                logger.debug(f"Throttle timing computation failed (continuing): {throttle_err}")
         
         self.running = False
 
