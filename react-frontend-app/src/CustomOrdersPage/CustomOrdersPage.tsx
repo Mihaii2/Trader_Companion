@@ -34,7 +34,7 @@ interface ServerStatus {
     risk_amount: number;
     lower_price_range: number;
     higher_price_range: number;
-    sell_stops: Array<{ price: number; shares: number }>;
+  sell_stops: Array<{ price?: number; shares: number; percent_below_fill?: number }>;
   }>;
   error_count?: number;
   is_processing?: boolean;
@@ -46,7 +46,7 @@ interface TradeData {
   risk_amount?: number;
   lower_price_range?: number;
   higher_price_range?: number;
-  sell_stops?: Array<{ price: number; shares: number }>;
+  sell_stops?: Array<{ price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' }>;
   [key: string]: unknown;
 }
 
@@ -85,13 +85,13 @@ export function CustomOrdersPage() {
 
   const defaultPivotPositions = { any: false, lower: false, middle: false, upper: false };
 
-  const defaultNewTrade = {
+  const defaultNewTrade: { ticker: string; shares: number; risk_amount: number; lower_price_range: number; higher_price_range: number; sell_stops: { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent'; }[] } = {
     ticker: '',
     shares: 0,
     risk_amount: 0,
     lower_price_range: 0,
     higher_price_range: 0,
-    sell_stops: [{ price: 0, shares: 0 }]
+  sell_stops: [{ price: 0, shares: 0, percent_below_fill: undefined, __ui_mode: 'price' as const }]
   };
 
   const safeLoad = <T,>(key: string, fallback: T): T => {
@@ -198,14 +198,7 @@ export function CustomOrdersPage() {
         }
 
         alert('Trade added successfully!');
-        setNewTrade({
-          ticker: '',
-          shares: 0,
-          risk_amount: 0,
-          lower_price_range: 0,
-          higher_price_range: 0,
-          sell_stops: [{ price: 0, shares: 0 }]
-        });
+  setNewTrade(defaultNewTrade);
         fetchStatus();
       } else {
         alert(`Error: ${result.error}`);
@@ -364,7 +357,7 @@ export function CustomOrdersPage() {
   const addSellStop = () => {
     setNewTrade(prev => ({
       ...prev,
-      sell_stops: [...prev.sell_stops, { price: 0, shares: 0 }]
+      sell_stops: [...prev.sell_stops, { price: 0, shares: 0, percent_below_fill: undefined, __ui_mode: 'price' }]
     }));
   };
 
@@ -375,12 +368,24 @@ export function CustomOrdersPage() {
     }));
   };
 
-  const updateSellStop = (index: number, field: 'price' | 'shares', value: number) => {
+  const updateSellStop = (index: number, field: 'price' | 'shares' | 'percent_below_fill' | '__ui_mode', value: number | string) => {
+    type StopType = { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' };
     setNewTrade(prev => ({
       ...prev,
-      sell_stops: prev.sell_stops.map((stop, i) => 
-        i === index ? { ...stop, [field]: value } : stop
-      )
+      sell_stops: prev.sell_stops.map((stop: StopType, i: number): StopType => {
+        if (i !== index) return stop;
+        if (field === '__ui_mode') {
+          const mode = value as 'price' | 'percent';
+          if (mode === 'price') {
+            return { ...stop, __ui_mode: 'price', percent_below_fill: undefined, price: stop.price ?? 0 };
+          } else {
+            return { ...stop, __ui_mode: 'percent', price: undefined, percent_below_fill: stop.percent_below_fill ?? 1 };
+          }
+        }
+  type StopType = { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' };
+  const numeric = typeof value === 'string' ? (parseFloat(value) || 0) : value;
+  return { ...stop, [field]: numeric } as StopType;
+      })
     }));
   };
 
@@ -783,40 +788,69 @@ export function CustomOrdersPage() {
               <div className="mt-4">
                 <label className="block text-sm font-medium text-foreground mb-2">Sell Stops</label>
                 <div className="space-y-2">
-                  {newTrade.sell_stops.map((stop, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="flex-1">
-                        <label className="block text-xs text-muted-foreground mb-1">Stop Price</label>
-                        <input
-                          type="number"
-                          value={stop.price}
-                          onChange={(e) => updateSellStop(index, 'price', parseFloat(e.target.value))}
-                          className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                          placeholder="Stop Price"
-                          step="0.01"
-                        />
+                  {newTrade.sell_stops.map((stop, index) => {
+                    const mode = (stop.__ui_mode || (stop.percent_below_fill != null ? 'percent' : 'price')) as 'price' | 'percent';
+                    return (
+                      <div key={index} className="flex items-start gap-2 flex-wrap md:flex-nowrap">
+                        <div className="w-32">
+                          <label className="block text-xs text-muted-foreground mb-1">Mode</label>
+                          <select
+                            value={mode}
+                            onChange={(e) => updateSellStop(index, '__ui_mode', e.target.value)}
+                            className="w-full p-2 border border-input bg-background text-foreground rounded-lg text-xs"
+                          >
+                            <option value="price">Fixed Price</option>
+                            <option value="percent">% Below Fill</option>
+                          </select>
+                        </div>
+                        {mode === 'price' ? (
+                          <div className="flex-1 min-w-[140px]">
+                            <label className="block text-xs text-muted-foreground mb-1">Stop Price</label>
+                            <input
+                              type="number"
+                              value={stop.price ?? 0}
+                              onChange={(e) => updateSellStop(index, 'price', parseFloat(e.target.value))}
+                              className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                              placeholder="Price"
+                              step="0.01"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex-1 min-w-[140px]">
+                            <label className="block text-xs text-muted-foreground mb-1">% Below Fill</label>
+                            <input
+                              type="number"
+                              value={stop.percent_below_fill ?? 1}
+                              onChange={(e) => updateSellStop(index, 'percent_below_fill', parseFloat(e.target.value))}
+                              className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                              placeholder="Percent"
+                              step="0.1"
+                              min="0.1"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-[140px]">
+                          <label className="block text-xs text-muted-foreground mb-1">Shares</label>
+                          <input
+                            type="number"
+                            value={stop.shares}
+                            onChange={(e) => updateSellStop(index, 'shares', parseFloat(e.target.value) || 0)}
+                            className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                            placeholder="Shares"
+                            step="0.001"
+                            min="0.001"
+                          />
+                        </div>
+                        <button
+                          onClick={() => removeSellStop(index)}
+                          className="p-2 text-destructive hover:bg-destructive/10 rounded mt-5"
+                          disabled={newTrade.sell_stops.length === 1}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <div className="flex-1">
-                        <label className="block text-xs text-muted-foreground mb-1">Shares</label>
-                        <input
-                          type="number"
-                          value={stop.shares}
-                          onChange={(e) => updateSellStop(index, 'shares', parseFloat(e.target.value) || 0)}
-                          className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                          placeholder="Shares"
-                          step="0.001" // Allow fractional shares
-                          min="0.001" // Minimum fractional share
-                        />
-                      </div>
-                      <button
-                        onClick={() => removeSellStop(index)}
-                        className="p-2 text-destructive hover:bg-destructive/10 rounded mt-5"
-                        disabled={newTrade.sell_stops.length === 1}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <button
                     onClick={addSellStop}
                     className="w-full p-2 border-2 border-dashed border-border rounded-lg hover:border-border/80 text-muted-foreground hover:text-foreground"
@@ -918,11 +952,18 @@ export function CustomOrdersPage() {
                           </td>
                           <td className="px-6 py-4 text-sm text-foreground">
                             <div className="space-y-1">
-                              {trade.sell_stops.map((stop, index) => (
-                                <div key={index} className="text-xs bg-muted px-2 py-1 rounded">
-                                  ${stop.price.toFixed(2)} ({stop.shares.toFixed(3)} shares)
-                                </div>
-                              ))}
+                              {trade.sell_stops.map((stop, index) => {
+                                const isPercent = stop.percent_below_fill !== undefined && stop.percent_below_fill !== null;
+                                return (
+                                  <div key={index} className="text-xs bg-muted px-2 py-1 rounded">
+                                    {isPercent ? (
+                                      <>{stop.percent_below_fill}% below fill ({stop.shares.toFixed(3)} sh)</>
+                                    ) : (
+                                      <>${(stop.price ?? 0).toFixed(2)} ({stop.shares.toFixed(3)} sh)</>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">

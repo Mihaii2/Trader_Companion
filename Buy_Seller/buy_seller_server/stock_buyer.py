@@ -16,8 +16,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @dataclass
 class SellStopOrder:
-    price: float
-    shares: float
+    """Represents either a fixed-price stop or a percentage-below-fill stop.
+
+    Exactly one of price or percent_below_fill should be provided.
+    price: Absolute stop price.
+    percent_below_fill: Percentage (e.g. 4 for 4%) below the eventual average fill price to place the stop.
+    shares: Number of shares allocated to this stop.
+    """
+    price: Optional[float] = None
+    shares: float = 0.0
+    percent_below_fill: Optional[float] = None
 
 @dataclass
 class Trade:
@@ -739,8 +747,12 @@ class StockTradingServer:
                 'full_fill': False
             }
     
-    def _execute_sell_stop_orders(self, trade: Trade, actual_shares_bought: float):
-        """Execute sell stop orders based on actual shares bought with proper scaling"""
+    def _execute_sell_stop_orders(self, trade: Trade, actual_shares_bought: float, avg_fill_price: float | None = None):
+        """Execute sell stop orders based on actual shares bought with proper scaling.
+
+        For stops defined with percent_below_fill, avg_fill_price is required (will use provided avg_fill_price
+        or attempt to look up last trade fill price if None).
+        """
         print(f"\n🔴 SETTING SELL STOP ORDERS for {actual_shares_bought} shares:")
         
         if actual_shares_bought == 0:
@@ -774,10 +786,20 @@ class StockTradingServer:
                         print(f"   ⚠️ Stop {i}: Skipping (scaled to {scaled_shares:.3f} shares - too small)")
                         continue
                     
-                    # Adjust stop price to nearest tick
-                    adjusted_stop_price = round(stop.price / price_increment) * price_increment
-                    if abs(adjusted_stop_price - stop.price) > 0.001:
-                        print(f"   🔧 Adjusted stop price for {trade.ticker} from ${stop.price} to ${adjusted_stop_price}")
+                    # Determine raw stop price (fixed or percentage)
+                    if stop.price is not None:
+                        raw_stop_price = stop.price
+                    else:
+                        if avg_fill_price is None:
+                            print(f"   ⚠️ Stop {i}: percent_below_fill provided but avg_fill_price unknown - skipping")
+                            continue
+                        raw_stop_price = avg_fill_price * (1 - stop.percent_below_fill / 100.0)
+                        print(f"   📐 Stop {i}: {stop.percent_below_fill}% below fill (${avg_fill_price:.2f}) => raw ${raw_stop_price:.4f}")
+
+                    # Adjust to tick size
+                    adjusted_stop_price = round(raw_stop_price / price_increment) * price_increment
+                    if abs(adjusted_stop_price - raw_stop_price) > 0.0001:
+                        print(f"   🔧 Adjusted stop price for {trade.ticker} from ${raw_stop_price:.4f} to ${adjusted_stop_price:.4f}")
                     
                     result = self._execute_order(
                         trade.ticker, 
@@ -821,8 +843,19 @@ class StockTradingServer:
     
     def _validate_trade(self, trade: Trade) -> tuple[bool, str]:
         """Validate trade data and return detailed error message"""
-        total_stop_shares = sum(stop.shares for stop in trade.sell_stops)
-        
+        total_stop_shares = 0.0
+        for idx, stop in enumerate(trade.sell_stops, 1):
+            total_stop_shares += stop.shares
+            # Each stop must define exactly one of price or percent_below_fill
+            if (stop.price is None and stop.percent_below_fill is None) or (stop.price is not None and stop.percent_below_fill is not None):
+                return False, f"Sell stop {idx} must have exactly one of price or percent_below_fill"
+            if stop.percent_below_fill is not None:
+                if stop.percent_below_fill <= 0 or stop.percent_below_fill >= 100:
+                    return False, f"Sell stop {idx} percent_below_fill must be between 0 and 100"
+            if stop.price is not None and stop.price <= 0:
+                return False, f"Sell stop {idx} price must be > 0"
+            if stop.shares <= 0:
+                return False, f"Sell stop {idx} shares must be > 0"
         if abs(total_stop_shares - trade.shares) > 0.001:
             error_msg = f"Sell stop shares ({total_stop_shares}) don't match total shares ({trade.shares})"
             print(f"ERROR: {error_msg}")
@@ -893,8 +926,8 @@ class StockTradingServer:
                 self._log_error("BUY_ORDER_COMPLETE_FAILURE", ticker, error_msg)
                 return {'success': False, 'error': error_msg}
             
-            # Place sell stops
-            self._execute_sell_stop_orders(trade, buy_result['filled_shares'])
+            # Place sell stops (need avg fill price for percent-based stops)
+            self._execute_sell_stop_orders(trade, buy_result['filled_shares'], buy_result['avg_price'])
             
             result = {
                 'success': True,
@@ -922,9 +955,12 @@ class StockTradingServer:
             
             sell_stops = []
             for stop in trade_data.get('sell_stops', []):
+                price_val = stop.get('price')
+                pct_val = stop.get('percent_below_fill')
                 sell_stops.append(SellStopOrder(
-                    price=float(stop['price']),
-                    shares=float(stop['shares'])
+                    price=float(price_val) if price_val is not None else None,
+                    shares=float(stop['shares']),
+                    percent_below_fill=float(pct_val) if pct_val is not None else None
                 ))
             
             trade = Trade(
