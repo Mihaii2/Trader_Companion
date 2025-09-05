@@ -95,6 +95,12 @@ class TradingBotManager:
         # Additional custom wait after market open (float minutes)
         if params.get('wait_after_open_minutes'):
             cmd[2] += f" --wait-after-open {params['wait_after_open_minutes']}"
+
+        # Late-day trading window controls (NEW 2025-09-05)
+        if params.get('start_minutes_before_close') is not None:
+            cmd[2] += f" --start-minutes-before-close {params['start_minutes_before_close']}"
+        if params.get('stop_minutes_before_close') is not None:
+            cmd[2] += f" --stop-minutes-before-close {params['stop_minutes_before_close']}"
         
         return cmd
     

@@ -509,7 +509,9 @@ class StockTradingBot:
                  min_day_low: float = None,
                  wait_after_open_minutes: float = 0.0,
                  breakout_lookback_minutes: int = 60,
-                 breakout_exclude_minutes: float = 1.0):
+                 breakout_exclude_minutes: float = 1.0,
+                 start_minutes_before_close: float = None,
+                 stop_minutes_before_close: float = 0.0):
         """Main monitoring and trading logic"""
         adjusted_higher_price = higher_price * (1 + pivot_adjustment)
         
@@ -527,6 +529,11 @@ class StockTradingBot:
         logger.info(f"Max day low: {max_day_low}")
         logger.info(f"Min day low: {min_day_low}")
         logger.info(f"Wait after open minutes: {wait_after_open_minutes}")
+        logger.info(f"Late-day start (minutes before close): {start_minutes_before_close}")
+        logger.info(f"Late-day stop (minutes before close): {stop_minutes_before_close}")
+        if start_minutes_before_close is not None and stop_minutes_before_close is not None:
+            if start_minutes_before_close <= stop_minutes_before_close:
+                logger.warning("Configuration may result in zero/negative trading window: start_minutes_before_close <= stop_minutes_before_close")
         logger.info("Legacy average momentum removed; using breakout only")
 
         wait_for_market_open()
@@ -569,6 +576,45 @@ class StockTradingBot:
                     self.pivot_entry_time = None  # Reset pivot timer
                     wait_for_market_open()
                     continue
+
+                # --- NEW: Late-day window enforcement ---
+                try:
+                    et = pytz.timezone('US/Eastern')
+                    now_et = datetime.now(et)
+                    market_close_dt = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+                    minutes_to_close = (market_close_dt - now_et).total_seconds() / 60.0
+                    # If start_minutes_before_close is set, only proceed when minutes_to_close <= start threshold
+                    if start_minutes_before_close is not None:
+                        if minutes_to_close > start_minutes_before_close:
+                            h = int(minutes_to_close // 60)
+                            m = int(minutes_to_close % 60)
+                            h_target = int(start_minutes_before_close // 60)
+                            m_target = int(start_minutes_before_close % 60)
+                            window_str = (f"{h}h {m}m" if h else f"{m}m")
+                            target_str = (f"{h_target}h {m_target}m" if h_target else f"{m_target}m")
+                            logger.info(
+                                f"Late-day start restriction active: {window_str} until close (> {target_str}). Waiting..."
+                            )
+                            time.sleep(5)
+                            continue
+                    # If we are inside the stop window, cease trading attempts for the day
+                    if stop_minutes_before_close is not None and stop_minutes_before_close > 0:
+                        if minutes_to_close <= stop_minutes_before_close:
+                            h = int(minutes_to_close // 60)
+                            m = int(minutes_to_close % 60)
+                            h_stop = int(stop_minutes_before_close // 60)
+                            m_stop = int(stop_minutes_before_close % 60)
+                            window_str = (f"{h}h {m}m" if h else f"{m}m")
+                            stop_str = (f"{h_stop}h {m_stop}m" if h_stop else f"{m_stop}m")
+                            logger.info(
+                                f"Stop window reached: {window_str} until close (<= {stop_str}). Waiting for next session..."
+                            )
+                            # Wait until next market open
+                            self.pivot_entry_time = None
+                            wait_for_market_open()
+                            continue
+                except Exception as e:
+                    logger.warning(f"Late-day window logic error (continuing anyway): {e}")
 
                 # (Removed historical average momentum warm-up logic)
 
@@ -902,6 +948,11 @@ def main():
                     help='Lookback window in minutes for breakout momentum (default: 60)')
     parser.add_argument('--breakout-exclude-minutes', type=float, default=1.0,
                     help='Minutes immediately before now to exclude when computing prior high (default: 1.0)')
+    # --- NEW (2025-09-05): Late-day trading window controls ---
+    parser.add_argument('--start-minutes-before-close', type=float, default=None,
+                        help='Only allow initiating trades once time until market close is <= this many minutes (e.g. 60 = last hour). Default: None (no late-day start restriction).')
+    parser.add_argument('--stop-minutes-before-close', type=float, default=0.0,
+                        help='Stop initiating trades this many minutes before market close (e.g. 5 = no trades in final 5 minutes). Default: 0 (trade until close).')
     # momentum_required_at_open removed
 
     args = parser.parse_args()
@@ -936,7 +987,9 @@ def main():
             min_day_low=args.min_day_low,
             wait_after_open_minutes=args.wait_after_open,
             breakout_lookback_minutes=args.breakout_lookback_minutes,
-            breakout_exclude_minutes=args.breakout_exclude_minutes
+            breakout_exclude_minutes=args.breakout_exclude_minutes,
+            start_minutes_before_close=args.start_minutes_before_close,
+            stop_minutes_before_close=args.stop_minutes_before_close,
         )
 
         

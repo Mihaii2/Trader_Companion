@@ -19,6 +19,8 @@ interface OrderConfig {
   wait_after_open_minutes?: number; // NEW custom wait time after market open (float)
   breakout_lookback_minutes?: number; // NEW
   breakout_exclude_minutes?: number; // NEW
+  start_minutes_before_close?: number | null; // NEW (late-day start)
+  stop_minutes_before_close?: number | null;  // NEW (late-day stop buffer)
 }
 
 interface ServerStatus {
@@ -81,6 +83,8 @@ export function CustomOrdersPage() {
     wait_after_open_minutes: 1.01,
     breakout_lookback_minutes: 60,
     breakout_exclude_minutes: 0.5,
+  start_minutes_before_close: null,
+  stop_minutes_before_close: 0,
   };
 
   const defaultPivotPositions = { any: false, lower: false, middle: false, upper: false };
@@ -474,7 +478,7 @@ export function CustomOrdersPage() {
                   className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60"
                   title="Reset & remove saved order config"
                 >
-                  Reset Order
+                  Reset
                 </button>
               </div>
             </div>
@@ -679,6 +683,30 @@ export function CustomOrdersPage() {
                       onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_exclude_minutes: parseFloat(e.target.value) || 0 }))}
                       className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
                       min={0}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Start Minutes Before Close</label>
+                    <input
+                      type="number"
+                      step="1"
+                      value={orderConfig.start_minutes_before_close ?? ''}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, start_minutes_before_close: e.target.value === '' ? null : parseFloat(e.target.value) }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      min={1}
+                      placeholder="e.g. 60 (last hour)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Stop Minutes Before Close</label>
+                    <input
+                      type="number"
+                      step="1"
+                      value={orderConfig.stop_minutes_before_close ?? 0}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, stop_minutes_before_close: parseFloat(e.target.value) || 0 }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      min={0}
+                      placeholder="0"
                     />
                   </div>
                   <div className="col-span-2 md:col-span-3 xl:col-span-4">
