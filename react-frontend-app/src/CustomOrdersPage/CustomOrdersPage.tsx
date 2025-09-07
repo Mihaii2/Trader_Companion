@@ -138,6 +138,25 @@ export function CustomOrdersPage() {
     }
   }); // UI: toggle advanced settings (persisted)
 
+  // Quick visual feedback (glow) when certain buttons are clicked (for touchpad w/out click sound)
+  const [flash, setFlash] = useState<{ order: boolean; trade: boolean; advanced: boolean; refresh: boolean }>({
+    order: false,
+    trade: false,
+    advanced: false,
+    refresh: false,
+  });
+
+  // Single subtle highlight style (toned down vs multicolor)
+  const subtleFlashClass = 'ring-2 ring-primary/50 bg-muted/60 shadow-sm';
+
+  const triggerFlash = (key: keyof typeof flash, duration = 180) => {
+    setFlash(prev => ({ ...prev, [key]: true }));
+    // Clear after short delay
+    window.setTimeout(() => {
+      setFlash(prev => ({ ...prev, [key]: false }));
+    }, duration);
+  };
+
   
   
   // API calls
@@ -433,12 +452,14 @@ export function CustomOrdersPage() {
     // Instant reset (no confirmation per user request)
     setOrderConfig(defaultOrderConfig);
     try { localStorage.removeItem(ORDER_CONFIG_STORAGE_KEY); } catch { /* ignore */ }
+  triggerFlash('order');
   };
 
   const clearSavedTrade = () => {
     // Instant reset (no confirmation per user request)
     setNewTrade(defaultNewTrade);
     try { localStorage.removeItem(NEW_TRADE_STORAGE_KEY); } catch { /* ignore */ }
+  triggerFlash('trade');
   };
 
   // Removed global clearAll per user feedback (was duplicating Reset Order intention visually)
@@ -480,15 +501,15 @@ export function CustomOrdersPage() {
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowAdvanced(s => !s)}
-                  className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60 flex items-center gap-1"
+                  onClick={() => { setShowAdvanced(s => !s); triggerFlash('advanced'); }}
+                  className={`text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60 flex items-center gap-1 relative transition-shadow duration-200 ${flash.advanced ? subtleFlashClass : ''}`}
                 >
                   {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
                 </button>
                 <button
                   type="button"
                   onClick={clearSavedOrderConfig}
-                  className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60"
+                  className={`text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60 transition-shadow relative duration-200 ${flash.order ? subtleFlashClass : ''}`}
                   title="Reset & remove saved order config"
                 >
                   Reset Order
@@ -582,49 +603,6 @@ export function CustomOrdersPage() {
                 <h3 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Advanced Settings</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-xs font-medium mb-1">Pivot Adjustment</label>
-                    <select
-                      value={orderConfig.pivot_adjustment}
-                      onChange={(e) => setOrderConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
-                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                    >
-                      <option value="0.0">0.0%</option>
-                      <option value="0.5">0.5%</option>
-                      <option value="1.0">1.0%</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Time in Pivot (s)</label>
-                    <input
-                      type="number"
-                      value={orderConfig.time_in_pivot}
-                      onChange={(e) => setOrderConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
-                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                      placeholder="seconds"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Breakout Lookback (m)</label>
-                    <input
-                      type="number"
-                      value={orderConfig.breakout_lookback_minutes}
-                      onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_lookback_minutes: parseInt(e.target.value) || 0 }))}
-                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                      min={1}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium mb-1">Lookback Exclude Recent (m)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={orderConfig.breakout_exclude_minutes}
-                      onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_exclude_minutes: parseFloat(e.target.value) || 0 }))}
-                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                      min={0}
-                    />
-                  </div>
-                  <div>
                     <label className="block text-xs font-medium mb-1">Start Minutes Before Close</label>
                     <input
                       type="number"
@@ -633,7 +611,7 @@ export function CustomOrdersPage() {
                       onChange={(e) => setOrderConfig(prev => ({ ...prev, start_minutes_before_close: e.target.value === '' ? null : parseFloat(e.target.value) }))}
                       className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
                       min={1}
-                      placeholder="e.g. 60 (last hour)"
+                      placeholder="e.g. 60 (trades only last hour)"
                     />
                   </div>
                   <div>
@@ -702,22 +680,6 @@ export function CustomOrdersPage() {
                       placeholder="0"
                     />
                   </div>
-                  <div className="col-span-2 md:col-span-3 xl:col-span-4">
-                    <label className="block text-xs font-medium mb-1">Time in Pivot Positions</label>
-                    <div className="flex flex-wrap gap-3">
-                      {(['any', 'lower', 'middle', 'upper'] as const).map(position => (
-                        <label key={position} className="flex items-center gap-1 text-xs bg-muted/40 px-2 py-1 rounded">
-                          <input
-                            type="checkbox"
-                            checked={pivotPositions[position]}
-                            onChange={(e) => updatePivotPositions(position, e.target.checked)}
-                            className="rounded border-input text-primary focus:ring-ring h-3 w-3"
-                          />
-                          <span className="capitalize">{position}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
                   <div className="col-span-2 md:col-span-3 xl:col-span-4 space-y-2">
                     <label className="block text-xs font-medium text-foreground">Volume Multipliers</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -737,6 +699,65 @@ export function CustomOrdersPage() {
                         />
                       ))}
                     </div>
+                  </div>
+                  <div className="col-span-2 md:col-span-3 xl:col-span-4">
+                    <label className="block text-xs font-medium mb-1">Time in Pivot Positions</label>
+                    <div className="flex flex-wrap gap-3">
+                      {(['any', 'lower', 'middle', 'upper'] as const).map(position => (
+                        <label key={position} className="flex items-center gap-1 text-xs bg-muted/40 px-2 py-1 rounded">
+                          <input
+                            type="checkbox"
+                            checked={pivotPositions[position]}
+                            onChange={(e) => updatePivotPositions(position, e.target.checked)}
+                            className="rounded border-input text-primary focus:ring-ring h-3 w-3"
+                          />
+                          <span className="capitalize">{position}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Pivot Adjustment</label>
+                    <select
+                      value={orderConfig.pivot_adjustment}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, pivot_adjustment: e.target.value }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                    >
+                      <option value="0.0">0.0%</option>
+                      <option value="0.5">0.5%</option>
+                      <option value="1.0">1.0%</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Time in Pivot (s)</label>
+                    <input
+                      type="number"
+                      value={orderConfig.time_in_pivot}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, time_in_pivot: parseInt(e.target.value) }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      placeholder="seconds"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Breakout Lookback (m)</label>
+                    <input
+                      type="number"
+                      value={orderConfig.breakout_lookback_minutes}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_lookback_minutes: parseInt(e.target.value) || 0 }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      min={1}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Lookback Exclude Recent (m)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={orderConfig.breakout_exclude_minutes}
+                      onChange={(e) => setOrderConfig(prev => ({ ...prev, breakout_exclude_minutes: parseFloat(e.target.value) || 0 }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      min={0}
+                    />
                   </div>
                 </div>
               </div>
@@ -763,7 +784,7 @@ export function CustomOrdersPage() {
                   <button
                     type="button"
                     onClick={clearSavedTrade}
-                    className="text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60"
+                    className={`text-xs px-3 py-1.5 rounded-md border border-input hover:bg-muted/60 transition-shadow relative duration-200 ${flash.trade ? subtleFlashClass : ''}`}
                   >
                     Reset Trade
                   </button>
@@ -1057,8 +1078,8 @@ export function CustomOrdersPage() {
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Error Log</h3>
               <button
-                onClick={fetchErrors}
-                className="flex items-center gap-2 px-3 py-1 bg-muted rounded-lg hover:bg-muted/80"
+                onClick={() => { fetchErrors(); triggerFlash('refresh'); }}
+                className={`flex items-center gap-2 px-3 py-1 bg-muted rounded-lg hover:bg-muted/80 transition-shadow duration-200 ${flash.refresh ? subtleFlashClass : ''}`}
               >
                 <RefreshCw className="w-4 h-4" />
                 Refresh

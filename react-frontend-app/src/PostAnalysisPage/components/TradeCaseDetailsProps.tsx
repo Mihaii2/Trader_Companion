@@ -45,6 +45,8 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
 
   const { symbol, total_score, personal_opinion_score, details, demand_reason, characteristics = {} } =
     caseData || {};
+  // Get exit reason from trade
+  const exitReason = trade.Exit_Reason;
 
   const loadAnalyses = useCallback(async () => {
     try {
@@ -245,36 +247,47 @@ const TradeCaseDetails = forwardRef<HTMLDivElement, TradeCaseDetailsProps>(({ tr
 
             {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
-        {showCaseDetails && (
+        {(showCaseDetails || exitReason) && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Case Details</h3>
-            <div className="grid grid-cols-2 gap-0 text-sm">
-              <p className="border-r border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Symbol:</span> {symbol}</p>
-              <p className="border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Total Score:</span> {total_score}</p>
-              <p className="border-r border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Opinion Score:</span> {personal_opinion_score}</p>
-              <p className="border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Demand Reason:</span> {demand_reason || '—'}</p>
-            </div>
+            {/* Case JSON details if present */}
+            {showCaseDetails && (
+              <div className="grid grid-cols-2 gap-0 text-sm">
+                <p className="border-r border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Symbol:</span> {symbol}</p>
+                <p className="border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Total Score:</span> {total_score}</p>
+                <p className="border-r border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Opinion Score:</span> {personal_opinion_score}</p>
+                <p className="border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Demand Reason:</span> {demand_reason || '—'}</p>
+              </div>
+            )}
+            {/* Always show Exit Reason if present */}
+            {exitReason && (
+              <div className="grid grid-cols-1 gap-0 text-sm">
+                <p className="border-b border-border" style={{ margin: 0, padding: '2px 6px' }}><span className="font-medium">Exit Reason:</span> {exitReason}</p>
+              </div>
+            )}
             {details && (
               <div>
                 <p className="font-medium">Details:</p>
                 <p className="text-muted-foreground text-sm">{details}</p>
               </div>
             )}
-            <div>
-              <p className="font-medium mb-2">Characteristics:</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-0 text-sm">
-                {Object.entries(characteristics).map(([key, value], idx) => (
-                  <div
-                    key={key}
-                    className={`flex items-center space-x-2 border-b border-border ${((idx + 1) % 3 !== 0) ? 'border-r' : ''}`}
-                    style={{ padding: '2px 6px', margin: 0 }}
-                  >
-                    <Checkbox checked={Boolean(value)} disabled />
-                    <span>{key}</span>
-                  </div>
-                ))}
+            {showCaseDetails && (
+              <div>
+                <p className="font-medium mb-2">Characteristics:</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-0 text-sm">
+                  {Object.entries(characteristics).map(([key, value], idx) => (
+                    <div
+                      key={key}
+                      className={`flex items-center space-x-2 border-b border-border ${((idx + 1) % 3 !== 0) ? 'border-r' : ''}`}
+                      style={{ padding: '2px 6px', margin: 0 }}
+                    >
+                      <Checkbox checked={Boolean(value)} disabled />
+                      <span>{key}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             <hr className="border-border" />
           </div>
         )}
