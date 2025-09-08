@@ -906,21 +906,27 @@ class StockTradingServer:
             self._log_error("INSUFFICIENT_RISK", ticker, error_msg)
             # Do NOT remove trade; allow user to either increase risk or remove trade later
             return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
-        
-        # Connect to IB
+        # ------------------------------------------------------------
+        # EARLY RISK DEDUCTION & TRADE REMOVAL (as requested)
+        # Reserve (deduct) the full risk BEFORE any API interaction.
+        # ------------------------------------------------------------
+        self.trades.remove(trade)  # remove immediately
+        self.available_risk -= trade.risk_amount
+        if self.available_risk < 0 and self.available_risk > -1e-6:  # guard tiny negatives
+            self.available_risk = 0.0
+        print(f"✅ Trade removed & risk deducted upfront: -${trade.risk_amount:.2f}. New available risk: ${self.available_risk:.2f}")
+
+        # Connect to IB AFTER risk has been deducted
         if not self._connect_to_ib(ticker):
             error_msg = "Failed to connect to IB"
             self._log_error("CONNECTION_FAILED", ticker, error_msg)
-            return {'success': False, 'error': error_msg}
-        
+            # Simplicity: do NOT restore risk automatically (per request to not overcomplicate)
+            return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
+
         try:
             # Update last trade time when a trade is executed
             self.last_trade_time = time.time()
-            
-            # Remove trade from list (reserve risk conceptually, but don't deduct yet)
-            self.trades.remove(trade)
-            print(f"✅ Trade removed from queue. (Risk reserved: ${trade.risk_amount:.2f}, available still ${self.available_risk:.2f})")
-            
+
             # Execute buy order
             buy_result = self._execute_buy_order(trade)
             
@@ -928,22 +934,13 @@ class StockTradingServer:
                 error_msg = "Buy order failed completely"
                 print(f"❌ {error_msg}")
                 self._log_error("BUY_ORDER_COMPLETE_FAILURE", ticker, error_msg)
-                # Since we never deducted risk, nothing to restore. User can re-add trade manually if desired.
                 return {'success': False, 'error': error_msg}
             
             # Place sell stops (need avg fill price for percent-based stops)
             self._execute_sell_stop_orders(trade, buy_result['filled_shares'], buy_result['avg_price'])
-
-            # Deduct only proportional risk actually used (handles partial fills)
-            fill_ratio = 0.0
-            if trade.shares > 0:
-                fill_ratio = min(1.0, max(0.0, buy_result['filled_shares'] / trade.shares))
-            risk_used = trade.risk_amount * fill_ratio
-            self.available_risk -= risk_used
-            # Guard against tiny floating point negatives
-            if self.available_risk < 0 and self.available_risk > -1e-6:
-                self.available_risk = 0.0
-            print(f"💰 Risk used: ${risk_used:.2f} (ratio {fill_ratio:.2%}). New available risk: ${self.available_risk:.2f}")
+            # Risk already fully deducted upfront; report full risk_amount as used regardless of fill.
+            risk_used = trade.risk_amount
+            print(f"💰 Risk recorded (already deducted earlier): ${risk_used:.2f}")
             
             result = {
                 'success': True,
