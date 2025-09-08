@@ -207,6 +207,18 @@ export const RankingItem: React.FC<Props> = ({
   
   // Ref for the characteristics container
   const charContainerRef = useRef<HTMLDivElement>(null);
+  // Header responsive shrinking refs
+  const headerRef = useRef<HTMLDivElement>(null);
+  const regularCharsWrapperRef = useRef<HTMLSpanElement>(null); // regular characteristics (common)
+  const priorityCharsWrapperRef = useRef<HTMLSpanElement>(null); // yellow priority
+  const noteWrapperRef = useRef<HTMLSpanElement>(null);
+  const catalystWrapperRef = useRef<HTMLSpanElement>(null);
+
+  // Track which groups are hidden (for className binding only)
+  const [hideRegularChars, setHideRegularChars] = useState(false);
+  const [hidePriorityChars, setHidePriorityChars] = useState(false);
+  const [hideNote, setHideNote] = useState(false);
+  const [hideCatalyst, setHideCatalyst] = useState(false);
 
   // Trade existence checker (memoized)
   const checkTradeExists = useCallback(async () => {
@@ -455,6 +467,50 @@ export const RankingItem: React.FC<Props> = ({
     };
   }, []);
 
+  // Progressive hiding logic: hide from right to left -> regular characteristics, priority (yellow), note, catalyst
+  useEffect(() => {
+    const headerEl = headerRef.current;
+    if (!headerEl) return;
+
+    // Function that applies hiding logic
+    const applySizing = () => {
+      const groups: Array<{ref: React.RefObject<HTMLElement>, hideSetter: (v:boolean)=>void}> = [
+        { ref: regularCharsWrapperRef, hideSetter: setHideRegularChars },
+        { ref: priorityCharsWrapperRef, hideSetter: setHidePriorityChars },
+        { ref: noteWrapperRef, hideSetter: setHideNote },
+        { ref: catalystWrapperRef, hideSetter: setHideCatalyst }
+      ];
+
+      // First show everything
+      groups.forEach(g => {
+        if (g.ref.current) g.ref.current.style.display = '';
+        g.hideSetter(false);
+      });
+
+      // Allow layout to update before measuring
+      requestAnimationFrame(() => {
+        // Hide progressively while overflowing
+        for (const g of groups) {
+          if (headerEl.scrollWidth <= headerEl.clientWidth) break;
+          if (g.ref.current) {
+            g.ref.current.style.display = 'none';
+            g.hideSetter(true);
+          }
+        }
+      });
+    };
+
+    // Resize observer to react to width changes
+    const ro = new ResizeObserver(() => applySizing());
+    ro.observe(headerEl);
+
+    // Also apply when content changes (characteristics, note, catalyst)
+    applySizing();
+    return () => {
+      ro.disconnect();
+    };
+  }, [visibleCharacteristics, priorityCharacteristics, note, stock.demand_reason, stock.personal_opinion_score, stock.total_score]);
+
   // Fetch global characteristics from API
   const fetchGlobalCharacteristics = async () => {
     try {
@@ -481,7 +537,7 @@ export const RankingItem: React.FC<Props> = ({
     const currentRequestVersion = ++requestVersionRef.current;
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-  // saving indicator removed
+        // saving indicator removed
         const currentStock = { ...stock, case_text: newCaseText };
         await stockPicksApi.updateStockPick(currentStock.id, {
           case_text: newCaseText,
@@ -502,10 +558,10 @@ export const RankingItem: React.FC<Props> = ({
         console.error('Error saving case text:', err);
         setError('Failed to save case text');
       } finally {
-  // saving indicator removed
+        // saving indicator removed
         setIsEditingCaseText(false); // user paused typing
       }
-    }, 1500); // faster debounce while ensuring stability
+    }, 900); // faster debounce while ensuring stability
   };
 
   // Toggle a characteristic on/off
@@ -769,10 +825,11 @@ export const RankingItem: React.FC<Props> = ({
     <Card className="rounded-sm">
       <CardContent className="p-0 pl-1 rounded-sm">
         <div
-          className="flex justify-between items-center cursor-pointer p-0.1"
+          className="flex justify-between items-center cursor-pointer p-0.1 overflow-hidden"
           onClick={() => setIsExpanded(!isExpanded)}
+          ref={headerRef}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 min-w-0">
             <Badge variant="default" className="font-semibold">{stock.symbol}</Badge>
             <Badge variant="secondary" className="whitespace-nowrap">Score: {stock.total_score}</Badge>
             {stock.personal_opinion_score > 0 && (
@@ -781,18 +838,25 @@ export const RankingItem: React.FC<Props> = ({
             {stock.personal_opinion_score < 0 && (
               <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70 whitespace-nowrap">Personal: {stock.personal_opinion_score}</Badge>
             )}
-            {stock.demand_reason && (
-              <Badge variant="outline" className="text-green-600 dark:text-green-400 whitespace-nowrap">{stock.demand_reason}</Badge>
-            )}
-            {stock.note && (
-              <Badge variant="outline" className="text-blue-600 dark:text-blue-400 whitespace-nowrap">{stock.note}</Badge>
-            )}
-            {priorityCharacteristics.length > 0 && priorityCharacteristics.map(char => (
-              <Badge key={char.id} variant="outline" className="text-yellow-600 dark:text-yellow-400 whitespace-nowrap">{char.name}</Badge>
-            ))}
+            <span ref={catalystWrapperRef} className={hideCatalyst ? 'hidden' : ''}>
+              {stock.demand_reason && (
+                <Badge variant="outline" className="text-green-600 dark:text-green-400 whitespace-nowrap">{stock.demand_reason}</Badge>
+              )}
+            </span>
+            <span ref={noteWrapperRef} className={hideNote ? 'hidden' : ''}>
+              {stock.note && (
+                <Badge variant="outline" className="text-blue-600 dark:text-blue-400 whitespace-nowrap">{stock.note}</Badge>
+              )}
+            </span>
+            <span ref={priorityCharsWrapperRef} className={hidePriorityChars ? 'hidden' : 'flex flex-nowrap'}>
+              {priorityCharacteristics.length > 0 && priorityCharacteristics.map(char => (
+                <Badge key={char.id} variant="outline" className="text-yellow-600 dark:text-yellow-400 whitespace-nowrap">{char.name}</Badge>
+              ))}
+            </span>
 
             {/* Regular Characteristics container with ref for measuring */}
-            <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
+            <span ref={regularCharsWrapperRef} className={hideRegularChars ? 'hidden' : ''}>
+              <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
               {visibleCharacteristics.map((char) => (
                 <Badge key={char.id} variant="outline">
                   {char.name}
@@ -804,12 +868,13 @@ export const RankingItem: React.FC<Props> = ({
                   <MoreHorizontal className="h-3 w-3 mr-0.5" />
                 </Badge>
               )}
-            </div>
+              </div>
+            </span>
             
             {/* Personal badge moved earlier */}
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -909,7 +974,7 @@ export const RankingItem: React.FC<Props> = ({
                         } finally {
                           // removed saving indicator
                         }
-                      }, 1200);
+                      }, 900);
                     }}
                     placeholder="Enter note..."
                     className="h-8"
@@ -1053,7 +1118,7 @@ export const RankingItem: React.FC<Props> = ({
                         } finally {
                           // removed saving indicator
                         }
-                      }, 1200);
+                      }, 900);
                     }}
                     placeholder="Enter demand reason..."
                     className="h-8"

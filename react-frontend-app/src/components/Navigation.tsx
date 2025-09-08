@@ -8,9 +8,9 @@ export function Navigation() {
 
   return (
     <nav className="w-full bg-background border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex space-x-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 relative">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 pr-14">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <Link
               to="/stocks_screeners"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
@@ -82,7 +82,7 @@ export function Navigation() {
               Custom Orders
             </Link>
           </div>
-          <div>
+          <div className="absolute right-3 top-1/2 -translate-y-1/2"> 
             <ThemeToggle />
           </div>
         </div>
