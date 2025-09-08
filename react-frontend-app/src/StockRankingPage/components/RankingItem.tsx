@@ -164,19 +164,43 @@ export const RankingItem: React.FC<Props> = ({
   const [editedScore, setEditedScore] = useState<number>(0);
   const [isEditingPersonalScore, setIsEditingPersonalScore] = useState(false);
   const [personalScore, setPersonalScore] = useState<number>(initialStock.personal_opinion_score || 0);
-  const [isSaving, setIsSaving] = useState(false);
   // Properly type the visible characteristics array
   const [visibleCharacteristics, setVisibleCharacteristics] = useState<StockPick['characteristics']>([]);
   const [priorityCharacteristics, setPriorityCharacteristics] = useState<StockPick['characteristics']>([]);
   const [hasHiddenCharacteristics, setHasHiddenCharacteristics] = useState(false);
   const [note, setNote] = useState<string>(initialStock.note || '');
+  const [pendingCharacteristics, setPendingCharacteristics] = useState<Record<number, boolean>>({});
   const [lastClickedCharacteristic, setLastClickedCharacteristic] = useState<number | null>(null);
   const [hasTradeInHistory, setHasTradeInHistory] = useState<boolean | null>(null);
   const [isCheckingTrades, setIsCheckingTrades] = useState(false);
 
+  // Track if user is actively editing fields to avoid overwriting from server
+  const [isEditingCaseText, setIsEditingCaseText] = useState(false);
+  const [isEditingNote, setIsEditingNote] = useState(false);
+  const [isEditingDemandReason, setIsEditingDemandReason] = useState(false);
+
+  // Version counter to ignore stale save responses
+  const requestVersionRef = useRef(0);
+      // saving indicator removed
+  const hasSyncedLocalOverridesRef = useRef(false);
+
+  // Local storage key helper (prefer id, fallback to symbol)
+  const storageKey = `rankingItem:${initialStock.id || initialStock.symbol}`;
+
+  // Persist important front-end fields immediately for resilience on refresh
+  const persistLocal = useCallback((data: Partial<StockPick>) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem(storageKey) || '{}');
+      const merged = { ...existing, ...data };
+      localStorage.setItem(storageKey, JSON.stringify(merged));
+    } catch {
+      // ignore storage errors
+    }
+  }, [storageKey]);
+
   
   // Track pending characteristic changes
-  const [pendingCharacteristics, setPendingCharacteristics] = useState<Record<number, boolean>>({});
+      // saving indicator removed
   
   // Add a saveTimeout ref to debounce saving
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -199,23 +223,88 @@ export const RankingItem: React.FC<Props> = ({
     }
   }, [stock.symbol]);
 
-  // Update local state when prop changes
+  // Load local overrides on first mount & whenever initialStock id changes
   useEffect(() => {
-    setStock(initialStock);
-    setCaseText(initialStock.case_text || '');
-    setPersonalScore(initialStock.personal_opinion_score || 0);
-    setNote(initialStock.note || '');
-    
+    // Load overrides
+    let overrides: Partial<StockPick> = {};
+    try {
+      overrides = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    } catch { /* ignore */ }
+
+    // Merge server -> local with local authoritative for selected fields
+    const merged: StockPick = {
+      ...initialStock,
+      case_text: overrides.case_text ?? initialStock.case_text,
+      note: overrides.note ?? initialStock.note,
+      demand_reason: overrides.demand_reason ?? initialStock.demand_reason,
+      personal_opinion_score: overrides.personal_opinion_score ?? initialStock.personal_opinion_score,
+    } as StockPick;
+    setStock(merged);
+    setCaseText(merged.case_text || '');
+    setPersonalScore(merged.personal_opinion_score || 0);
+    setNote(merged.note || '');
+
+    // Persist again to ensure structure correct
+    persistLocal({
+      case_text: merged.case_text,
+      note: merged.note,
+      demand_reason: merged.demand_reason,
+      personal_opinion_score: merged.personal_opinion_score
+    });
+
+    // After initial merge, if overrides differ from backend, push update once
+    if (!hasSyncedLocalOverridesRef.current) {
+      const diff = (
+        overrides.case_text !== undefined && overrides.case_text !== initialStock.case_text) ||
+        (overrides.note !== undefined && overrides.note !== initialStock.note) ||
+        (overrides.demand_reason !== undefined && overrides.demand_reason !== initialStock.demand_reason) ||
+        (overrides.personal_opinion_score !== undefined && overrides.personal_opinion_score !== initialStock.personal_opinion_score);
+      if (diff) {
+        (async () => {
+          try {
+            await stockPicksApi.updateStockPick(initialStock.id, {
+              case_text: merged.case_text,
+              note: merged.note,
+              demand_reason: merged.demand_reason,
+              ranking_box: merged.ranking_box,
+              symbol: merged.symbol,
+              total_score: merged.total_score,
+              personal_opinion_score: merged.personal_opinion_score
+            });
+          } catch {/* ignore sync error */}
+        })();
+      }
+      hasSyncedLocalOverridesRef.current = true;
+    }
+
     // Extract priority characteristics that exist in this stock
-    const priorityChars = initialStock.characteristics.filter(
+    const priorityChars = merged.characteristics.filter(
       char => PRIORITY_CHARACTERISTICS.includes(char.name)
     );
     setPriorityCharacteristics(priorityChars);
-    // Trigger a trade existence check when item expands for first time
     if (isExpanded && hasTradeInHistory === null) {
       checkTradeExists();
     }
-  }, [initialStock, isExpanded, hasTradeInHistory, checkTradeExists]);
+  // We intentionally exclude certain stable callbacks to avoid needless re-sync loops
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStock.id, storageKey]);
+
+  // When parent passes a changed initialStock (other than id), merge but don't override active edits
+  useEffect(() => {
+    setStock(prev => {
+      // If ids differ we've already handled via previous effect
+      if (prev.id !== initialStock.id) return prev;
+      const merged: StockPick = {
+        ...prev,
+        ...initialStock,
+        case_text: isEditingCaseText ? prev.case_text : prev.case_text || initialStock.case_text,
+        note: isEditingNote ? prev.note : prev.note || initialStock.note,
+        demand_reason: isEditingDemandReason ? prev.demand_reason : prev.demand_reason || initialStock.demand_reason,
+        personal_opinion_score: isEditingPersonalScore ? prev.personal_opinion_score : initialStock.personal_opinion_score,
+      } as StockPick;
+      return merged;
+    });
+  }, [initialStock, isEditingCaseText, isEditingNote, isEditingDemandReason, isEditingPersonalScore]);
 
   // Calculate which characteristics should be visible based on container height
   // Use useCallback to memoize the function and prevent unnecessary re-renders
@@ -384,52 +473,46 @@ export const RankingItem: React.FC<Props> = ({
   const handleDetailsTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newCaseText = e.target.value;
     setCaseText(newCaseText);
-    
-    // Update local stock state immediately for UI responsiveness
-    setStock(prevStock => ({
-      ...prevStock,
-      case_text: newCaseText
-    }));
-    
-    // Clear any existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    
-    // Set a new timeout to save after typing stops
+    setIsEditingCaseText(true);
+    setStock(prevStock => ({ ...prevStock, case_text: newCaseText }));
+    persistLocal({ case_text: newCaseText });
+
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    const currentRequestVersion = ++requestVersionRef.current;
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        setIsSaving(true);
-        // Get the CURRENT stock state at the time of saving, not the closure value
-        const currentStock = { ...stock };
-        
-        // Include all required fields from the current stock object
-        const updatedStock = await stockPicksApi.updateStockPick(currentStock.id, { 
+  // saving indicator removed
+        const currentStock = { ...stock, case_text: newCaseText };
+        await stockPicksApi.updateStockPick(currentStock.id, {
           case_text: newCaseText,
           ranking_box: currentStock.ranking_box,
           symbol: currentStock.symbol,
           total_score: currentStock.total_score,
-          // Make sure to include the current personal_opinion_score
-          personal_opinion_score: currentStock.personal_opinion_score
+          personal_opinion_score: currentStock.personal_opinion_score,
+          note: currentStock.note,
+          demand_reason: currentStock.demand_reason
+        }).then(resp => {
+          // Ignore stale responses
+            if (currentRequestVersion !== requestVersionRef.current) return;
+            // Merge without overwriting if user kept typing (already same value)
+            setStock(prev => ({ ...prev, ...resp.data, case_text: prev.case_text }));
+            onUpdate({ ...resp.data, case_text: newCaseText });
         });
-        
-        // Update the local state with the response data
-        setStock(updatedStock.data);
-        onUpdate(updatedStock.data);
       } catch (err) {
         console.error('Error saving case text:', err);
         setError('Failed to save case text');
       } finally {
-        setIsSaving(false);
+  // saving indicator removed
+        setIsEditingCaseText(false); // user paused typing
       }
-    }, 2500); // Wait 2.5 seconds after typing stops before saving
+    }, 1500); // faster debounce while ensuring stability
   };
 
   // Toggle a characteristic on/off
   const handleToggleCharacteristic = async (characteristicId: number, checked: boolean) => {
     try {
       // Immediately update UI state for better UX
-      setPendingCharacteristics(prev => ({...prev, [characteristicId]: checked}));
+  setPendingCharacteristics((prev: Record<number, boolean>) => ({...prev, [characteristicId]: checked}));
       setIsSubmitting(true);
       setError(null);
       
@@ -497,14 +580,14 @@ export const RankingItem: React.FC<Props> = ({
       setError(`Failed to ${checked ? 'add' : 'remove'} characteristic`);
       
       // Revert optimistic update on error
-      setPendingCharacteristics(prev => ({...prev, [characteristicId]: !checked}));
+  setPendingCharacteristics((prev: Record<number, boolean>) => ({...prev, [characteristicId]: !checked}));
       const response = await stockPicksApi.getStockPick(stock.id);
       setStock(response.data);
       onUpdate(response.data);
     } finally {
       setIsSubmitting(false);
-      setPendingCharacteristics(prev => {
-        const newState = {...prev};
+      setPendingCharacteristics((prev: Record<number, boolean>) => {
+        const newState: Record<number, boolean> = {...prev};
         delete newState[characteristicId];
         return newState;
       });
@@ -692,37 +775,21 @@ export const RankingItem: React.FC<Props> = ({
           <div className="flex items-center gap-1">
             <Badge variant="default" className="font-semibold">{stock.symbol}</Badge>
             <Badge variant="secondary" className="whitespace-nowrap">Score: {stock.total_score}</Badge>
-            
-            {/* Priority Characteristics - shown with yellow text */}
-            {priorityCharacteristics.length > 0 && priorityCharacteristics.map((char) => (
-              <Badge 
-                key={char.id} 
-                variant="outline" 
-                className="text-yellow-600 dark:text-yellow-400 whitespace-nowrap"
-              >
-                {char.name}
-              </Badge>
-            ))}
-
-            {/* Note Badge - shown with blue text before demand reason */}
-            {stock.note && (
-              <Badge 
-                variant="outline" 
-                className="text-blue-600 dark:text-blue-400 whitespace-nowrap"
-              >
-                {stock.note}
-              </Badge>
+            {stock.personal_opinion_score > 0 && (
+              <Badge variant="outline" className="bg-green-100/70 dark:bg-green-900/70 whitespace-nowrap">Personal: +{stock.personal_opinion_score}</Badge>
             )}
-
-            {/* Demand Reason Badge - shown with green text right after priority characteristics */}
+            {stock.personal_opinion_score < 0 && (
+              <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70 whitespace-nowrap">Personal: {stock.personal_opinion_score}</Badge>
+            )}
             {stock.demand_reason && (
-              <Badge 
-                variant="outline" 
-                className="text-green-600 dark:text-green-400 whitespace-nowrap"
-              >
-                {stock.demand_reason}
-              </Badge>
+              <Badge variant="outline" className="text-green-600 dark:text-green-400 whitespace-nowrap">{stock.demand_reason}</Badge>
             )}
+            {stock.note && (
+              <Badge variant="outline" className="text-blue-600 dark:text-blue-400 whitespace-nowrap">{stock.note}</Badge>
+            )}
+            {priorityCharacteristics.length > 0 && priorityCharacteristics.map(char => (
+              <Badge key={char.id} variant="outline" className="text-yellow-600 dark:text-yellow-400 whitespace-nowrap">{char.name}</Badge>
+            ))}
 
             {/* Regular Characteristics container with ref for measuring */}
             <div className="flex flex-wrap gap-1 max-h-7 overflow-hidden" ref={charContainerRef}>
@@ -739,16 +806,7 @@ export const RankingItem: React.FC<Props> = ({
               )}
             </div>
             
-            {stock.personal_opinion_score > 0 && (
-              <Badge variant="outline" className="bg-green-100/70 dark:bg-green-900/70 whitespace-nowrap">
-                Personal: +{stock.personal_opinion_score}
-              </Badge>
-            )}
-            {stock.personal_opinion_score < 0 && (
-              <Badge variant="outline" className="bg-red-100/70 dark:bg-red-900/70 whitespace-nowrap">
-                Personal: {stock.personal_opinion_score}
-              </Badge>
-            )}
+            {/* Personal badge moved earlier */}
           </div>
           
           <div className="flex items-center gap-1">
@@ -820,27 +878,19 @@ export const RankingItem: React.FC<Props> = ({
                 <div className="flex-1">
                   <Input
                     value={note || ''}
-                    onChange={async (e) => {
+                    onFocus={() => setIsEditingNote(true)}
+                    onBlur={() => setIsEditingNote(false)}
+                    onChange={(e) => {
                       const newNote = e.target.value;
-                      // Update local state immediately
                       setNote(newNote);
-                      setStock(prevStock => ({
-                        ...prevStock,
-                        note: newNote
-                      }));
-                      
-                      // Clear any existing timeout
-                      if (saveTimeoutRef.current) {
-                        clearTimeout(saveTimeoutRef.current);
-                      }
-                      
-                      // Set a new timeout to save after typing stops
+                      setStock(prev => ({ ...prev, note: newNote }));
+                      persistLocal({ note: newNote });
+                      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+                      const currentRequestVersion = ++requestVersionRef.current;
                       saveTimeoutRef.current = setTimeout(async () => {
                         try {
-                          setIsSaving(true);
-                          
-                          // Update note in backend
-                          const updatedStock = await stockPicksApi.updateStockPick(stock.id, {
+                          // removed saving indicator
+                          await stockPicksApi.updateStockPick(stock.id, {
                             note: newNote,
                             demand_reason: stock.demand_reason,
                             ranking_box: stock.ranking_box,
@@ -848,18 +898,18 @@ export const RankingItem: React.FC<Props> = ({
                             total_score: stock.total_score,
                             personal_opinion_score: stock.personal_opinion_score,
                             case_text: stock.case_text
+                          }).then(resp => {
+                            if (currentRequestVersion !== requestVersionRef.current) return;
+                            setStock(prev => ({ ...prev, ...resp.data, note: prev.note }));
+                            onUpdate({ ...resp.data, note: newNote });
                           });
-                          
-                          // Update with server response
-                          setStock(updatedStock.data);
-                          onUpdate(updatedStock.data);
                         } catch (err) {
                           console.error('Error saving note:', err);
                           setError('Failed to save note');
                         } finally {
-                          setIsSaving(false);
+                          // removed saving indicator
                         }
-                      }, 2500);
+                      }, 1200);
                     }}
                     placeholder="Enter note..."
                     className="h-8"
@@ -973,44 +1023,37 @@ export const RankingItem: React.FC<Props> = ({
                 <div className="flex-1">
                   <Input
                     value={stock.demand_reason || ''}
-                    onChange={async (e) => {
+                    onFocus={() => setIsEditingDemandReason(true)}
+                    onBlur={() => setIsEditingDemandReason(false)}
+                    onChange={(e) => {
                       const newDemandReason = e.target.value;
-                      // Update local state immediately
-                      setStock(prevStock => ({
-                        ...prevStock,
-                        demand_reason: newDemandReason
-                      }));
-                      
-                      // Clear any existing timeout
-                      if (saveTimeoutRef.current) {
-                        clearTimeout(saveTimeoutRef.current);
-                      }
-                      
-                      // Set a new timeout to save after typing stops
+                      setStock(prev => ({ ...prev, demand_reason: newDemandReason }));
+                      persistLocal({ demand_reason: newDemandReason });
+                      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+                      const currentRequestVersion = ++requestVersionRef.current;
                       saveTimeoutRef.current = setTimeout(async () => {
                         try {
-                          setIsSaving(true);
-                          
-                          // Update demand reason in backend
-                          const updatedStock = await stockPicksApi.updateStockPick(stock.id, {
+                          // removed saving indicator
+                          await stockPicksApi.updateStockPick(stock.id, {
                             demand_reason: newDemandReason,
                             ranking_box: stock.ranking_box,
                             symbol: stock.symbol,
                             total_score: stock.total_score,
                             personal_opinion_score: stock.personal_opinion_score,
-                            case_text: stock.case_text
+                            case_text: stock.case_text,
+                            note: stock.note
+                          }).then(resp => {
+                            if (currentRequestVersion !== requestVersionRef.current) return;
+                            setStock(prev => ({ ...prev, ...resp.data, demand_reason: prev.demand_reason }));
+                            onUpdate({ ...resp.data, demand_reason: newDemandReason });
                           });
-                          
-                          // Update with server response
-                          setStock(updatedStock.data);
-                          onUpdate(updatedStock.data);
                         } catch (err) {
                           console.error('Error saving demand reason:', err);
                           setError('Failed to save demand reason');
                         } finally {
-                          setIsSaving(false);
+                          // removed saving indicator
                         }
-                      }, 2500);
+                      }, 1200);
                     }}
                     placeholder="Enter demand reason..."
                     className="h-8"
@@ -1079,12 +1122,14 @@ export const RankingItem: React.FC<Props> = ({
               <Textarea
                 placeholder="Enter additional details..."
                 value={detailsText}
+                onFocus={() => setIsEditingCaseText(true)}
+                onBlur={() => setIsEditingCaseText(false)}
                 onChange={handleDetailsTextChange}
                 className="mt-1"
                 rows={4}
                 style={{ resize: 'vertical' }}
               />
-              {isSaving && <p className="text-xs text-muted-foreground mt-1">Saving...</p>}
+              {/* saving indicator removed */}
             </div>
           </div>
         )}

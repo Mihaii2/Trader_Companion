@@ -21,6 +21,8 @@ interface OrderConfig {
   breakout_exclude_minutes?: number; // NEW
   start_minutes_before_close?: number | null; // NEW (late-day start)
   stop_minutes_before_close?: number | null;  // NEW (late-day stop buffer)
+  request_lower_price?: number | null; // NEW (override trade lower price)
+  request_higher_price?: number | null; // NEW (override trade higher price)
 }
 
 interface ServerStatus {
@@ -86,6 +88,8 @@ export function CustomOrdersPage() {
     breakout_exclude_minutes: 0.5,
   start_minutes_before_close: null,
   stop_minutes_before_close: 0,
+  request_lower_price: null,
+  request_higher_price: null,
   };
 
   const defaultPivotPositions = { any: false, lower: false, middle: false, upper: false };
@@ -602,6 +606,34 @@ export function CustomOrdersPage() {
               <div className="space-y-4 border border-dashed border-border rounded-md p-4 bg-muted/30">
                 <h3 className="text-sm font-semibold tracking-wide uppercase text-muted-foreground">Advanced Settings</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Request Lower Trade Price (override)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={orderConfig.request_lower_price ?? ''}
+                      onChange={(e) => setOrderConfig(prev => ({
+                        ...prev,
+                        request_lower_price: e.target.value === '' ? null : parseFloat(e.target.value)
+                      }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      placeholder="Optional"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Request Higher Trade Price (override)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={orderConfig.request_higher_price ?? ''}
+                      onChange={(e) => setOrderConfig(prev => ({
+                        ...prev,
+                        request_higher_price: e.target.value === '' ? null : parseFloat(e.target.value)
+                      }))}
+                      className="w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
+                      placeholder="Optional"
+                    />
+                  </div>
                   <div>
                     <label className="block text-xs font-medium mb-1">Start Minutes Before Close</label>
                     <input

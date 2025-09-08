@@ -101,6 +101,12 @@ class TradingBotManager:
             cmd[2] += f" --start-minutes-before-close {params['start_minutes_before_close']}"
         if params.get('stop_minutes_before_close') is not None:
             cmd[2] += f" --stop-minutes-before-close {params['stop_minutes_before_close']}"
+
+        # NEW (2025-09-07): Optional request trade price overrides
+        if params.get('request_lower_price') is not None:
+            cmd[2] += f" --request-lower-price {params['request_lower_price']}"
+        if params.get('request_higher_price') is not None:
+            cmd[2] += f" --request-higher-price {params['request_higher_price']}"
         
         return cmd
     

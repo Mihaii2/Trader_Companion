@@ -478,14 +478,19 @@ class StockTradingBot:
         
         return condition_met
     
-    def execute_trade(self, ticker: str, lower_price: float, higher_price: float) -> bool:
+    def execute_trade(self, ticker: str, lower_price: float, higher_price: float,
+                      request_lower_price: Optional[float] = None,
+                      request_higher_price: Optional[float] = None) -> bool:
         """Execute the trade by sending POST request to trade server"""
         try:
-            payload = {
-                "ticker": ticker,
-                "lower_price": lower_price,
-                "higher_price": higher_price
-            }
+            # Use override prices if provided (logged for transparency)
+            effective_lower = request_lower_price if request_lower_price is not None else lower_price
+            effective_higher = request_higher_price if request_higher_price is not None else higher_price
+            if request_lower_price is not None or request_higher_price is not None:
+                logger.info(
+                    f"Using overridden request trade prices: lower={effective_lower} (orig {lower_price}), higher={effective_higher} (orig {higher_price})"
+                )
+            payload = {"ticker": ticker, "lower_price": effective_lower, "higher_price": effective_higher}
             
             response = requests.post(f"{self.trade_server_url}/execute_trade", json=payload)
             
@@ -510,7 +515,9 @@ class StockTradingBot:
                  breakout_lookback_minutes: int = 60,
                  breakout_exclude_minutes: float = 1.0,
                  start_minutes_before_close: float = None,
-                 stop_minutes_before_close: float = 0.0):
+                 stop_minutes_before_close: float = 0.0,
+                 request_lower_price: Optional[float] = None,
+                 request_higher_price: Optional[float] = None):
         """Main monitoring and trading logic"""
         adjusted_higher_price = higher_price * (1 + pivot_adjustment)
         
@@ -530,6 +537,7 @@ class StockTradingBot:
         logger.info(f"Wait after open minutes: {wait_after_open_minutes}")
         logger.info(f"Late-day start (minutes before close): {start_minutes_before_close}")
         logger.info(f"Late-day stop (minutes before close): {stop_minutes_before_close}")
+        logger.info(f"Override request trade prices: lower={request_lower_price} higher={request_higher_price}")
         if start_minutes_before_close is not None and stop_minutes_before_close is not None:
             if start_minutes_before_close <= stop_minutes_before_close:
                 logger.warning("Configuration may result in zero/negative trading window: start_minutes_before_close <= stop_minutes_before_close")
@@ -744,7 +752,9 @@ class StockTradingBot:
                 # Summary of results
                 if conditions_met:
                     logger.info("🎉 ALL CONDITIONS MET! Executing trade...")
-                    if self.execute_trade(ticker, lower_price, higher_price):
+                    if self.execute_trade(ticker, lower_price, higher_price,
+                                           request_lower_price=request_lower_price,
+                                           request_higher_price=request_higher_price):
                         logger.info(f"✅ Trade executed successfully for {ticker}")
                         break
                     else:
@@ -958,6 +968,11 @@ def main():
                     help='Lookback window in minutes for breakout momentum (default: 60)')
     parser.add_argument('--breakout-exclude-minutes', type=float, default=1.0,
                     help='Minutes immediately before now to exclude when computing prior high (default: 1.0)')
+    # --- NEW (2025-09-07): Optional request trade pivot override ---
+    parser.add_argument('--request-lower-price', type=float, default=None,
+                        help='If set, this lower price will be sent to the trade server instead of monitoring lower_price.')
+    parser.add_argument('--request-higher-price', type=float, default=None,
+                        help='If set, this higher price will be sent to the trade server instead of monitoring higher_price.')
     # --- NEW (2025-09-05): Late-day trading window controls ---
     parser.add_argument('--start-minutes-before-close', type=float, default=None,
                         help='Only allow initiating trades once time until market close is <= this many minutes (e.g. 60 = last hour). Default: None (no late-day start restriction).')
@@ -969,7 +984,6 @@ def main():
     
     debug_timezone_info()
 
-    
     # Parse volume requirements
     volume_requirements = parse_volume_requirements(args.volume)
     
@@ -983,6 +997,7 @@ def main():
     bot = StockTradingBot(args.data_server, args.trade_server)
     
     try:
+        # Attach override values (will be forwarded via dynamic attribute access below)
         bot.monitor_and_trade(
             ticker=args.ticker.upper(),
             lower_price=args.lower_price,
@@ -1000,6 +1015,8 @@ def main():
             breakout_exclude_minutes=args.breakout_exclude_minutes,
             start_minutes_before_close=args.start_minutes_before_close,
             stop_minutes_before_close=args.stop_minutes_before_close,
+            request_lower_price=args.request_lower_price,
+            request_higher_price=args.request_higher_price,
         )
 
         
