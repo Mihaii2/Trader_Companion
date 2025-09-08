@@ -121,106 +121,139 @@ class StockTradingBot:
         return int(minutes_since_open)
     
     def calculate_volume_increase_in_timeframe(self, data: List[Dict], minutes: int) -> Optional[int]:
-        """Calculate volume increase in the last X minutes"""
+        """Calculate volume increase in the last X minutes, with robust gap/anomaly handling.
+
+        Key robustness changes:
+        - Removed unsafe fallback to the earliest record (often 0 at market open) when cutoff
+          baseline was missing.
+        - Require a data point at/before cutoff and at least one after cutoff; otherwise return None.
+        - Detect suspicious 0 baselines far from session start (indicates truncated history) and abort.
+        - Guard against intraday volume resets (negative deltas) by returning None.
+        """
         logger.info(f"   Calculating volume increase for timeframe: {minutes} minutes")
-        
-        if minutes == -1:  # Entire day - calculate total volume for the day
-            total_volume = sum(record.get('volume', 0) for record in data if record.get('volume') is not None)
+
+        if minutes == -1:  # Entire day
+            total_volume = sum(r.get('volume', 0) for r in data if r.get('volume') is not None)
             logger.info(f"   Total daily volume calculated: {total_volume}")
             return total_volume if total_volume > 0 else None
-        
-        # Check if market has been open long enough for this timeframe
+
         minutes_since_open = self.get_minutes_since_market_open()
         if minutes_since_open is not None and minutes_since_open < minutes:
-            logger.info(f"   Market has only been open for {minutes_since_open} minutes, "
-                    f"adjusting timeframe from {minutes} to {minutes_since_open} minutes")
-            minutes = minutes_since_open  # Use actual time since market open
+            logger.info(
+                f"   Market has only been open for {minutes_since_open} minutes, adjusting timeframe from {minutes} to {minutes_since_open} minutes"
+            )
+            minutes = minutes_since_open
 
         now = datetime.now()
         cutoff_time = now - timedelta(minutes=minutes)
-        
-        # Sort data by timestamp to get chronological order
-        timestamped_data = []
+
+        # Build & sort timestamped data
+        timestamped_data: List[Tuple[datetime, Dict]] = []
         for record in data:
             try:
-                timestamp_str = record['timestamp']
-                
-                # Handle different timestamp formats
-                if timestamp_str.endswith('Z'):
-                    timestamp_str = timestamp_str[:-1]
-                elif '+' in timestamp_str:
-                    timestamp_str = timestamp_str.split('+')[0]
-                elif timestamp_str.endswith('+00:00'):
-                    timestamp_str = timestamp_str[:-6]
-                
-                # Parse the timestamp
+                ts = record.get('timestamp')
+                if not ts:
+                    continue
+                ts_work = ts
+                if ts_work.endswith('Z'):
+                    ts_work = ts_work[:-1]
+                elif '+' in ts_work:
+                    ts_work = ts_work.split('+')[0]
+                elif ts_work.endswith('+00:00'):
+                    ts_work = ts_work[:-6]
                 try:
-                    record_time = datetime.fromisoformat(timestamp_str)
+                    rec_time = datetime.fromisoformat(ts_work)
                 except ValueError:
-                    # Try alternative parsing if fromisoformat fails
-                    record_time = datetime.strptime(timestamp_str, '%Y-%m-%dT%H:%M:%S.%f')
-                
-                timestamped_data.append((record_time, record))
-                        
-            except (ValueError, KeyError) as e:
-                logger.debug(f"Failed to parse timestamp {record.get('timestamp', 'N/A')}: {e}")
+                    rec_time = datetime.strptime(ts_work, '%Y-%m-%dT%H:%M:%S.%f')
+                timestamped_data.append((rec_time, record))
+            except Exception as e:
+                logger.debug(f"Failed parsing timestamp {record.get('timestamp','?')}: {e}")
                 continue
-        
-        # Sort by timestamp
+
+        if not timestamped_data:
+            logger.info("   No timestamped records available")
+            return None
+
         timestamped_data.sort(key=lambda x: x[0])
+        logger.info(
+            f"   First record and last in timeframe in format {timestamped_data[0][0].strftime('%H:%M:%S')} | Price: {timestamped_data[0][1].get('currentPrice')} | Volume: {timestamped_data[0][1].get('volume')}"
+        )
+        logger.info(
+            f"   Last record in timeframe in format {timestamped_data[-1][0].strftime('%H:%M:%S')} | Price: {timestamped_data[-1][1].get('currentPrice')} | Volume: {timestamped_data[-1][1].get('volume')}"
+        )
 
-        logger.info(f"   First record and last in timeframe in format {timestamped_data[0][0].strftime('%H:%M:%S')} | Price: {timestamped_data[0][1].get('currentPrice')} | Volume: {timestamped_data[0][1].get('volume')}")
-        logger.info(f"   Last record in timeframe in format {timestamped_data[-1][0].strftime('%H:%M:%S')} | Price: {timestamped_data[-1][1].get('currentPrice')} | Volume: {timestamped_data[-1][1].get('volume')}")
-
-        # Find the volume at the cutoff time (start of the timeframe)
-        volume_at_cutoff = None
-        current_volume = None
-        first_available_volume = None
-
-        for record_time, record in timestamped_data:
-            volume = record.get('volume')
-            if volume is not None:
-                # Keep track of the first available volume
-                if first_available_volume is None:
-                    first_available_volume = volume
-                
-                if record_time <= cutoff_time:
-                    volume_at_cutoff = volume  # Keep updating until we pass the cutoff
-                elif record_time > cutoff_time:
-                    # This is within our timeframe, keep the latest volume
-                    current_volume = volume
-
-        # Use fallback logic if we don't have volume at cutoff
-        if volume_at_cutoff is None:
-            if first_available_volume is not None:
-                logger.info(f"No volume at cutoff time, using first available volume: {first_available_volume}")
-                volume_at_cutoff = first_available_volume
+        # Locate baseline (last record <= cutoff)
+        left, right = 0, len(timestamped_data) - 1
+        last_le_index = -1
+        while left <= right:
+            mid = (left + right) // 2
+            if timestamped_data[mid][0] <= cutoff_time:
+                last_le_index = mid
+                left = mid + 1
             else:
-                logger.info("No volume data available at all")
-                return None
+                right = mid - 1
 
-        # If we still don't have current volume, use the latest available
-        if current_volume is None:
-            # Find the latest volume from all data
-            for record_time, record in reversed(timestamped_data):
-                volume = record.get('volume')
-                if volume is not None:
-                    current_volume = volume
-                    logger.info(f"Using latest available volume as current: {current_volume}")
-                    break
+        if last_le_index == -1:
+            earliest_time = timestamped_data[0][0]
+            gap_minutes = (cutoff_time - earliest_time).total_seconds() / 60.0
+            if gap_minutes > 5:
+                logger.warning(
+                    f"No data at/before cutoff ({cutoff_time.strftime('%H:%M:%S')}); earliest record {earliest_time.strftime('%H:%M:%S')} ({gap_minutes:.1f}m gap). Returning None."
+                )
+                return None
+            logger.info(
+                "Cutoff precedes earliest data but within 5m of start; using earliest volume as baseline."
+            )
+            volume_at_cutoff = (timestamped_data[0][1].get('volume') or 0)
+        else:
+            volume_at_cutoff = timestamped_data[last_le_index][1].get('volume')
+
+        # Ensure at least one record strictly after cutoff
+        has_after_cutoff = any(ts > cutoff_time for ts, _ in timestamped_data)
+        if not has_after_cutoff:
+            logger.warning(
+                f"No records after cutoff ({cutoff_time.strftime('%H:%M:%S')}); cannot compute increase. Returning None."
+            )
+            return None
+
+        # Latest non-null volume
+        current_volume = None
+        for ts, rec in reversed(timestamped_data):
+            v = rec.get('volume')
+            if v is not None:
+                current_volume = v
+                break
 
         if volume_at_cutoff is None or current_volume is None:
-            logger.info(f"Insufficient data to calculate volume increase for {minutes} minutes - "
-                    f"volume_at_cutoff: {volume_at_cutoff}, current_volume: {current_volume}")
+            logger.info(
+                f"Insufficient data (volume_at_cutoff={volume_at_cutoff}, current_volume={current_volume}) for timeframe {minutes}m"
+            )
             return None
-        
-        # Calculate the increase
+
+        earliest_time = timestamped_data[0][0]
+        minutes_since_earliest_cutoff = (cutoff_time - earliest_time).total_seconds() / 60.0
+        if (
+            minutes_since_earliest_cutoff > 30
+            and volume_at_cutoff == 0
+            and current_volume > 10000
+        ):
+            logger.warning(
+                "Suspicious 0 baseline far from session start (history likely truncated); returning None."
+            )
+            return None
+
         logger.info(f"   Volume at cutoff ({cutoff_time.strftime('%H:%M:%S')}): {volume_at_cutoff}")
         logger.info(f"   Current/latest volume: {current_volume}")
-        volume_increase = current_volume - volume_at_cutoff
-        logger.info(f"Volume increase in last {minutes} minutes: {volume_increase} "
-                f"(from {volume_at_cutoff} to {current_volume})")
-        return max(0, volume_increase)  # Return 0 if volume decreased
+        delta = current_volume - volume_at_cutoff
+        if delta < 0:
+            logger.warning(
+                f"Volume decreased from {volume_at_cutoff} to {current_volume}; treating as anomaly and returning None."
+            )
+            return None
+        logger.info(
+            f"Volume increase in last {minutes} minutes: {delta} (from {volume_at_cutoff} to {current_volume})"
+        )
+        return delta
     
     def check_volume_requirements(self, data: List[Dict], volume_requirements: List[Tuple[int, int]], 
                              volume_multiplier: float = 1.0) -> bool:

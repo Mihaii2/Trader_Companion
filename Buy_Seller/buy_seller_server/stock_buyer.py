@@ -897,6 +897,15 @@ class StockTradingServer:
             self._log_error("TRADE_VALIDATION_FAILED", ticker, error_msg)
             self.trades.remove(trade)
             return {'success': False, 'error': error_msg}
+
+        # RISK CHECK (prevent negative available_risk)
+        if self.available_risk < trade.risk_amount - 1e-9:
+            error_msg = (f"Insufficient available risk: have ${self.available_risk:.2f}, "
+                         f"need ${trade.risk_amount:.2f} for trade {trade.ticker}")
+            print(f"❌ {error_msg}")
+            self._log_error("INSUFFICIENT_RISK", ticker, error_msg)
+            # Do NOT remove trade; allow user to either increase risk or remove trade later
+            return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
         
         # Connect to IB
         if not self._connect_to_ib(ticker):
@@ -908,10 +917,9 @@ class StockTradingServer:
             # Update last trade time when a trade is executed
             self.last_trade_time = time.time()
             
-            # Remove trade from list and update risk
+            # Remove trade from list (reserve risk conceptually, but don't deduct yet)
             self.trades.remove(trade)
-            self.available_risk -= trade.risk_amount
-            print(f"✅ Trade removed from queue. Available risk: ${self.available_risk}")
+            print(f"✅ Trade removed from queue. (Risk reserved: ${trade.risk_amount:.2f}, available still ${self.available_risk:.2f})")
             
             # Execute buy order
             buy_result = self._execute_buy_order(trade)
@@ -920,17 +928,31 @@ class StockTradingServer:
                 error_msg = "Buy order failed completely"
                 print(f"❌ {error_msg}")
                 self._log_error("BUY_ORDER_COMPLETE_FAILURE", ticker, error_msg)
+                # Since we never deducted risk, nothing to restore. User can re-add trade manually if desired.
                 return {'success': False, 'error': error_msg}
             
             # Place sell stops (need avg fill price for percent-based stops)
             self._execute_sell_stop_orders(trade, buy_result['filled_shares'], buy_result['avg_price'])
+
+            # Deduct only proportional risk actually used (handles partial fills)
+            fill_ratio = 0.0
+            if trade.shares > 0:
+                fill_ratio = min(1.0, max(0.0, buy_result['filled_shares'] / trade.shares))
+            risk_used = trade.risk_amount * fill_ratio
+            self.available_risk -= risk_used
+            # Guard against tiny floating point negatives
+            if self.available_risk < 0 and self.available_risk > -1e-6:
+                self.available_risk = 0.0
+            print(f"💰 Risk used: ${risk_used:.2f} (ratio {fill_ratio:.2%}). New available risk: ${self.available_risk:.2f}")
             
             result = {
                 'success': True,
                 'ticker': trade.ticker,
                 'filled_shares': buy_result['filled_shares'],
                 'avg_price': buy_result['avg_price'],
-                'full_fill': buy_result['full_fill']
+                'full_fill': buy_result['full_fill'],
+                'risk_used': risk_used,
+                'available_risk': self.available_risk
             }
             
             print(f"\n🎉 Trade for {trade.ticker} completed!")
@@ -971,6 +993,14 @@ class StockTradingServer:
             is_valid, error_msg = self._validate_trade(trade)
             if not is_valid:
                 return {'success': False, 'error': error_msg}
+
+            # RISK CHECK when adding: ensure we don't enqueue trades that exceed available risk
+            if self.available_risk < trade.risk_amount - 1e-9:
+                msg = (f"Cannot add trade {trade.ticker}: required risk ${trade.risk_amount:.2f} "
+                       f"exceeds available risk ${self.available_risk:.2f}")
+                print(f"❌ {msg}")
+                self._log_error("INSUFFICIENT_RISK_ADD", trade.ticker, msg, trade_data)
+                return {'success': False, 'error': msg, 'available_risk': self.available_risk}
             
             self.trades.append(trade)
             
