@@ -749,7 +749,7 @@ class StockTradingBot:
                     if not self.check_price_breakout(historical_data, current_price,
                                                       lookback_minutes=breakout_lookback_minutes,
                                                       exclude_recent_minutes=breakout_exclude_minutes):
-                        # conditions_met = False
+                        conditions_met = False
                         failed_conditions.append("breakout")
                         logger.info("   ❌ Breakout FAILED")
                     else:
