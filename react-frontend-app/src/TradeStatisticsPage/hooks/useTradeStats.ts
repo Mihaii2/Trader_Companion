@@ -1,17 +1,25 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MonthlyStats, YearlyStats, ExtendedFilters } from '../types';
+import { MonthlyStats, YearlyStats, ExtendedFilters, MetricOptionFilters } from '../types';
 import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { tradeAPI } from '../services/tradeAPI';
 import { addMonths, format, parseISO, isAfter, differenceInDays } from 'date-fns';
+import { gradeService } from '@/PostAnalysisPage/services/postAnalysis';
+import type { TradeGrade } from '@/PostAnalysisPage/types/types';
 
 // Type guard to check if a trade is exited with valid exit price and exit date
 const isExitedTrade = (trade: Trade): trade is Trade & { Exit_Price: number, Exit_Date: string } => {
   return trade.Status === 'Exited' && trade.Exit_Price !== null && trade.Exit_Date !== null;
 };
 
-export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endDate?: string) => {
+export const useTradeStats = (
+  filters: ExtendedFilters,
+  startDate?: string,
+  endDate?: string,
+  metricOptionFilters: MetricOptionFilters = {}
+) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
+  const [grades, setGrades] = useState<TradeGrade[]>([]);
   const [selectedMonths, setSelectedMonths] = useState<Set<string>>(() => {
     const initialMonths = new Set<string>();
     const start = startDate ? parseISO(`${startDate}-01`) : addMonths(new Date(), -11);
@@ -28,8 +36,12 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
   useEffect(() => {
     const fetchTrades = async () => {
       try {
-        const response = await tradeAPI.getTrades();
-        setTrades(response.data);
+        const [tradesResp, allGrades] = await Promise.all([
+          tradeAPI.getTrades(),
+          gradeService.getGrades()
+        ]);
+        setTrades(tradesResp.data);
+        setGrades(allGrades);
       } catch (error) {
         console.error('Error fetching trades:', error);
       } finally {
@@ -40,10 +52,20 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
   }, []);
 
   const filteredTrades = useMemo(() => {
+    // Build a quick lookup: for each trade, which metric option ids are selected
+    const tradeToMetricOptionIds = new Map<number, Map<number, Set<number>>>();
+    if (grades.length) {
+      for (const g of grades) {
+        const tradeMap = tradeToMetricOptionIds.get(g.tradeId) ?? new Map<number, Set<number>>();
+        tradeMap.set(Number(g.metricId), new Set<number>([Number(g.selectedOptionId)]));
+        tradeToMetricOptionIds.set(g.tradeId, tradeMap);
+      }
+    }
+
     return trades
       .filter(isExitedTrade)
       .filter(trade => {
-        return Object.entries(filters).every(([key, value]) => {
+        const baseFiltersPass = Object.entries(filters).every(([key, value]) => {
           if (value === undefined) return true;
     
           switch (key) {
@@ -64,8 +86,30 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
               return trade[key as keyof Trade] === value;
           }
         });
+
+        if (!baseFiltersPass) return false;
+
+        // Apply post-analysis metric option filters: for each metric with selections,
+        // the trade must have a grade whose selected option is in the selected set.
+        const metricIds = Object.keys(metricOptionFilters);
+        if (!metricIds.length) return true;
+
+        const tradeMap = tradeToMetricOptionIds.get(trade.ID);
+        if (!tradeMap) return false;
+
+        return metricIds.every(midStr => {
+          const mid = Number(midStr);
+          const selectedOptions = new Set<number>(metricOptionFilters[mid]);
+          const selectedForTrade = tradeMap.get(mid);
+          if (!selectedForTrade) return false;
+          // intersect
+          for (const optId of selectedForTrade) {
+            if (selectedOptions.has(optId)) return true;
+          }
+          return false;
+        });
       });
-  }, [trades, filters]);
+  }, [trades, filters, grades, metricOptionFilters]);
 
   const monthlyStats = useMemo((): MonthlyStats[] => {
     // Parse start and end dates, with defaults
@@ -206,7 +250,7 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
     const totalLosingTrades = selectedTrades.filter(t => t.Exit_Price <= t.Entry_Price).length;
 
     const avgDaysGains = totalWinningTrades > 0
-      ? selectedMonthsData.reduce((sum, monthData, index) => {
+      ? selectedMonthsData.reduce((sum, _monthData, index) => {
           const month = months.filter(m => selectedMonths.has(m))[index];
           // ✅ FIXED: Use Entry_Date here too for consistency
           const monthTrades = filteredTrades.filter(trade => 
@@ -220,7 +264,7 @@ export const useTradeStats = (filters: ExtendedFilters, startDate?: string, endD
       : 0;
 
     const avgDaysLoss = totalLosingTrades > 0
-      ? selectedMonthsData.reduce((sum, monthData, index) => {
+      ? selectedMonthsData.reduce((sum, _monthData, index) => {
           const month = months.filter(m => selectedMonths.has(m))[index];
           // ✅ FIXED: Use Entry_Date here too for consistency
           const monthTrades = filteredTrades.filter(trade => 

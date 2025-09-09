@@ -37,6 +37,9 @@ export interface ExtendedFilters extends Partial<Trade> {
   // minEarningsQuality?: number;
   // minFundamentalsQuality?: number;
   maxPriceTightness?: number;
-  minNrBases?: number;
+  maxNrBases?: number;
   pctOff52WHigh?: number;
 }
+
+// Map of metricId -> array of selected optionIds
+export type MetricOptionFilters = Record<number, number[]>;

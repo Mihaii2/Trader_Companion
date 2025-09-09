@@ -3,14 +3,16 @@ import { MonthlyStatistics } from './components/MonthlyStatistics';
 import { YearlyStatistics } from './components/YearlyStatistics';
 import { TradeFilterer } from './components/TradeFilterer';
 import { useTradeStats } from './hooks/useTradeStats';
-import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { RiskPoolStats } from './components/RiskPoolStats';
 import { TradeDistribution } from './components/TradeDistribution';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { addMonths, format } from 'date-fns';
+import { PostAnalysisFilters } from './components/PostAnalysisFilters';
+import type { MetricOptionFilters, ExtendedFilters } from './types';
 
 export const TradingStatsPage: React.FC = () => {
-  const [filters, setFilters] = useState<Partial<Trade>>({});
+  const [filters, setFilters] = useState<ExtendedFilters>({});
+  const [metricFilters, setMetricFilters] = useState<MetricOptionFilters>({});
   const [startDate, setStartDate] = useState<string>(() => {
     const twelveMonthsAgo = addMonths(new Date(), -11);
     return format(twelveMonthsAgo, 'yyyy-MM');
@@ -18,7 +20,12 @@ export const TradingStatsPage: React.FC = () => {
   const [endDate, setEndDate] = useState<string>(() => {
     return format(new Date(), 'yyyy-MM');
   });
-  const { monthlyStats, yearlyStats, loading, toggleMonth, filteredTrades, selectedMonths } = useTradeStats(filters, startDate, endDate);
+  const { monthlyStats, yearlyStats, loading, toggleMonth, filteredTrades, selectedMonths } = useTradeStats(
+    filters,
+    startDate,
+    endDate,
+    metricFilters
+  );
 
   if (loading) {
     return (
@@ -32,7 +39,7 @@ export const TradingStatsPage: React.FC = () => {
     <div className="space-y-6">
       <RiskPoolStats />
       
-      <Card>
+  <Card>
         <CardContent>
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-2 my-2">
@@ -64,7 +71,7 @@ export const TradingStatsPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
+  <Card>
         <CardHeader>
           {/* Was "Yearly Statistics" before */}
           <CardTitle>Summary Statistics</CardTitle>
@@ -84,7 +91,13 @@ export const TradingStatsPage: React.FC = () => {
           <CardTitle>Statistics Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <TradeFilterer filters={filters} onFilterChange={setFilters} />
+          <div className="space-y-6">
+            <PostAnalysisFilters selected={metricFilters} onChange={setMetricFilters} />
+            <div>
+              <div className="text-sm font-medium mb-2">Trade History Filters</div>
+              <TradeFilterer filters={filters} onFilterChange={setFilters} />
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
