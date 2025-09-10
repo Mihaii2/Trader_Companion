@@ -865,18 +865,6 @@ export function CustomOrdersPage() {
                     min="0.001"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Risk Amount</label>
-                  <input
-                    type="number"
-                    value={newTrade.risk_amount}
-                    onChange={(e) => setNewTrade(prev => ({ ...prev, risk_amount: parseFloat(e.target.value) }))}
-                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                    step="0.01"
-                  />
-                </div>
-                
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Lower Price Range</label>
                   <input
@@ -898,6 +886,18 @@ export function CustomOrdersPage() {
                     step="0.01"
                   />
                 </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Risk Amount</label>
+                  <input
+                    type="number"
+                    value={newTrade.risk_amount}
+                    onChange={(e) => setNewTrade(prev => ({ ...prev, risk_amount: parseFloat(e.target.value) }))}
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                    step="0.01"
+                  />
+                </div>
+                
               </div>
               
               <div className="mt-4">

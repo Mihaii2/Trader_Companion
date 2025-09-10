@@ -682,7 +682,7 @@ class StockTradingBot:
                     else:
                         logger.info(f"Price {current_price} is ABOVE pivot range (min: {lower_price}, max: {adjusted_higher_price}) - difference: {current_price - adjusted_higher_price:.4f}")
                     self.pivot_entry_time = None  # Reset timer when out of range
-                    time.sleep(5)
+                    time.sleep(2)
                     continue
 
                 logger.info(f"✓ Price {current_price} is IN pivot range [{lower_price}, {adjusted_higher_price}]")
