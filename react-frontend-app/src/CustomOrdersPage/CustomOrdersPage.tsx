@@ -132,6 +132,7 @@ export function CustomOrdersPage() {
   const [riskAmount, setRiskAmount] = useState(0);
   const [showVolumeWarningModal, setShowVolumeWarningModal] = useState(false);
   const [addFractionalVolumes, setAddFractionalVolumes] = useState(true); // NEW: auto add 1/2 & 1/4
+  const [convertDayToHourly, setConvertDayToHourly] = useState(true); // NEW: auto convert day=volume -> 60=hourlyVolume (÷6.5)
   const [showAdvanced, setShowAdvanced] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     try {
@@ -339,7 +340,18 @@ export function CustomOrdersPage() {
 
   const addVolumeRequirement = () => {
     if (newVolumeReq.trim()) {
-      const baseReq = newVolumeReq.trim();
+      let baseReq = newVolumeReq.trim();
+
+      // If user entered day=volume and conversion checkbox is enabled, convert to hourly (60=volume/6.5)
+      // Example: day=650000 -> 60=100000 (rounded)
+      const dayMatch = baseReq.match(/^day\s*=\s*([\d,.]+)$/i);
+      if (convertDayToHourly && dayMatch) {
+        const dayVolume = parseFloat(dayMatch[1].replace(/,/g, ''));
+        if (!isNaN(dayVolume) && dayVolume > 0) {
+          const hourlyVolume = Math.round(dayVolume / 6.5); // 6.5 trading hours
+          baseReq = `60=${hourlyVolume}`;
+        }
+      }
 
       setOrderConfig(prev => {
         const existing = new Set(prev.volume_requirements.map(v => v.trim()))
@@ -578,6 +590,15 @@ export function CustomOrdersPage() {
                   onChange={(e) => setAddFractionalVolumes(e.target.checked)}
                 />
                 Auto add 1/2 & 1/4 (e.g. 60=100000 ➜ 30=50000 & 15=25000)
+              </label>
+              <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={convertDayToHourly}
+                  onChange={(e) => setConvertDayToHourly(e.target.checked)}
+                />
+                Convert day=volume → 60=hourly (÷6.5) (e.g. day=650000 ➜ 60=100000)
               </label>
               {orderConfig.volume_requirements.length === 0 && (
                 <p className="text-xs text-muted-foreground">No volume requirements added yet.</p>

@@ -56,7 +56,7 @@ export const PostAnalysisFilters: React.FC<Props> = ({ selected, onChange }) => 
   return (
     <Card className="border-0 shadow-none">
       <CardContent className="p-0">
-        <div className="mb-2 text-sm font-medium">Post Analysis Filters {hasAnySelection ? '' : '(none selected)'}</div>
+      <div className="mt-3 mb-2 text-sm font-medium">Post Analysis Filters {hasAnySelection ? '' : '(none selected)'}</div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {metrics.map(metric => (
             <div key={metric.id} className="rounded-md border p-3">

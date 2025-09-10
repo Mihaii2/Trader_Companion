@@ -87,9 +87,6 @@ export const TradingStatsPage: React.FC = () => {
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Statistics Filters</CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="space-y-6">
             <PostAnalysisFilters selected={metricFilters} onChange={setMetricFilters} />
