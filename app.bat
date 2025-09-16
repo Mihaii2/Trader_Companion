@@ -8,9 +8,9 @@ echo Starting Stocks Screener Services...
 @echo off
 REM Step 1: Backup files from app to outside
 
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\personal_ranking.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\personal_ranking.sqlite3"
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\trades_db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\trades_db.sqlite3"
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\db.sqlite3"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\personal_ranking.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\personal_ranking.sqlite3"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\trades_db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\trades_db.sqlite3"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\db.sqlite3"
 copy /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\react-frontend-app\src\StockRankingPage\components\RankingItem.tsx" "C:\Users\hourt\Desktop\Trader_Companion\RankingItem.tsx"
 xcopy /E /I /Y "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\media" "C:\Users\hourt\Desktop\Trader_Companion\media_backup"
 
@@ -20,9 +20,9 @@ git pull
 
 REM Step 3: Restore files from outside to app
 
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\personal_ranking.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\"
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\trades_db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\"
-copy /Y "C:\Users\hourt\Desktop\Trader_Companion\db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\personal_ranking.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\trades_db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\"
+copy /Y "C:\Users\hourt\Desktop\Trader_Companion\db.sqlite3" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\dbs\"
 copy /Y "C:\Users\hourt\Desktop\Trader_Companion\RankingItem.tsx" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\react-frontend-app\src\StockRankingPage\components\RankingItem.tsx"
 xcopy /E /I /Y "C:\Users\hourt\Desktop\Trader_Companion\media_backup" "C:\Users\hourt\Desktop\Trader_Companion\Trader_Companion\media"
 

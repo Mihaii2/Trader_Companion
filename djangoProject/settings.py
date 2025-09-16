@@ -100,15 +100,15 @@ WSGI_APPLICATION = "djangoProject.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "dbs/db.sqlite3",
     },
     'personal_ranking': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'personal_ranking.sqlite3',
+        'NAME': BASE_DIR / 'dbs/personal_ranking.sqlite3',
     },
     'trades_db': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'trades_db.sqlite3',
+        'NAME': BASE_DIR / 'dbs/trades_db.sqlite3',
     }
 }
 
