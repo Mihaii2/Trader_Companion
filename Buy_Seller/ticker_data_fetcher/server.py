@@ -8,6 +8,7 @@ import json
 import logging
 import flask_cors
 import pytz
+import requests  # For calling the stock buyer server
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +28,20 @@ class StockDataServer:
         self.market_check_interval = 30  # Check market status every 30 seconds when closed
         self.last_cleanup_date = None
         self.last_market_status = None
+        
+        # ---- Trade activity integration (for pruning inactive tickers) ----
+        # Base URL of the stock buyer server status endpoint
+        self.trade_server_status_url = "http://localhost:5002/status"
+        # How often (seconds) to poll the trade server for active trades
+        self.trade_activity_check_interval = 300  # 5 minutes
+        # Consider a ticker inactive if no active trade for this many hours
+        self.inactive_ticker_hours = 8
+        # Timestamp of last poll
+        self.last_trade_activity_check = 0.0
+        # Map: ticker -> last timestamp (epoch seconds) it was seen in an active trade
+        self.ticker_last_trade_seen = {}
+        # Cache of last successful active trade tickers (for logging diffs)
+        self.last_active_trade_tickers = set()
         
         # Use Eastern Time for market hours (9:30 AM - 4:00 PM ET)
         self.market_open_hour = 9
@@ -192,6 +207,13 @@ class StockDataServer:
             self.tickers.append(symbol)
             self.ticker_data[symbol] = deque(maxlen=self.max_records)
             self.ticker_initial_prices[symbol] = None
+            # Mark as recently "seen" so it gets a full inactivity window grace period
+            # even if no trade exists yet. This prevents immediate pruning on next check.
+            self.ticker_last_trade_seen[symbol] = time.time()
+            # Remove any previous absence marker if present (re-adding scenario)
+            absence_key = f"__absence_start__:{symbol}"
+            if absence_key in self.ticker_last_trade_seen:
+                del self.ticker_last_trade_seen[absence_key]
             logger.info(f"Added ticker: {symbol}")
             return True
         return False
@@ -317,6 +339,16 @@ class StockDataServer:
                 if not self.tickers:
                     time.sleep(5)
                     continue
+
+                # Periodically poll trade server for active trades & prune inactive tickers
+                now_epoch = time.time()
+                if now_epoch - self.last_trade_activity_check >= self.trade_activity_check_interval:
+                    self.last_trade_activity_check = now_epoch
+                    try:
+                        self.update_active_trades()
+                        self.cleanup_inactive_tickers()
+                    except Exception as e:
+                        logger.error(f"Trade activity update/cleanup failed: {e}")
                 
                 # Get next ticker in round-robin fashion
                 if self.current_ticker_index >= len(self.tickers):
@@ -390,6 +422,89 @@ class StockDataServer:
             'market_hours': f"{self.market_open_hour:02d}:{self.market_open_minute:02d} - {self.market_close_hour:02d}:{self.market_close_minute:02d} ET",
             'next_open': None if market_open else (current_time + time_until_open).strftime('%Y-%m-%d %H:%M:%S ET')
         }
+
+    # ------------------------------------------------------------------
+    # Active trade integration methods
+    # ------------------------------------------------------------------
+    def update_active_trades(self):
+        """Poll the stock buyer server to record tickers that have active trades.
+
+        Expected /status response (assumptions due to partial code):
+        {
+            "success": true,
+            "trades": [ { "ticker": "AAPL", ... }, ... ]
+        }
+        Any trade present is considered an "active trade". We record timestamp of observation.
+        """
+        try:
+            resp = requests.get(self.trade_server_status_url, timeout=5)
+            if resp.status_code != 200:
+                logger.warning(f"Active trade poll failed HTTP {resp.status_code}: {resp.text[:120]}")
+                return
+            data = resp.json()
+            trades = data.get('trades', []) if isinstance(data, dict) else []
+            active_tickers = { (t.get('ticker') or '').upper().strip() for t in trades if t.get('ticker') }
+            active_tickers.discard('')
+            now = time.time()
+            for tkr in active_tickers:
+                self.ticker_last_trade_seen[tkr] = now
+
+            # Log changes in active set (additions/removals)
+            added = active_tickers - self.last_active_trade_tickers
+            removed = self.last_active_trade_tickers - active_tickers
+            if added or removed:
+                if added:
+                    logger.info(f"Active trades added: {', '.join(sorted(added))}")
+                if removed:
+                    logger.info(f"Active trades no longer present: {', '.join(sorted(removed))}")
+            self.last_active_trade_tickers = active_tickers
+        except Exception as e:
+            logger.error(f"Error updating active trades: {e}")
+
+    def cleanup_inactive_tickers(self):
+        """Remove tickers that have not appeared in an active trade for the inactivity window.
+
+        A ticker is removed if:
+          - It exists in self.tickers AND
+          - Not observed in any active trade for > inactive_ticker_hours
+        """
+        if not self.tickers:
+            return
+        cutoff_seconds = self.inactive_ticker_hours * 3600
+        now = time.time()
+        removed = []
+        # Iterate over a copy so we can modify original list
+        for symbol in list(self.tickers):
+            last_seen = self.ticker_last_trade_seen.get(symbol)
+            if last_seen is None:
+                # Never seen in any trade; check if older than window since server start
+                # Use start time approximation by absence (treat as 0 age until window passes)
+                # We'll store first absence timestamp lazily to allow initial grace period.
+                # Initialize an absence marker if not set.
+                absence_key = f"__absence_start__:{symbol}"
+                if absence_key not in self.ticker_last_trade_seen:
+                    self.ticker_last_trade_seen[absence_key] = now
+                else:
+                    if now - self.ticker_last_trade_seen[absence_key] > cutoff_seconds:
+                        if symbol in self.tickers:
+                            self.tickers.remove(symbol)
+                            self.ticker_data.pop(symbol, None)
+                            self.ticker_initial_prices.pop(symbol, None)
+                            removed.append(symbol)
+                continue
+            # If seen before but stale
+            if now - last_seen > cutoff_seconds:
+                if symbol in self.tickers:
+                    self.tickers.remove(symbol)
+                    self.ticker_data.pop(symbol, None)
+                    self.ticker_initial_prices.pop(symbol, None)
+                    removed.append(symbol)
+
+        if removed:
+            # Reset current_ticker_index if it surpasses length after removals
+            if self.current_ticker_index >= len(self.tickers):
+                self.current_ticker_index = 0
+            logger.info(f"Removed inactive tickers (no active trade in > {self.inactive_ticker_hours}h): {', '.join(sorted(removed))}")
 
 # Initialize the server
 stock_server = StockDataServer()
@@ -524,6 +639,24 @@ def manual_cleanup():
         return jsonify({'message': 'Manual cleanup completed'})
     except Exception as e:
         logger.error(f"Error during cleanup: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/inactive-cleanup', methods=['POST'])
+def manual_inactive_cleanup():
+    """Force poll of trade activity and prune inactive tickers immediately."""
+    try:
+        stock_server.update_active_trades()
+        before = len(stock_server.tickers)
+        stock_server.cleanup_inactive_tickers()
+        after = len(stock_server.tickers)
+        return jsonify({
+            'message': 'Inactive ticker cleanup completed',
+            'tickers_before': before,
+            'tickers_after': after,
+            'removed_count': before - after
+        })
+    except Exception as e:
+        logger.error(f"Error during inactive cleanup: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':

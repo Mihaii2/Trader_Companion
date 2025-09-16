@@ -574,7 +574,7 @@ export function CustomOrdersPage() {
                   value={newVolumeReq}
                   onChange={(e) => setNewVolumeReq(e.target.value)}
                   className="flex-1 w-full p-2 border border-input bg-background text-foreground rounded-md focus:ring-2 focus:ring-ring focus:border-ring text-sm"
-                  placeholder="minutes=volume or day=volume (e.g. 60=100000, meaning 60min volume ≥100k)"
+                  placeholder="minutes=volume or day=volume (e.g. 60=100000, meaning last 60min volume ≥100k)"
                 />
                 <button
                   onClick={addVolumeRequirement}
