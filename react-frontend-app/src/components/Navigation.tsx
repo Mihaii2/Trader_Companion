@@ -12,16 +12,6 @@ export function Navigation() {
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 py-2 pr-14">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             <Link
-              to="/stocks_screeners"
-              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
-                ${currentPage === 'stocks_screeners' 
-                  ? 'border-b-2 border-primary text-primary' 
-                  : 'text-muted-foreground'
-                }`}
-            >
-              Stocks Screeners
-            </Link>
-            <Link
               to="/personal_ranking"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
                 ${currentPage === 'personal_ranking' 
@@ -80,6 +70,16 @@ export function Navigation() {
                 }`}
             >
               Custom Orders
+            </Link>
+            <Link
+              to="/stocks_screeners"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'stocks_screeners' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Stocks Screeners
             </Link>
           </div>
           <div className="absolute right-3 top-1/2 -translate-y-1/2"> 

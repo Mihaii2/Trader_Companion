@@ -25,6 +25,23 @@ interface OrderConfig {
   request_higher_price?: number | null; // NEW (override trade higher price)
 }
 
+// UI model for creating a new trade
+interface NewTradeStop {
+  price?: number;
+  position_pct: number; // fraction of entire position to sell at this stop (0..1)
+  percent_below_fill?: number;
+  __ui_mode?: 'price' | 'percent';
+}
+
+interface NewTrade {
+  ticker: string;
+  shares: number; // auto-calculated, 2 decimals
+  risk_amount: number;
+  lower_price_range: number;
+  higher_price_range: number;
+  sell_stops: NewTradeStop[];
+}
+
 interface ServerStatus {
   success: boolean;
   active_trades: number;
@@ -50,6 +67,7 @@ interface TradeData {
   risk_amount?: number;
   lower_price_range?: number;
   higher_price_range?: number;
+  // For server-provided data (active trades), stops contain concrete share counts
   sell_stops?: Array<{ price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' }>;
   [key: string]: unknown;
 }
@@ -65,7 +83,7 @@ interface ErrorLog {
 export function CustomOrdersPage() {
   // -------------------- Persistence Keys & Defaults --------------------
   const ORDER_CONFIG_STORAGE_KEY = 'customOrdersPage.orderConfig.v1';
-  const NEW_TRADE_STORAGE_KEY = 'customOrdersPage.newTrade.v1';
+  const NEW_TRADE_STORAGE_KEY = 'customOrdersPage.newTrade.v2';
   const PIVOT_POSITIONS_STORAGE_KEY = 'customOrdersPage.pivotPositions.v1';
   const SHOW_ADVANCED_STORAGE_KEY = 'customOrdersPage.showAdvanced.v1';
 
@@ -94,13 +112,15 @@ export function CustomOrdersPage() {
 
   const defaultPivotPositions = { any: false, lower: false, middle: false, upper: false };
 
-  const defaultNewTrade: { ticker: string; shares: number; risk_amount: number; lower_price_range: number; higher_price_range: number; sell_stops: { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent'; }[] } = {
+  // UI model for creating a new trade uses position_pct instead of per-stop share counts
+  const defaultNewTrade: NewTrade = {
     ticker: '',
     shares: 0,
     risk_amount: 0,
     lower_price_range: 0,
     higher_price_range: 0,
-  sell_stops: [{ price: 0, shares: 0, percent_below_fill: undefined, __ui_mode: 'price' as const }]
+    // default: single stop at fixed price with 100% of position
+    sell_stops: [{ price: 0, position_pct: 1, percent_below_fill: undefined, __ui_mode: 'price' as const }]
   };
 
   const safeLoad = <T,>(key: string, fallback: T): T => {
@@ -122,7 +142,7 @@ export function CustomOrdersPage() {
   const [activeTab, setActiveTab] = useState<'order' | 'trades' | 'status' | 'errors'>('order');
   const [orderConfig, setOrderConfig] = useState<OrderConfig>(() => safeLoad(ORDER_CONFIG_STORAGE_KEY, defaultOrderConfig));
   const [pivotPositions, setPivotPositions] = useState(() => safeLoad(PIVOT_POSITIONS_STORAGE_KEY, defaultPivotPositions));
-  const [newTrade, setNewTrade] = useState(() => safeLoad(NEW_TRADE_STORAGE_KEY, defaultNewTrade));
+  const [newTrade, setNewTrade] = useState<NewTrade>(() => safeLoad<NewTrade>(NEW_TRADE_STORAGE_KEY, defaultNewTrade));
   
   // Removed unused trades state (was: const [trades, setTrades] = useState<Trade[]>([]);)
   const [serverStatus, setServerStatus] = useState<ServerStatus | null>(null);
@@ -213,12 +233,21 @@ export function CustomOrdersPage() {
 
 
   const addTrade = async () => {
+    // Validate sell stop percentages sum to 1.0 (within small tolerance)
+    const totalPct = (newTrade.sell_stops || []).reduce((sum, s) => sum + (Number(s.position_pct) || 0), 0);
+    const withinTolerance = Math.abs(totalPct - 1) <= 0.001;
+    if (!withinTolerance) {
+      alert(`Sell stop percentages must sum to 1.0. Currently: ${totalPct.toFixed(4)}`);
+      return;
+    }
+
     setLoading(true);
     try {
+      const payload = buildTradePayload(newTrade);
       const response = await fetch('http://localhost:5002/add_trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTrade)
+        body: JSON.stringify(payload)
       });
       
       const result = await response.json();
@@ -405,7 +434,7 @@ export function CustomOrdersPage() {
   const addSellStop = () => {
     setNewTrade(prev => ({
       ...prev,
-      sell_stops: [...prev.sell_stops, { price: 0, shares: 0, percent_below_fill: undefined, __ui_mode: 'price' }]
+      sell_stops: [...prev.sell_stops, { price: 0, position_pct: 0, percent_below_fill: undefined, __ui_mode: 'price' }]
     }));
   };
 
@@ -416,8 +445,8 @@ export function CustomOrdersPage() {
     }));
   };
 
-  const updateSellStop = (index: number, field: 'price' | 'shares' | 'percent_below_fill' | '__ui_mode', value: number | string) => {
-    type StopType = { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' };
+  const updateSellStop = (index: number, field: 'price' | 'position_pct' | 'percent_below_fill' | '__ui_mode', value: number | string) => {
+    type StopType = NewTradeStop;
     setNewTrade(prev => ({
       ...prev,
       sell_stops: prev.sell_stops.map((stop: StopType, i: number): StopType => {
@@ -430,11 +459,138 @@ export function CustomOrdersPage() {
             return { ...stop, __ui_mode: 'percent', price: undefined, percent_below_fill: stop.percent_below_fill ?? 1 };
           }
         }
-  type StopType = { price?: number; shares: number; percent_below_fill?: number; __ui_mode?: 'price' | 'percent' };
-  const numeric = typeof value === 'string' ? (parseFloat(value) || 0) : value;
-  return { ...stop, [field]: numeric } as StopType;
+        const numeric = typeof value === 'string' ? (parseFloat(value) || 0) : value;
+        return { ...stop, [field]: numeric } as StopType;
       })
     }));
+  };
+
+  // -------------------- Auto-calc Shares from Risk + Stops --------------------
+  const computeMidPrice = (lower: number, upper: number) => {
+    if (!isFinite(lower) || !isFinite(upper)) return null;
+    if (lower <= 0 || upper <= 0) return null;
+    if (upper === lower) return null;
+    return (lower + upper) / 2;
+  };
+
+  const computeAutoShares = (trade: typeof defaultNewTrade) => {
+    const entry = computeMidPrice(trade.lower_price_range, trade.higher_price_range);
+    if (entry == null) return null;
+    if (!isFinite(trade.risk_amount) || trade.risk_amount <= 0) return null;
+    if (!trade.sell_stops || trade.sell_stops.length === 0) return null;
+
+    // Weighted drop across stops: sum_i (position_pct_i * (entry - stop_i))
+    let weightedDrop = 0;
+    for (const stop of trade.sell_stops) {
+      const pct = Number(stop.position_pct) || 0;
+      if (pct <= 0) continue;
+      let stopPrice: number | null = null;
+      if ((stop.__ui_mode ?? 'price') === 'percent') {
+        const p = Number(stop.percent_below_fill) || 0;
+        stopPrice = entry * (1 - p / 100);
+      } else {
+        stopPrice = Number(stop.price);
+      }
+      if (stopPrice == null || !isFinite(stopPrice)) continue;
+      const drop = entry - stopPrice;
+      if (drop <= 0) continue; // ignore invalid stops above entry
+      weightedDrop += pct * drop;
+    }
+    if (weightedDrop <= 0) return null;
+    const shares = trade.risk_amount / weightedDrop;
+    if (!isFinite(shares) || shares <= 0) return null;
+    // Round to 2 decimals per requirement
+    return Math.round(shares * 100) / 100;
+  };
+
+  const [autoCalcReady, setAutoCalcReady] = useState(false);
+  const [autoCalcEnabled, setAutoCalcEnabled] = useState(true);
+
+  useEffect(() => {
+    if (!autoCalcEnabled) {
+      // When manual mode, just mark readiness for UI but don't overwrite shares
+      const shares = computeAutoShares(newTrade);
+      setAutoCalcReady(shares != null);
+      return;
+    }
+    const shares = computeAutoShares(newTrade);
+    const ready = shares != null;
+    setAutoCalcReady(!!ready);
+    if (ready) {
+      // Avoid state churn if unchanged
+      if (Number(newTrade.shares) !== shares) {
+        setNewTrade(prev => ({ ...prev, shares }));
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoCalcEnabled, newTrade.lower_price_range, newTrade.higher_price_range, newTrade.risk_amount, JSON.stringify(newTrade.sell_stops)]);
+
+  // Allocate total shares to stops with 2-decimal precision so they sum exactly to total
+  const allocateSharesToStops = (totalShares: number, stops: NewTradeStop[]) => {
+    const totalCents = Math.max(0, Math.round((totalShares || 0) * 100));
+    if (stops.length === 0) return [] as number[];
+
+    // Normalize percentages to their sum to ensure allocation matches total exactly
+    const pcts = stops.map(s => Math.max(0, Number(s.position_pct) || 0));
+    const sumPct = pcts.reduce((a, b) => a + b, 0);
+
+    // If no valid percentages, give all to the first stop
+    if (sumPct <= 0) {
+      const res = new Array(stops.length).fill(0);
+      res[0] = totalCents / 100;
+      return res;
+    }
+
+    // Largest Remainder Method (Hamilton) on cents
+    const rawCents = pcts.map(p => (totalCents * (p / sumPct)));
+    const baseCents = rawCents.map(x => Math.floor(x));
+  const allocated = baseCents.reduce((a, b) => a + b, 0);
+    let remainder = totalCents - allocated;
+
+    // Indices sorted by descending fractional part
+    const idxs = rawCents
+      .map((v, i) => ({ i, frac: v - Math.floor(v) }))
+      .sort((a, b) => b.frac - a.frac)
+      .map(o => o.i);
+
+    let cursor = 0;
+    while (remainder > 0) {
+      const i = idxs[cursor % idxs.length];
+      baseCents[i] += 1;
+      remainder -= 1;
+      cursor++;
+    }
+
+    return baseCents.map(c => c / 100);
+  };
+
+  // Prepare payload for backend: convert position_pct to per-stop shares
+  const buildTradePayload = (trade: NewTrade) => {
+    const entry = computeMidPrice(trade.lower_price_range, trade.higher_price_range);
+    const sharesTotalRaw = autoCalcEnabled ? ((computeAutoShares(trade) ?? trade.shares) || 0) : (trade.shares || 0);
+    const sharesTotal = Math.max(0, Math.round(sharesTotalRaw * 100) / 100); // ensure 2-decimal total
+    const allocatedShares = allocateSharesToStops(sharesTotal, trade.sell_stops);
+    const sellStopsForServer = trade.sell_stops.map((s, idx) => {
+      const shares = allocatedShares[idx] ?? 0;
+      if ((s.__ui_mode ?? 'price') === 'percent') {
+        return {
+          shares,
+          percent_below_fill: s.percent_below_fill ?? 0
+        };
+      }
+      return {
+        shares,
+        price: s.price ?? (entry ?? 0) // fallback to entry if missing
+      };
+    });
+    return {
+      ticker: trade.ticker,
+      shares: sharesTotal,
+      risk_amount: trade.risk_amount,
+      lower_price_range: trade.lower_price_range,
+      higher_price_range: trade.higher_price_range,
+      sell_stops: sellStopsForServer,
+    };
   };
 
   useEffect(() => {
@@ -853,18 +1009,6 @@ export function CustomOrdersPage() {
                     className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Shares</label>
-                  <input
-                    type="number"
-                    value={newTrade.shares}
-                    onChange={(e) => setNewTrade(prev => ({ ...prev, shares: parseFloat(e.target.value) || 0 }))}
-                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                    step="0.001"
-                    min="0.001"
-                  />
-                </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">Lower Price Range</label>
                   <input
@@ -905,6 +1049,13 @@ export function CustomOrdersPage() {
                 <div className="space-y-2">
                   {newTrade.sell_stops.map((stop, index) => {
                     const mode = (stop.__ui_mode || (stop.percent_below_fill != null ? 'percent' : 'price')) as 'price' | 'percent';
+                    const entry = computeMidPrice(newTrade.lower_price_range, newTrade.higher_price_range);
+                    let effectiveStop: number | null = null;
+                    if (entry != null) {
+                      effectiveStop = mode === 'percent'
+                        ? entry * (1 - (Number(stop.percent_below_fill) || 0) / 100)
+                        : Number(stop.price) || null;
+                    }
                     return (
                       <div key={index} className="flex items-start gap-2 flex-wrap md:flex-nowrap">
                         <div className="w-32">
@@ -945,17 +1096,23 @@ export function CustomOrdersPage() {
                           </div>
                         )}
                         <div className="flex-1 min-w-[140px]">
-                          <label className="block text-xs text-muted-foreground mb-1">Shares</label>
+                          <label className="block text-xs text-muted-foreground mb-1">Sell % of Position</label>
                           <input
                             type="number"
-                            value={stop.shares}
-                            onChange={(e) => updateSellStop(index, 'shares', parseFloat(e.target.value) || 0)}
+                            value={stop.position_pct ?? 0}
+                            onChange={(e) => updateSellStop(index, 'position_pct', parseFloat(e.target.value) || 0)}
                             className="w-full p-2 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
-                            placeholder="Shares"
-                            step="0.001"
-                            min="0.001"
+                            placeholder="e.g. 0.33 for 33%"
+                            step="0.01"
+                            min="0"
+                            max="1"
                           />
                         </div>
+                        {entry != null && effectiveStop != null && (
+                          <div className="flex items-center text-xs text-muted-foreground mt-6">
+                            Risk drop: ${(entry - effectiveStop).toFixed(2)}
+                          </div>
+                        )}
                         <button
                           onClick={() => removeSellStop(index)}
                           className="p-2 text-destructive hover:bg-destructive/10 rounded mt-5"
@@ -972,6 +1129,31 @@ export function CustomOrdersPage() {
                   >
                     + Add Sell Stop
                   </button>
+                  {/* Auto-calc toggle and shares field placed at end */}
+                  <div className="flex flex-col gap-2 mt-2">
+                    <label className="flex items-center gap-2 text-xs select-none">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4"
+                        checked={autoCalcEnabled}
+                        onChange={(e) => setAutoCalcEnabled(e.target.checked)}
+                      />
+                      <span>Auto-calculate shares from risk, mid price, and stops {autoCalcReady ? '' : '(incomplete inputs)'}</span>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-medium text-foreground mb-2">Shares {autoCalcEnabled ? '(auto)' : '(manual)'}</label>
+                      <input
+                        type="number"
+                        value={newTrade.shares}
+                        onChange={(e) => !autoCalcEnabled && setNewTrade(prev => ({ ...prev, shares: Math.max(0, Math.round((parseFloat(e.target.value) || 0) * 100) / 100) }))}
+                        readOnly={autoCalcEnabled}
+                        className={`w-full p-3 border border-input ${autoCalcEnabled ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
+                        step="0.01"
+                        min="0"
+                        placeholder={autoCalcEnabled ? 'Auto-calculated from risk, range, stops' : 'Enter shares manually when auto-calc is off'}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               

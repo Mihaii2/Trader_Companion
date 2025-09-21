@@ -24,9 +24,8 @@ export default function App() {
             <Route path="/custom_orders" element={<CustomOrdersPage />} />
             <Route path="/ticker_management" element={<TickerManagementPage />} />
             <Route path="/post_analysis" element={<PostAnalysisPage />} />
-            {/* Redirect to stocks screeners if no path matches */}
-            {/* Redirect root path to stocks screeners */}
-            <Route path="/" element={<Navigate to="/stocks_screeners" replace />} />
+            {/* Redirect to personal ranking if no path matches */}
+            <Route path="/" element={<Navigate to="/personal_ranking" replace />} />
           </Routes>
         </main>
       </div>

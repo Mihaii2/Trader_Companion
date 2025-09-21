@@ -1,2 +1,4 @@
 Buy_Seller/pivot_watchers/stock_data_server_*.log
 media/post_analysis_images/*
+*.tmp.drivedownload
+*.tmp.driveupload
