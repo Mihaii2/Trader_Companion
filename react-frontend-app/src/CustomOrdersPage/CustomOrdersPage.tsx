@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Plus, Eye, AlertCircle, DollarSign, RefreshCw, Trash2 } from 'lucide-react';
+import { balanceAPI } from '../TradeStatisticsPage/services/balanceAPI';
+import { tradeAPI } from '../TradeStatisticsPage/services/tradeAPI';
 
 
 interface OrderConfig {
@@ -37,6 +39,8 @@ interface NewTrade {
   ticker: string;
   shares: number; // auto-calculated, 2 decimals
   risk_amount: number;
+  // Optional: percent of current equity (0-100). Use either this OR risk_amount (mutually exclusive)
+  risk_percent_of_equity?: number;
   lower_price_range: number;
   higher_price_range: number;
   sell_stops: NewTradeStop[];
@@ -117,6 +121,7 @@ export function CustomOrdersPage() {
     ticker: '',
     shares: 0,
     risk_amount: 0,
+    risk_percent_of_equity: 0,
     lower_price_range: 0,
     higher_price_range: 0,
     // default: single stop at fixed price with 100% of position
@@ -182,6 +187,26 @@ export function CustomOrdersPage() {
     }, duration);
   };
 
+  // -------------------- Current Equity (Balance + Returns) --------------------
+  const [currentEquity, setCurrentEquity] = useState<number | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const balance = await balanceAPI.getBalance();
+        const response = await tradeAPI.getTrades();
+        const trades: Array<{ Return: number | null }> = response.data;
+        const returnsSum = trades.reduce((sum, t) => sum + (t.Return ?? 0), 0);
+        if (mounted) setCurrentEquity(Math.round((balance + returnsSum) * 100) / 100);
+      } catch (err) {
+        console.error('Error fetching equity:', err);
+      }
+    };
+    load();
+    const iv = setInterval(load, 20000);
+    return () => { mounted = false; clearInterval(iv); };
+  }, []);
+
   
   
   // API calls
@@ -240,6 +265,8 @@ export function CustomOrdersPage() {
       alert(`Sell stop percentages must sum to 1.0. Currently: ${totalPct.toFixed(4)}`);
       return;
     }
+
+    // No other validation; risk_amount is used as-is
 
     setLoading(true);
     try {
@@ -497,7 +524,7 @@ export function CustomOrdersPage() {
       weightedDrop += pct * drop;
     }
     if (weightedDrop <= 0) return null;
-    const shares = trade.risk_amount / weightedDrop;
+  const shares = trade.risk_amount / weightedDrop;
     if (!isFinite(shares) || shares <= 0) return null;
     // Round to 2 decimals per requirement
     return Math.round(shares * 100) / 100;
@@ -650,6 +677,8 @@ export function CustomOrdersPage() {
     </button>
   );
 
+
+  // (Removed duplicate current equity block; handled earlier)
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -1032,13 +1061,44 @@ export function CustomOrdersPage() {
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Risk Amount</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Risk Amount ($)</label>
                   <input
                     type="number"
                     value={newTrade.risk_amount}
-                    onChange={(e) => setNewTrade(prev => ({ ...prev, risk_amount: parseFloat(e.target.value) }))}
+                    onChange={(e) => {
+                      const dollars = parseFloat(e.target.value) || 0;
+                      let pct = newTrade.risk_percent_of_equity ?? 0;
+                      if (currentEquity != null && currentEquity > 0) {
+                        pct = Math.round(((dollars / currentEquity) * 100) * 100) / 100; // 2-decimal %
+                      }
+                      setNewTrade(prev => ({ ...prev, risk_amount: dollars, risk_percent_of_equity: pct }));
+                    }}
                     className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
                     step="0.01"
+                    min={0}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Risk % of Equity</label>
+                  <input
+                    type="number"
+                    value={newTrade.risk_percent_of_equity ?? 0}
+                    onChange={(e) => {
+                      const pct = parseFloat(e.target.value) || 0;
+                      let dollars = newTrade.risk_amount;
+                      if (currentEquity != null && currentEquity > 0 && pct > 0) {
+                        dollars = Math.round((currentEquity * pct / 100) * 100) / 100;
+                      } else if (pct === 0) {
+                        // leave dollars unchanged if user clears percent
+                        dollars = newTrade.risk_amount;
+                      }
+                      setNewTrade(prev => ({ ...prev, risk_percent_of_equity: pct, risk_amount: dollars }));
+                    }}
+                    className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+                    step="0.01"
+                    min={0}
+                    max={100}
                   />
                 </div>
                 
