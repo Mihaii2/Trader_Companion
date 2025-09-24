@@ -394,6 +394,40 @@ export function CustomOrdersPage() {
     }
   };
 
+  // Execute a specific active trade immediately
+  const executeTradeNow = async (params: { ticker: string; lower_price_range: number; higher_price_range: number }) => {
+    const { ticker, lower_price_range, higher_price_range } = params;
+    const confirmed = confirm(
+      `Execute now?\n\nTicker: ${ticker}\nRange: $${lower_price_range.toFixed(2)} - $${higher_price_range.toFixed(2)}`
+    );
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5002/execute_trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker,
+          lower_price: lower_price_range,
+          higher_price: higher_price_range,
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert('Trade execution started.');
+        fetchStatus();
+      } else {
+        alert(`Execution error: ${result.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert(`Network error: ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addVolumeRequirement = () => {
     if (newVolumeReq.trim()) {
       let baseReq = newVolumeReq.trim();
@@ -1324,14 +1358,29 @@ export function CustomOrdersPage() {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
-                            <button
-                              onClick={() => deleteTrade(trade.trade_id)}
-                              disabled={loading}
-                              className="inline-flex items-center gap-1 px-3 py-1 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:opacity-50 text-sm"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                              Delete
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => executeTradeNow({
+                                  ticker: trade.ticker,
+                                  lower_price_range: trade.lower_price_range,
+                                  higher_price_range: trade.higher_price_range,
+                                })}
+                                disabled={loading}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm dark:bg-blue-700 dark:hover:bg-blue-800"
+                                title="Execute this trade immediately"
+                              >
+                                <Play className="w-3 h-3" />
+                                Execute Now
+                              </button>
+                              <button
+                                onClick={() => deleteTrade(trade.trade_id)}
+                                disabled={loading}
+                                className="inline-flex items-center gap-1 px-3 py-1 bg-destructive text-destructive-foreground rounded-lg hover:bg-destructive/90 disabled:opacity-50 text-sm"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
