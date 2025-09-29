@@ -297,8 +297,19 @@ class StockDataServer:
         
         while self.running:
             try:
-                # Perform daily cleanup
+                # 1. Perform daily cleanup of old price records
                 self.cleanup_old_records()
+
+                # 2. Periodically poll trade server for active trades & prune inactive tickers
+                now_epoch = time.time()
+                if now_epoch - self.last_trade_activity_check >= self.trade_activity_check_interval:
+                    self.last_trade_activity_check = now_epoch
+                    try:
+                        self.update_active_trades()
+                        self.cleanup_inactive_tickers()
+                    except Exception as e:
+                        logger.error(f"Trade activity update/cleanup failed: {e}")
+
                 
                 # Check if market is open
                 market_open, time_until_open = self.is_market_open()
@@ -330,25 +341,15 @@ class StockDataServer:
                 
                 self.last_market_status = market_open
                 
-                # If market is closed, wait and continue
+                # If market is closed, wait and continue to next loop iteration
                 if not market_open:
                     time.sleep(self.market_check_interval)
                     continue
-                
+
                 # If no tickers, wait briefly
                 if not self.tickers:
                     time.sleep(5)
                     continue
-
-                # Periodically poll trade server for active trades & prune inactive tickers
-                now_epoch = time.time()
-                if now_epoch - self.last_trade_activity_check >= self.trade_activity_check_interval:
-                    self.last_trade_activity_check = now_epoch
-                    try:
-                        self.update_active_trades()
-                        self.cleanup_inactive_tickers()
-                    except Exception as e:
-                        logger.error(f"Trade activity update/cleanup failed: {e}")
                 
                 # Get next ticker in round-robin fashion
                 if self.current_ticker_index >= len(self.tickers):
