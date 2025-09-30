@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowUp, ArrowDown, Trash2, Plus, RefreshCw, Check } from 'lucide-react';
+import { ArrowUp, ArrowDown, Trash2, Plus, RefreshCw, Check, GripVertical } from 'lucide-react';
 import { globalCharacteristicsApi } from '../services/globalCharacteristics';
 import { characteristicMetaApi, OrderedCharacteristicMeta, PriorityCharacteristicMeta, ColorCodedCharacteristicMeta } from '../services/characteristicMeta';
 import type { GlobalCharacteristic } from '../types';
@@ -32,6 +32,10 @@ export const CharacteristicMetaManager: React.FC = () => {
   const [addingPriorityId, setAddingPriorityId] = useState<number|''>('');
   const [addingColorId, setAddingColorId] = useState<number|''>('');
   const [reorderDirty, setReorderDirty] = useState(false);
+  // drag & drop refs/state
+  const dragItemIndex = useRef<number | null>(null);
+  const dragOverIndex = useRef<number | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'ordered' | 'priority' | 'color'; id: number; name: string } | null>(null);
 
   const loadAll = async () => {
     setLoading(true); setError(null);
@@ -94,6 +98,55 @@ export const CharacteristicMetaManager: React.FC = () => {
     });
     setReorderDirty(true);
   };
+  // helper to reorder by indices
+  const reorderOrderedByIndex = (from: number, to: number) => {
+    setOrdered(prev => {
+      if (from < 0 || to < 0 || from >= prev.length || to >= prev.length) return prev;
+      const copy = [...prev];
+      const [item] = copy.splice(from, 1);
+      copy.splice(to, 0, item);
+      return copy.map((o,i)=>({ ...o, position: i + 1 }));
+    });
+    setReorderDirty(true);
+  };
+  const onDragStart = (e: React.DragEvent<HTMLLIElement>, index: number) => {
+    dragItemIndex.current = index;
+    e.dataTransfer.effectAllowed = 'move';
+    // For Firefox compatibility
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+  const onDragEnter = (_e: React.DragEvent<HTMLLIElement>, index: number) => {
+    dragOverIndex.current = index;
+  };
+  const onDragOver = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault(); // allow drop
+  };
+  const onDrop = (e: React.DragEvent<HTMLLIElement>) => {
+    e.preventDefault();
+    const from = dragItemIndex.current;
+    const to = dragOverIndex.current;
+    if (from !== null && to !== null && from !== to) {
+      reorderOrderedByIndex(from, to);
+    }
+    dragItemIndex.current = null;
+    dragOverIndex.current = null;
+  };
+  const onDragEnd = () => {
+    dragItemIndex.current = null;
+    dragOverIndex.current = null;
+  };
+  const confirmDelete = async () => {
+    if(!pendingDelete) return;
+    const { type, id } = pendingDelete;
+    setPendingDelete(null);
+    if(type==='ordered') await removeOrdered(id);
+    if(type==='priority') await removePriority(id);
+    if(type==='color') await removeColor(id);
+  };
+
+  const usedPriorityNames = new Set(priority.map(p=>p.name));
+  const usedColorNames = new Set(colorCoded.map(c=>c.name));
+  const usedOrderedNames = new Set(ordered.map(o=>o.name));
 
   const saveReorder = async () => {
     setLoading(true); setError(null);
@@ -101,13 +154,8 @@ export const CharacteristicMetaManager: React.FC = () => {
       await characteristicMetaApi.reorderOrdered(ordered.map(o=>({id:o.id, position:o.position})));
       setReorderDirty(false);
       await loadAll();
-  } catch{ setError('Failed to save order'); } finally { setLoading(false); }
+    } catch { setError('Failed to save order'); } finally { setLoading(false); }
   };
-
-  const usedPriorityNames = new Set(priority.map(p=>p.name));
-  const usedColorNames = new Set(colorCoded.map(c=>c.name));
-  const usedOrderedNames = new Set(ordered.map(o=>o.name));
-
   return (
     <Card className="mt-4">
       <CardHeader className="py-2 px-2 flex flex-row items-center justify-between">
@@ -124,15 +172,27 @@ export const CharacteristicMetaManager: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-3">
           {/* Ordered */}
           <div className="border rounded p-2 overflow-hidden">
-            <SectionHeading title="Ordered" subtitle="Controls sorting priority" />
+            <SectionHeading title="Ordered" subtitle="Drag to reorder (saves manually)" />
             <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
-              {ordered.sort((a,b)=>a.position-b.position).map(item => (
-                <li key={item.id} className="flex items-center gap-1">
-                  <span className="w-5 text-xs text-muted-foreground">{item.position}</span>
-                  <span className="flex-1 truncate">{item.name}</span>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" disabled={loading} onClick={()=>moveOrdered(item.id,-1)}><ArrowUp className="h-3 w-3"/></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6" disabled={loading} onClick={()=>moveOrdered(item.id,1)}><ArrowDown className="h-3 w-3"/></Button>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>removeOrdered(item.id)}><Trash2 className="h-3 w-3"/></Button>
+              {ordered.sort((a,b)=>a.position-b.position).map((item, idx) => (
+                <li
+                  key={item.id}
+                  className={"flex items-center gap-1 rounded border border-transparent bg-muted/30 hover:bg-muted/50 transition-colors " + (dragOverIndex.current === idx ? 'ring-1 ring-primary' : '')}
+                  draggable
+                  onDragStart={(e)=>onDragStart(e, idx)}
+                  onDragEnter={(e)=>onDragEnter(e, idx)}
+                  onDragOver={onDragOver}
+                  onDrop={onDrop}
+                  onDragEnd={onDragEnd}
+                >
+                  <button aria-label="Drag handle" className="cursor-grab active:cursor-grabbing h-6 w-4 flex items-center justify-center text-muted-foreground"><GripVertical className="h-3 w-3"/></button>
+                  <span className="w-5 text-xs text-muted-foreground select-none">{idx+1}</span>
+                  <span className="flex-1 truncate select-none">{item.name}</span>
+                  <div className="flex items-center gap-0.5">
+                    <Button size="icon" variant="ghost" className="h-6 w-6" disabled={loading} onClick={()=>moveOrdered(item.id,-1)}><ArrowUp className="h-3 w-3"/></Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" disabled={loading} onClick={()=>moveOrdered(item.id,1)}><ArrowDown className="h-3 w-3"/></Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>setPendingDelete({ type:'ordered', id:item.id, name:item.name })}><Trash2 className="h-3 w-3"/></Button>
+                  </div>
                 </li>
               ))}
               {ordered.length===0 && <li className="text-xs text-muted-foreground">None yet.</li>}
@@ -151,7 +211,6 @@ export const CharacteristicMetaManager: React.FC = () => {
                 </select>
               </div>
               <Button size="sm" className="h-7 px-2 flex-shrink-0" disabled={loading||addingOrderedId===''} onClick={addOrdered}><Plus className="h-3 w-3"/></Button>
-              {reorderDirty && <Button size="sm" variant="outline" className="h-7 px-2 flex-shrink-0" disabled={loading} onClick={saveReorder}><Check className="h-3 w-3 mr-1"/>Save</Button>}
             </div>
           </div>
 
@@ -160,9 +219,9 @@ export const CharacteristicMetaManager: React.FC = () => {
             <SectionHeading title="Priority" subtitle="Shown as yellow tags" />
             <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
               {priority.map(item => (
-                <li key={item.id} className="flex items-center gap-1">
-                  <span className="flex-1 truncate">{item.name}</span>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>removePriority(item.id)}><Trash2 className="h-3 w-3"/></Button>
+                <li key={item.id} className="flex items-center gap-1 rounded bg-muted/30 hover:bg-muted/50">
+                  <span className="flex-1 truncate select-none">{item.name}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>setPendingDelete({ type:'priority', id:item.id, name:item.name })}><Trash2 className="h-3 w-3"/></Button>
                 </li>
               ))}
               {priority.length===0 && <li className="text-xs text-muted-foreground">None yet.</li>}
@@ -189,9 +248,9 @@ export const CharacteristicMetaManager: React.FC = () => {
             <SectionHeading title="Color-Coded" subtitle="Green/Red background logic" />
             <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
               {colorCoded.map(item => (
-                <li key={item.id} className="flex items-center gap-1">
-                  <span className="flex-1 truncate">{item.name}</span>
-                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>removeColor(item.id)}><Trash2 className="h-3 w-3"/></Button>
+                <li key={item.id} className="flex items-center gap-1 rounded bg-muted/30 hover:bg-muted/50">
+                  <span className="flex-1 truncate select-none">{item.name}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" disabled={loading} onClick={()=>setPendingDelete({ type:'color', id:item.id, name:item.name })}><Trash2 className="h-3 w-3"/></Button>
                 </li>
               ))}
               {colorCoded.length===0 && <li className="text-xs text-muted-foreground">None yet.</li>}
@@ -213,6 +272,23 @@ export const CharacteristicMetaManager: React.FC = () => {
             </div>
           </div>
         </div>
+        {reorderDirty && (
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="outline" disabled={loading} onClick={saveReorder}><Check className="h-3 w-3 mr-1"/>Save Order</Button>
+          </div>
+        )}
+        {pendingDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm">
+            <div className="bg-card border rounded-md p-4 w-full max-w-sm shadow-lg animate-in fade-in zoom-in">
+              <h4 className="font-semibold mb-1 text-sm">Confirm Delete</h4>
+              <p className="text-xs text-muted-foreground mb-3">Remove <span className="font-medium">{pendingDelete.name}</span> from {pendingDelete.type} list?</p>
+              <div className="flex justify-end gap-2">
+                <Button size="sm" variant="outline" onClick={()=>setPendingDelete(null)} disabled={loading}>Cancel</Button>
+                <Button size="sm" variant="destructive" onClick={confirmDelete} disabled={loading}>Delete</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
