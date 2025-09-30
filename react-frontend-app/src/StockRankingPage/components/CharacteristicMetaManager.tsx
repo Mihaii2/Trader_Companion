@@ -32,6 +32,8 @@ export const CharacteristicMetaManager: React.FC = () => {
   const [addingPriorityId, setAddingPriorityId] = useState<number|''>('');
   const [addingColorId, setAddingColorId] = useState<number|''>('');
   const [reorderDirty, setReorderDirty] = useState(false);
+  const [autoSaveState, setAutoSaveState] = useState<'idle'|'saving'|'saved'|'error'>('idle');
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   // drag & drop refs/state
   const dragItemIndex = useRef<number | null>(null);
   const dragOverIndex = useRef<number | null>(null);
@@ -97,6 +99,7 @@ export const CharacteristicMetaManager: React.FC = () => {
       return copy.map((o,i)=>({...o, position:i+1}));
     });
     setReorderDirty(true);
+    setAutoSaveState('idle');
   };
   // helper to reorder by indices
   const reorderOrderedByIndex = (from: number, to: number) => {
@@ -108,6 +111,7 @@ export const CharacteristicMetaManager: React.FC = () => {
       return copy.map((o,i)=>({ ...o, position: i + 1 }));
     });
     setReorderDirty(true);
+    setAutoSaveState('idle');
   };
   const onDragStart = (e: React.DragEvent<HTMLLIElement>, index: number) => {
     dragItemIndex.current = index;
@@ -148,14 +152,31 @@ export const CharacteristicMetaManager: React.FC = () => {
   const usedColorNames = new Set(colorCoded.map(c=>c.name));
   const usedOrderedNames = new Set(ordered.map(o=>o.name));
 
-  const saveReorder = async () => {
-    setLoading(true); setError(null);
-    try {
-      await characteristicMetaApi.reorderOrdered(ordered.map(o=>({id:o.id, position:o.position})));
-      setReorderDirty(false);
-      await loadAll();
-    } catch { setError('Failed to save order'); } finally { setLoading(false); }
-  };
+  // Auto-save effect for ordered list reorder operations (debounced)
+  useEffect(()=>{
+    if(!reorderDirty) return; // nothing to save
+    // Clear previous timer
+    if(autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    // Schedule save after debounce window (800ms)
+    autoSaveTimer.current = setTimeout(async () => {
+      setAutoSaveState('saving');
+      setError(null);
+      try {
+        await characteristicMetaApi.reorderOrdered(ordered.map(o=>({id:o.id, position:o.position})));
+        setReorderDirty(false);
+        setAutoSaveState('saved');
+        // refresh to ensure canonical order from backend
+        await loadAll();
+        // brief display then idle
+        setTimeout(()=>{ setAutoSaveState('idle'); }, 1200);
+      } catch(e) {
+        console.error(e);
+        setAutoSaveState('error');
+        setError('Failed to auto-save order');
+      }
+    }, 800);
+    return () => { if(autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, [reorderDirty, ordered]);
   return (
     <Card className="mt-4">
       <CardHeader className="py-2 px-2 flex flex-row items-center justify-between">
@@ -172,7 +193,7 @@ export const CharacteristicMetaManager: React.FC = () => {
         <div className="grid md:grid-cols-3 gap-3">
           {/* Ordered */}
           <div className="border rounded p-2 overflow-hidden">
-            <SectionHeading title="Ordered" subtitle="Drag to reorder (saves manually)" />
+            <SectionHeading title="Ordered" subtitle="Drag to reorder" />
             <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
               {ordered.sort((a,b)=>a.position-b.position).map((item, idx) => (
                 <li
@@ -272,11 +293,20 @@ export const CharacteristicMetaManager: React.FC = () => {
             </div>
           </div>
         </div>
-        {reorderDirty && (
-          <div className="flex justify-end gap-2">
-            <Button size="sm" variant="outline" disabled={loading} onClick={saveReorder}><Check className="h-3 w-3 mr-1"/>Save Order</Button>
-          </div>
-        )}
+        <div className="flex justify-end min-h-[20px]">
+          {reorderDirty && autoSaveState!=='saving' && autoSaveState!=='error' && (
+            <p className="text-[11px] text-muted-foreground">Reorder changed… auto-saving</p>
+          )}
+          {autoSaveState==='saving' && (
+            <p className="text-[11px] text-primary animate-pulse">Saving order…</p>
+          )}
+          {autoSaveState==='saved' && (
+            <p className="text-[11px] text-green-600 flex items-center gap-1"><Check className="h-3 w-3"/>Saved</p>
+          )}
+          {autoSaveState==='error' && (
+            <p className="text-[11px] text-destructive">Auto-save failed (will retry on next change)</p>
+          )}
+        </div>
         {pendingDelete && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm">
             <div className="bg-card border rounded-md p-4 w-full max-w-sm shadow-lg animate-in fade-in zoom-in">
