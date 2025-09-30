@@ -11,13 +11,19 @@ from .models import (
     StockPick,
     RankingBox,
     GlobalCharacteristic,
-    StockPickCharacteristic
+    StockPickCharacteristic,
+    OrderedCharacteristic,
+    PriorityCharacteristic,
+    ColorCodedCharacteristic
 )
 from .serializers import (
     UserPageStateSerializer,
     StockPickSerializer,
     RankingBoxSerializer,
-    GlobalCharacteristicSerializer
+    GlobalCharacteristicSerializer,
+    OrderedCharacteristicSerializer,
+    PriorityCharacteristicSerializer,
+    ColorCodedCharacteristicSerializer
 )
 
 
@@ -256,3 +262,38 @@ class UserPageStateViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class OrderedCharacteristicViewSet(viewsets.ModelViewSet):
+    queryset = OrderedCharacteristic.objects.all().select_related('characteristic')
+    serializer_class = OrderedCharacteristicSerializer
+
+    def create(self, request, *args, **kwargs):
+        # Auto-assign next position if not provided
+        data = request.data.copy()
+        if 'position' not in data or data['position'] in (None, ''):
+            last = OrderedCharacteristic.objects.order_by('-position').first()
+            data['position'] = (last.position + 1) if last else 1
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def reorder(self, request):
+        """Bulk update ordering: expects list of {id, position}."""
+        items = request.data.get('items', [])
+        with transaction.atomic():
+            for item in items:
+                OrderedCharacteristic.objects.filter(pk=item.get('id')).update(position=item.get('position'))
+        return Response({'status': 'ok'})
+
+
+class PriorityCharacteristicViewSet(viewsets.ModelViewSet):
+    queryset = PriorityCharacteristic.objects.all().select_related('characteristic')
+    serializer_class = PriorityCharacteristicSerializer
+
+
+class ColorCodedCharacteristicViewSet(viewsets.ModelViewSet):
+    queryset = ColorCodedCharacteristic.objects.all().select_related('characteristic')
+    serializer_class = ColorCodedCharacteristicSerializer

@@ -5,7 +5,10 @@ from .models import (
     StockPick,
     UserPageState,
     GlobalCharacteristic,
-    StockPickCharacteristic
+    StockPickCharacteristic,
+    OrderedCharacteristic,
+    PriorityCharacteristic,
+    ColorCodedCharacteristic
 )
 
 
@@ -15,6 +18,39 @@ class GlobalCharacteristicSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalCharacteristic
         fields = ['id', 'name', 'default_score', 'created_at']
+
+
+class OrderedCharacteristicSerializer(serializers.ModelSerializer):
+    characteristic_id = serializers.PrimaryKeyRelatedField(
+        source='characteristic', queryset=GlobalCharacteristic.objects.all()
+    )
+    name = serializers.ReadOnlyField(source='characteristic.name')
+
+    class Meta:
+        model = OrderedCharacteristic
+        fields = ['id', 'characteristic_id', 'name', 'position']
+
+
+class PriorityCharacteristicSerializer(serializers.ModelSerializer):
+    characteristic_id = serializers.PrimaryKeyRelatedField(
+        source='characteristic', queryset=GlobalCharacteristic.objects.all()
+    )
+    name = serializers.ReadOnlyField(source='characteristic.name')
+
+    class Meta:
+        model = PriorityCharacteristic
+        fields = ['id', 'characteristic_id', 'name', 'created_at']
+
+
+class ColorCodedCharacteristicSerializer(serializers.ModelSerializer):
+    characteristic_id = serializers.PrimaryKeyRelatedField(
+        source='characteristic', queryset=GlobalCharacteristic.objects.all()
+    )
+    name = serializers.ReadOnlyField(source='characteristic.name')
+
+    class Meta:
+        model = ColorCodedCharacteristic
+        fields = ['id', 'characteristic_id', 'name', 'created_at']
 
 
 class StockPickCharacteristicSerializer(serializers.ModelSerializer):

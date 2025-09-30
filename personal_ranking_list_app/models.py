@@ -19,6 +19,52 @@ class GlobalCharacteristic(models.Model):
         return f"{self.name} (Default: {self.default_score})"
 
 
+class OrderedCharacteristic(models.Model):
+    """Defines ordering preference for characteristics displayed in UI.
+
+    Separate table so order can be user-managed without touching base characteristic data.
+    If a GlobalCharacteristic is missing from this table it will sink to bottom.
+    """
+    characteristic = models.OneToOneField(
+        GlobalCharacteristic,
+        on_delete=models.CASCADE,
+        related_name='ordered_meta'
+    )
+    position = models.PositiveIntegerField(help_text="Lower numbers appear first")
+
+    class Meta:
+        ordering = ['position']
+
+    def __str__(self):
+        return f"Order {self.position} - {self.characteristic.name}"
+
+
+class PriorityCharacteristic(models.Model):
+    """Marks a characteristic as a priority (yellow badges)."""
+    characteristic = models.OneToOneField(
+        GlobalCharacteristic,
+        on_delete=models.CASCADE,
+        related_name='priority_meta'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Priority - {self.characteristic.name}"
+
+
+class ColorCodedCharacteristic(models.Model):
+    """Marks characteristics that should get conditional color coding in UI."""
+    characteristic = models.OneToOneField(
+        GlobalCharacteristic,
+        on_delete=models.CASCADE,
+        related_name='color_coded_meta'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"ColorCoded - {self.characteristic.name}"
+
+
 class StockPick(models.Model):
     ranking_box = models.ForeignKey(RankingBox, related_name='stock_picks', on_delete=models.CASCADE)
     symbol = models.CharField(max_length=10)

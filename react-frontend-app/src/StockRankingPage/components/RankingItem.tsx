@@ -32,126 +32,6 @@ interface Props {
   onRemove: () => void;
 }
 
-// Define manually ordered characteristic names
-// Add your preferred characteristics in the desired order here
-const ORDERED_CHARACTERISTICS = [
-  "Earnings Surprises",
-  "Strong Against Market",
-  "Weak RSI(<70)",
-  "Weak Against Market",
-  "Spike Down On Volume",
-  "Support off The Lows",
-  "Good Stage 2 Volume",
-  "Not a Porcupine",
-  "Good EPS Estimates",
-  "M - Favorable Market Direction",
-  "Not Much Selling on Daily",
-  "High Alpha Low StdDev",
-  "Low Alpha High StdDev",
-  "Spikes On Volume",
-  "Shakeouts",
-  "Volatile",
-  "Held Up Well Against Market/ Outperforming/ Surging/RSI Uptrend",
-  "Outperformed Sometime Prior",
-  "Strong IPO Price Action",
-  "MVP(Not Late Stage)",
-  "Power Play(EARLY STAGE)",
-  "PP With Tight W Closes",
-  "Fast Rebounder",
-  "Drawn Bases Lines",
-  "Draw The Line",
-  "Weekly Support On Lows After Shakeout",
-  "Weekly Skyscrapers",
-  "Volume Before Base",
-  "Analyze weekly price-volume characteristics. Compare current base characteristics to previous bases.",
-  "Looks good on Weekly Too",
-  "Tight Weekly Closes",
-  "Didn't Recently Climax",
-  "NOT LATE STAGE(PE Exp, Bases, Loose Base)",
-  "Started Off Correction",
-  "Good ROE",
-  "Earnings Dump",
-  "IPO 10 Years",
-  "Top Competitor",
-  "L - Leader",
-  "IPO",
-  "Cyclical",
-  "Turnaround(100%>2Q)",
-  "Institutional Favorite",
-  "Low PE",
-  "Under 30M Shares",
-  "S - Reasonable Number Of Shares",
-  "Good Yearly Sales",
-  "Good Yearly Net Margins vs Industry",
-  "Good Yearly EPS",
-  "A - Compounded Yearly EPS of 25% (((((PER YEAR)))))(10% for turnarounds)(3 Years)",
-  "Compounded Yearly EPS of 50% (((((PER YEAR)))))",
-  "Steady Yearly EPS increase",
-  "Yearly Code 33",
-  "EPS Breakout Year",
-  "Good Q YOY Revenue(25% per Q or Acceleration)",
-  "Good Q YOY Net Margins vs Industry",
-  "Good Q YOY EPS",
-  "Reasonable Debt",
-  "Sales Deceleration",
-  "No Earnings Deceleration",
-  "C - Current Quarter 20% Up",
-  "C - Current Quarter 40% Up",
-  "CFPS 20%> EPS (is in MS)",
-  "Previous 2 Quarters Also Up 20%",
-  "Earnings Acceleration somewhere in Last 10Q",
-  "CFPS 20%> EPS",
-  "Code 33",
-  "Rolling 2Q Code 33",
-  "Last Q 20pct YOY EPS",
-  "Sudden Growth Change",
-  "Good ROE",
-  "Bad Inventory&Receivables",
-  "Earnings Red Flags",
-  "Not Much Taxes",
-  "Over 10pct Avg surprise",
-  "Q with 75pct Surprise",
-  "Decelerating Surprises %",
-  "Sales Surprises",
-  "Upward Revisions",
-  "Sales Upward Revisions",
-  "Downward Revisions",
-  "Good Ownership Past Q",
-  "I - Good funds are buying, new institutions buying and, current ones increasing stake",
-  "Bad Ownership Past Q",
-  "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
-  "Good Guidance",
-  "Signs Acceleration will Continue",
-];
-
-// Define priority characteristics that should always be displayed first if present
-// Replace these with your preferred characteristics list
-const PRIORITY_CHARACTERISTICS = [
-  "L - Leader",
-  "Cyclical",
-  "IPO",
-  "Top Competitor",
-  "Turnaround(100%>2Q)",
-  "Power Play(EARLY STAGE)",
-  "Code 33",
-];
-
-const COLOR_CODED_CHARACTERISTICS = [
-  "No Earnings Deceleration",
-  "Earnings Acceleration somewhere in Last 10Q",
-  "Started Off Correction",
-  "IPO 10 Years",
-  "NOT LATE STAGE(PE Exp, Bases, Loose Base)",
-  "Held Up Well Against Market/ Outperforming/ Surging/RSI Uptrend",
-  "C - Current Quarter 20% Up",
-  "A - Compounded Yearly EPS of 25% (((((PER YEAR)))))(10% for turnarounds)(3 Years)",
-  "N - New Product/ Management/ Industry change/ Catalyst in last 5 Years",
-  "S - Reasonable Number Of Shares",
-  "L - Leader",
-  "I - Good funds are buying, new institutions buying and, current ones increasing stake",
-  "M - Favorable Market Direction",
-];
-
 export const RankingItem: React.FC<Props> = ({
   stock: initialStock,
   onUpdate,
@@ -163,6 +43,12 @@ export const RankingItem: React.FC<Props> = ({
   const [detailsText, setCaseText] = useState(initialStock.case_text || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalCharacteristics, setGlobalCharacteristics] = useState<GlobalCharacteristic[]>([]);
+  // Meta lists from backend (ordered, priority, color-coded)
+  const [orderedMeta, setOrderedMeta] = useState<{id:number; characteristic_id:number; name:string; position:number;}[]>([]);
+  const [priorityMeta, setPriorityMeta] = useState<{id:number; characteristic_id:number; name:string;}[]>([]);
+  const [colorCodedMeta, setColorCodedMeta] = useState<{id:number; characteristic_id:number; name:string;}[]>([]);
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaError, setMetaError] = useState<string|null>(null);
   const [isEditingScore, setIsEditingScore] = useState<number | null>(null);
   const [editedScore, setEditedScore] = useState<number>(0);
   const [isEditingPersonalScore, setIsEditingPersonalScore] = useState(false);
@@ -292,17 +178,15 @@ export const RankingItem: React.FC<Props> = ({
       hasSyncedLocalOverridesRef.current = true;
     }
 
-    // Extract priority characteristics that exist in this stock
-    const priorityChars = merged.characteristics.filter(
-      char => PRIORITY_CHARACTERISTICS.includes(char.name)
-    );
+    const priorityNamesInit = new Set(priorityMeta.map(p=>p.name));
+    const priorityChars = merged.characteristics.filter(char => priorityNamesInit.has(char.name));
     setPriorityCharacteristics(priorityChars);
     if (isExpanded && hasTradeInHistory === null) {
       checkTradeExists();
     }
   // We intentionally exclude certain stable callbacks to avoid needless re-sync loops
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialStock.id, storageKey]);
+  }, [initialStock.id, storageKey, priorityMeta]);
 
   // When parent passes a changed initialStock (other than id), merge but don't override active edits
   useEffect(() => {
@@ -328,9 +212,9 @@ export const RankingItem: React.FC<Props> = ({
 
     // Get all characteristics and sort by score (descending)
     // Filter out priority characteristics as they'll be shown separately
-    const priorityCharNames = PRIORITY_CHARACTERISTICS.filter(name => 
-      stock.characteristics.some(c => c.name === name)
-    );
+    const priorityCharNames = priorityMeta
+      .map(p=>p.name)
+      .filter(name => stock.characteristics.some(c => c.name === name));
     
     const sortedChars = [...stock.characteristics]
       .filter(char => !priorityCharNames.includes(char.name))
@@ -433,24 +317,42 @@ export const RankingItem: React.FC<Props> = ({
     // Update state with visible characteristics
     setVisibleCharacteristics(sortedChars.slice(0, visibleCount));
     setHasHiddenCharacteristics(visibleCount < totalChars);
-  }, [stock.characteristics]);
+  }, [stock.characteristics, priorityMeta]);
 
-  // Fetch global characteristics when component mounts or expands
+  // Fetch meta lists (defined before effect usage)
+  const fetchMetaLists = useCallback(async () => {
+    setMetaLoading(true); setMetaError(null);
+    try {
+      const module = await import('../services/characteristicMeta');
+      const [orderedRes, priorityRes, colorRes] = await Promise.all([
+        module.characteristicMetaApi.getOrdered(),
+        module.characteristicMetaApi.getPriority(),
+        module.characteristicMetaApi.getColorCoded()
+      ]);
+      setOrderedMeta(orderedRes.data as {id:number; characteristic_id:number; name:string; position:number;}[]);
+      setPriorityMeta(priorityRes.data as {id:number; characteristic_id:number; name:string;}[]);
+      setColorCodedMeta(colorRes.data as {id:number; characteristic_id:number; name:string;}[]);
+    } catch (e) {
+      console.error('Error fetching characteristic meta lists', e);
+      setMetaError('Failed loading characteristic meta lists');
+    } finally { setMetaLoading(false); }
+  }, []);
+
+  // Fetch global & meta characteristics when component expands
   useEffect(() => {
     if (isExpanded) {
       fetchGlobalCharacteristics();
+      fetchMetaLists();
       if (hasTradeInHistory === null) {
         checkTradeExists();
       }
     }
-  }, [isExpanded, hasTradeInHistory, checkTradeExists]);
+  }, [isExpanded, hasTradeInHistory, checkTradeExists, fetchMetaLists]);
 
   // Check visible characteristics on stock change or window resize
   useEffect(() => {
-    // First, extract priority characteristics
-    const priorityChars = stock.characteristics.filter(
-      char => PRIORITY_CHARACTERISTICS.includes(char.name)
-    );
+    const dynPriorityNames = new Set(priorityMeta.map(p=>p.name));
+    const priorityChars = stock.characteristics.filter(char => dynPriorityNames.has(char.name));
     setPriorityCharacteristics(priorityChars);
     
     // Then calculate remaining visible characteristics
@@ -459,7 +361,7 @@ export const RankingItem: React.FC<Props> = ({
     return () => {
       window.removeEventListener('resize', calculateVisibleCharacteristics);
     };
-  }, [calculateVisibleCharacteristics, stock.characteristics]);
+  }, [calculateVisibleCharacteristics, stock.characteristics, priorityMeta]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -524,6 +426,7 @@ export const RankingItem: React.FC<Props> = ({
       setError('Failed to load global characteristics');
     }
   };
+  // (fetchMetaLists definition moved earlier)
 
   // checkTradeExists now defined via useCallback above
 
@@ -764,21 +667,14 @@ export const RankingItem: React.FC<Props> = ({
 
   // Sort global characteristics based on the ORDERED_CHARACTERISTICS list
   const getSortedGlobalCharacteristics = () => {
-    return [...globalCharacteristics].sort((a, b) => {
-      const indexA = ORDERED_CHARACTERISTICS.indexOf(a.name);
-      const indexB = ORDERED_CHARACTERISTICS.indexOf(b.name);
-      
-      // If both are not in the list, maintain original order
-      if (indexA === -1 && indexB === -1) return 0;
-      
-      // If only a is not in the list, b comes first
-      if (indexA === -1) return 1;
-      
-      // If only b is not in the list, a comes first
-      if (indexB === -1) return -1;
-      
-      // If both are in the list, sort by their position in the list
-      return indexA - indexB;
+    // Sort global characteristics based on dynamic orderedMeta list
+    if(!orderedMeta.length) return [...globalCharacteristics];
+    const orderMap = new Map(orderedMeta.map(o=>[o.name, o.position] as [string, number]));
+    return [...globalCharacteristics].sort((a,b)=>{
+      const posA = orderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+      const posB = orderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+      if (posA === posB) return a.name.localeCompare(b.name);
+      return posA - posB;
     });
   };
 
@@ -1004,11 +900,17 @@ export const RankingItem: React.FC<Props> = ({
               </div>
               
               {/* Compact Grid of Global Characteristics - sorted by predefined order */}
+              {metaError && (
+                <div className="text-xs text-red-500 mb-1">{metaError}</div>
+              )}
+              {metaLoading && (
+                <div className="text-xs text-muted-foreground mb-1">Loading lists...</div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0.5">
                 {getSortedGlobalCharacteristics().map(globalChar => {
                   const isSelected = isCharacteristicSelected(globalChar.id);
                   const selectedChar = isSelected ? getCharacteristicById(globalChar.id) : null;
-                  const isColorCoded = COLOR_CODED_CHARACTERISTICS.includes(globalChar.name);
+                  const isColorCoded = colorCodedMeta.some(cc => cc.name === globalChar.name);
 
                   return (
                     <div 
