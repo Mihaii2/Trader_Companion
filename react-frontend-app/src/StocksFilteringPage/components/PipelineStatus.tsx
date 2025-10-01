@@ -45,6 +45,15 @@ export const PipelineStatus: React.FC<PipelineStatusProps> = ({
     }
 
     if (error) {
+        if (/No pipeline run yet/i.test(error.message)) {
+            return (
+                <Alert>
+                    <AlertDescription className="text-sm">
+                        <span className="font-semibold">No pipeline activity.</span> Start a screening from the Stock Screener Commander. When it begins, live status will appear here.
+                    </AlertDescription>
+                </Alert>
+            );
+        }
         return <Alert variant="destructive"><AlertDescription className="flex items-center"><AlertCircle className="mr-2 h-4 w-4" />{error.message}</AlertDescription></Alert>;
     }
 

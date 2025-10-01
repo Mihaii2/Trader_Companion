@@ -42,11 +42,35 @@ export const rankingService = {
       throw new Error('Invalid response format');
     } catch (error) {
       console.error('Error details:', error);
-      throw new Error(
-        axios.isAxiosError(error) 
-          ? error.response?.data?.message || error.message 
-          : 'Failed to fetch ranking list'
-      );
+      // Normalize backend / filesystem "file not found" style errors into a friendly UX hint
+      const extractAxiosMessage = () => {
+        if (!axios.isAxiosError(error)) return null;
+        const data = error.response?.data;
+        if (!data) return error.message;
+        if (typeof data === 'string') return data;
+        // Narrow potential object shape
+        if (typeof (data as { message?: unknown }).message === 'string') {
+          return (data as { message?: string }).message as string;
+        }
+        return error.message;
+      };
+
+      let rawMessage = extractAxiosMessage() || (error instanceof Error ? error.message : 'Failed to fetch ranking list');
+
+      const missingFilePatterns = [
+        'WinError 3', // Windows specific missing path
+        'No such file or directory',
+        'cannot find the path specified',
+        'FileNotFoundError'
+      ];
+
+      const isMissingFile = missingFilePatterns.some(p => rawMessage?.toLowerCase().includes(p.toLowerCase()));
+
+      if (isMissingFile) {
+        rawMessage = 'No screening results yet. Run a screening (Start Screening) and wait for it to complete to generate ranking files.';
+      }
+
+      throw new Error(rawMessage || 'Failed to fetch ranking list');
     }
   }
 };
