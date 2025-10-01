@@ -194,7 +194,7 @@ export const CharacteristicMetaManager: React.FC = () => {
           {/* Ordered */}
           <div className="border rounded p-2 overflow-hidden">
             <SectionHeading title="Ordered" subtitle="Drag to reorder" />
-            <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
+            <ul className="space-y-1 mb-2 text-sm">
               {ordered.sort((a,b)=>a.position-b.position).map((item, idx) => (
                 <li
                   key={item.id}
@@ -238,7 +238,7 @@ export const CharacteristicMetaManager: React.FC = () => {
           {/* Priority */}
           <div className="border rounded p-2 overflow-hidden">
             <SectionHeading title="Priority" subtitle="Shown as yellow tags" />
-            <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
+            <ul className="space-y-1 mb-2 text-sm">
               {priority.map(item => (
                 <li key={item.id} className="flex items-center gap-1 rounded bg-muted/30 hover:bg-muted/50">
                   <span className="flex-1 truncate select-none">{item.name}</span>
@@ -267,7 +267,7 @@ export const CharacteristicMetaManager: React.FC = () => {
             {/* Color Coded */}
           <div className="border rounded p-2 overflow-hidden">
             <SectionHeading title="Color-Coded" subtitle="Green/Red background logic" />
-            <ul className="space-y-1 mb-2 max-h-56 overflow-auto text-sm">
+            <ul className="space-y-1 mb-2 text-sm">
               {colorCoded.map(item => (
                 <li key={item.id} className="flex items-center gap-1 rounded bg-muted/30 hover:bg-muted/50">
                   <span className="flex-1 truncate select-none">{item.name}</span>
