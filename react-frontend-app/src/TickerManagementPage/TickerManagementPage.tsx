@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 interface Ticker {
   symbol: string;
@@ -70,10 +72,28 @@ export const TickerManagementPage: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-4">
-      <h1 className="text-2xl font-bold text-foreground">Manage Stock Tickers</h1>
+      <h1 className="text-2xl font-bold text-foreground">Stock Tickers Monitor</h1>
       
-      {/* Add Ticker Form */}
+      {/* Automated Management Notice */}
+      <Alert className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertDescription className="text-blue-800 dark:text-blue-200">
+          <strong>Automated Ticker Management:</strong> Tickers are now added automatically when you create trades. 
+          Inactive tickers without associated trades are automatically removed after 8 hours. Manual management is no longer necessary.
+          <br /><br />
+          <strong>Performance Note:</strong> Each ticker adds 0.5 seconds to the data fetching cycle due to yfinance rate limiting. 
+          With 10 tickers, each updates every 5 seconds. With 20 tickers, each updates every 10 seconds. 
+          Consider the number of active tickers based on your desired data refresh speed.
+        </AlertDescription>
+      </Alert>
+      
+      {/* Legacy Manual Controls (Optional) */}
       <Card className="bg-background border-muted">
+        <CardHeader>
+          <CardTitle className="text-foreground flex items-center gap-2">
+            Manual Controls
+          </CardTitle>
+        </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleAddTicker} className="space-y-4">
             <div className="flex gap-4">
@@ -100,12 +120,17 @@ export const TickerManagementPage: React.FC = () => {
       {/* Ticker List */}
       <Card className="bg-background border-muted">
         <CardHeader>
-          <CardTitle className="text-foreground">Monitored Tickers</CardTitle>
+          <CardTitle className="text-foreground">Currently Monitored Tickers</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Tickers are automatically managed based on your trading activity
+          </p>
         </CardHeader>
         <CardContent>
           {isLoading && <p className="text-muted-foreground">Loading tickers...</p>}
           {!isLoading && tickers.length === 0 && (
-            <p className="text-muted-foreground">No tickers being monitored.</p>
+            <p className="text-muted-foreground">
+              No tickers are currently being monitored. They will be added automatically when you place trades.
+            </p>
           )}
           {!isLoading && tickers.length > 0 && (
             <ul className="space-y-2">
@@ -114,14 +139,19 @@ export const TickerManagementPage: React.FC = () => {
                   key={ticker.symbol}
                   className="flex justify-between items-center p-2 hover:bg-muted/50 rounded"
                 >
-                  <span className="font-medium text-foreground">{ticker.symbol}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-foreground">{ticker.symbol}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Auto-managed • Removed after 8h if inactive
+                    </span>
+                  </div>
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleRemoveTicker(ticker.symbol)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Remove
+                    Remove Now
                   </Button>
                 </li>
               ))}

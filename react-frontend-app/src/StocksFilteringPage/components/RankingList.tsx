@@ -99,7 +99,7 @@ export const RankingList: React.FC<RankingListProps> = ({ filename, title }) => 
       return (
         <div className="bg-background rounded-lg shadow-sm p-4 text-sm space-y-2">
           <div className="font-semibold">No Screening Results Yet</div>
-          <p className="text-muted-foreground">You haven't generated any rankings. Use the <strong>Stock Screener Commander</strong> panel and click <em>Start Screening</em>. When the pipeline finishes, the ranking list will appear here automatically.</p>
+          <p className="text-muted-foreground">You haven't generated any rankings. Use the <strong>Stock Screener Commander</strong> panel and click <em>Start Screening</em> while TWS with the API enabled on port 7497 is running. When the pipeline finishes, the ranking list will appear here automatically.</p>
         </div>
       );
     }
