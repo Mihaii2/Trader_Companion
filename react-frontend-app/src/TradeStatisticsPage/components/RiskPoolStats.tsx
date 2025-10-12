@@ -530,7 +530,7 @@ export const RiskPoolStats: React.FC = () => {
               <div className="mb-2 font-medium">Simple explanation</div>
               <ul className="list-disc pl-5 space-y-1">
                 <li>We start from a safety baseline: 0.5% of your account per trade.</li>
-                <li>We look at your last 8 trades. If at least 3 were wins (37.5%+), you’re "trading better."</li>
+                <li>We look at your last 8 trades. If win rate goes above 37.5%, you’re "trading better."</li>
                 <li>When trading improves, we raise the recommended risk up to that 0.5% baseline if it’s below it.</li>
                 <li>After each trade:
                   <ul className="list-disc pl-5 mt-1 space-y-1">
