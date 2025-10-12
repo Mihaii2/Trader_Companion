@@ -5,7 +5,7 @@ import { Trade } from '@/TradeHistoryPage/types/Trade';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Percent, Wallet, Edit, BarChart } from "lucide-react";
+import { DollarSign, Percent, Wallet, Edit, BarChart, ChevronDown, ChevronUp, Info } from "lucide-react";
 
 const StatCard = ({ 
   label, 
@@ -43,7 +43,9 @@ export const RiskPoolStats: React.FC = () => {
   const [tradesFetched, setTradesFetched] = useState<Trade[]>([]);
 
   const [includeLosses, setIncludeLosses] = useState<boolean>(false);
+  const [showAlgoHelp, setShowAlgoHelp] = useState<boolean>(false);
 
+  // We intentionally run this once on mount to bootstrap stats from the backend
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -336,7 +338,7 @@ export const RiskPoolStats: React.FC = () => {
       valueColor: "text-green-500"
     },
     {
-      label: "Recommended Risk Amount",
+      label: "Current Recommended Risk",
       value: `$${riskPool.toFixed(2)}`,
       icon: DollarSign,
       valueColor: "text-purple-500"
@@ -506,12 +508,65 @@ export const RiskPoolStats: React.FC = () => {
     <>
       <Card className="mb-4">
       <CardHeader>
-        <CardTitle>Recommended Risk</CardTitle>
+  <CardTitle>Current Recommended Risk</CardTitle>
         <p className="text-sm text-muted-foreground">
           The recommended risk algorithm reflects how much capital the system suggests putting on the line next.
           Strong recent results push the recommendation higher, while drawdowns dial it back to help
           protect the account.
         </p>
+        <div className="mt-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAlgoHelp((v) => !v)}
+            className="flex items-center gap-2"
+          >
+            <Info className="w-4 h-4" />
+            <span>{showAlgoHelp ? "Hide how this is calculated" : "How this is calculated"}</span>
+            {showAlgoHelp ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+          {showAlgoHelp && (
+            <div className="mt-3 rounded-md border border-border bg-card p-3 text-sm leading-6">
+              <div className="mb-2 font-medium">Simple explanation</div>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>We start from a safety baseline: 0.5% of your account per trade.</li>
+                <li>We look at your last 8 trades. If at least 3 were wins (37.5%+), you’re "trading better."</li>
+                <li>When trading improves, we raise the recommended risk up to that 0.5% baseline if it’s below it.</li>
+                <li>After each trade:
+                  <ul className="list-disc pl-5 mt-1 space-y-1">
+                    <li>If you win and the recommended risk is below the baseline, we grow it slowly so you don't bump up your risk just after 1 good trade with low win rate, until it reaches the baseline. Above the baseline, wins add in full.</li>
+                    <li>If you lose and the recommended risk is above the baseline, we first subtract losses fully until the baseline is hit; any extra loss reduces it slowly, so you don't end up with 0$ risk.</li>
+                  </ul>
+                </li>
+                <li>The recommended risk never exceeds 5% of your account to avoid overexposure.</li>
+              </ul>
+              <div className="mt-3 text-xs text-muted-foreground">
+                In practice: baseline ≈ 0.5% of account, max cap = 5%, below baseline subtraction = 25% of actual win/loss size.
+              </div>
+              <div className="mt-3 rounded bg-muted/30 p-2 text-xs">
+                <div className="font-medium mb-1">Your current snapshot</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1">
+                  <div>
+                    <span className="text-muted-foreground">0.5% of account:</span>
+                    <span className="ml-1 font-semibold">${(currentBalance * 0.005).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">5% cap:</span>
+                    <span className="ml-1 font-semibold">${(currentBalance * 0.05).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Recent win rate (last 8):</span>
+                    <span className="ml-1 font-semibold">{(winRate * 100).toFixed(0)}%</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Recommended risk now:</span>
+                    <span className="ml-1 font-semibold">${riskPool.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
@@ -563,7 +618,7 @@ export const RiskPoolStats: React.FC = () => {
         <div className="text-center">
           <CardTitle>Trading Simulation to 100% Return</CardTitle>
           <p className="text-sm text-muted-foreground">
-            Simulating trades ({rMultiple}R return{includeLosses ? ", with 50% win rate" : ", no losses"}) using risk pool algorithm.
+            Simulating trades ({rMultiple}R return{includeLosses ? ", with 50% win rate" : ", no losses"}) using the recommended risk algorithm.
             {perfectTrades.length > 0 && (
               <>
                 <br />
