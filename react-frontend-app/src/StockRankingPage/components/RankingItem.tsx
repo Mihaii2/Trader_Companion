@@ -102,6 +102,7 @@ export const RankingItem: React.FC<Props> = ({
   const priorityCharsWrapperRef = useRef<HTMLSpanElement>(null); // yellow priority
   const noteWrapperRef = useRef<HTMLSpanElement>(null);
   const catalystWrapperRef = useRef<HTMLSpanElement>(null);
+  const hasFetchedMetaRef = useRef(false);
 
   // Track which groups are hidden (for className binding only)
   const [hideRegularChars, setHideRegularChars] = useState(false);
@@ -335,19 +336,34 @@ export const RankingItem: React.FC<Props> = ({
     } catch (e) {
       console.error('Error fetching characteristic meta lists', e);
       setMetaError('Failed loading characteristic meta lists');
+      throw e;
     } finally { setMetaLoading(false); }
   }, []);
+
+  const ensureMetaListsLoaded = useCallback(async () => {
+    if (hasFetchedMetaRef.current) return;
+    try {
+      await fetchMetaLists();
+      hasFetchedMetaRef.current = true;
+    } catch {
+      // retry next time if fetch fails
+    }
+  }, [fetchMetaLists]);
 
   // Fetch global & meta characteristics when component expands
   useEffect(() => {
     if (isExpanded) {
       fetchGlobalCharacteristics();
-      fetchMetaLists();
+      ensureMetaListsLoaded();
       if (hasTradeInHistory === null) {
         checkTradeExists();
       }
     }
-  }, [isExpanded, hasTradeInHistory, checkTradeExists, fetchMetaLists]);
+  }, [isExpanded, hasTradeInHistory, checkTradeExists, ensureMetaListsLoaded]);
+
+  useEffect(() => {
+    ensureMetaListsLoaded();
+  }, [ensureMetaListsLoaded]);
 
   // Check visible characteristics on stock change or window resize
   useEffect(() => {
