@@ -43,6 +43,8 @@ const MetricAnalytics: React.FC<{
 }> = ({ trades, metrics, tradeGrades }) => {
   // ✅ Configurable window size (default 50)
   const [trailingWindow, setTrailingWindow] = useState(50);
+  // ✅ Layout toggle: 'stacked' (single column) or 'grid' (2x2 style when enough metrics)
+  const [layoutMode, setLayoutMode] = useState<'stacked' | 'grid'>('stacked');
 
   interface ChartRowBase {
     tradeIndex: number;
@@ -133,26 +135,53 @@ const MetricAnalytics: React.FC<{
         Analytics Dashboard
       </h2> */}
 
-      {/* ✅ Simple control to tweak trailing window */}
-      <div className="mb-6">
-        <label className="text-sm font-medium text-foreground mr-2">
-          Trailing Window (trades):
-        </label>
-        <input
-          type="number"
-          value={trailingWindow}
-          onChange={e => setTrailingWindow(Math.max(1, Number(e.target.value)))}
-          className="border border-input rounded-md px-2 py-1 w-20 text-center bg-background text-foreground"
-        />
+      {/* ✅ Controls: trailing window + layout toggle */}
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center">
+          <label className="text-sm font-medium text-foreground mr-2 whitespace-nowrap">
+            Trailing Window (trades):
+          </label>
+          <input
+            type="number"
+            value={trailingWindow}
+            onChange={e => setTrailingWindow(Math.max(1, Number(e.target.value)))}
+            className="border border-input rounded-md px-2 py-1 w-24 text-center bg-background text-foreground"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground">Layout:</span>
+          <div className="inline-flex rounded-md overflow-hidden border border-border">
+            <button
+              type="button"
+              onClick={() => setLayoutMode('stacked')}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors ${layoutMode === 'stacked' ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'}`}
+              aria-pressed={layoutMode === 'stacked'}
+            >
+              Stacked
+            </button>
+            <button
+              type="button"
+              onClick={() => setLayoutMode('grid')}
+              className={`px-3 py-1.5 text-sm font-medium transition-colors border-l border-border ${layoutMode === 'grid' ? 'bg-primary text-primary-foreground' : 'bg-card text-foreground hover:bg-muted'}`}
+              aria-pressed={layoutMode === 'grid'}
+            >
+              2 x 2
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-8">
+      {/** Container switches between vertical stack and responsive 2-column grid */}
+      <div className={layoutMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-8' : 'space-y-8'}>
         {metrics.map(metric => {
           const data = chartData[metric.id];
           if (!data || data.length === 0) return null;
 
           return (
-            <div key={metric.id} className="border border-border rounded-lg p-4 bg-card">
+            <div
+              key={metric.id}
+              className={`border border-border rounded-lg p-4 bg-card ${layoutMode === 'grid' ? '' : ''}`}
+            >
               <h3 className="text-xl font-semibold mb-4 flex items-center text-foreground">
                 <TrendingUp className="mr-2 w-5 h-5" />
                 {metric.name} Trends (Trailing {trailingWindow} Trades)
@@ -162,7 +191,7 @@ const MetricAnalytics: React.FC<{
                 <p className="text-muted-foreground mb-4 text-sm">{metric.description}</p>
               )}
 
-              <div className="h-80">
+              <div className={layoutMode === 'grid' ? 'h-64' : 'h-80'}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
