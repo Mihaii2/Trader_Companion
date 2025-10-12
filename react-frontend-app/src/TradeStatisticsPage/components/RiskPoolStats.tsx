@@ -336,7 +336,7 @@ export const RiskPoolStats: React.FC = () => {
       valueColor: "text-green-500"
     },
     {
-      label: "Current Risk Pool",
+      label: "Recommended Risk Amount",
       value: `$${riskPool.toFixed(2)}`,
       icon: DollarSign,
       valueColor: "text-purple-500"
@@ -506,7 +506,12 @@ export const RiskPoolStats: React.FC = () => {
     <>
       <Card className="mb-4">
       <CardHeader>
-        <CardTitle>Risk Pool</CardTitle>
+        <CardTitle>Recommended Risk</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          The recommended risk algorithm reflects how much capital the system suggests putting on the line next.
+          Strong recent results push the recommendation higher, while drawdowns dial it back to help
+          protect the account.
+        </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">
