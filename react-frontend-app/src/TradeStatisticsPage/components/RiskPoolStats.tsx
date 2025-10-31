@@ -534,7 +534,7 @@ export const RiskPoolStats: React.FC = () => {
                 <li>When trading improves({'>'}37.5%), we raise the recommended risk up to that 0.5% baseline if it’s below it.</li>
                 <li>After each trade:
                   <ul className="list-disc pl-5 mt-1 space-y-1">
-                    <li>If you win and the recommended risk is below the baseline, we grow it slowly so you don't bump up your risk just after 1 good trade with low win rate, until it reaches the baseline. Above the baseline, wins add in full.</li>
+                    <li>If you win and the recommended risk is below the baseline, we grow it slowly if win rate is below 37.5% so you don't bump up your risk just after 1 good trade with low win rate, until it reaches the baseline. Above the baseline, wins add in full.</li>
                     <li>If you lose and the recommended risk is above the baseline, we first subtract losses fully until the baseline is hit; any extra loss reduces it slowly, so you don't end up with 0$ risk.</li>
                   </ul>
                 </li>
