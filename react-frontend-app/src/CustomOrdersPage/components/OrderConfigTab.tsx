@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, RefreshCw, Trash2 } from 'lucide-react';
+import { Info, Play, RefreshCw, Trash2 } from 'lucide-react';
 import { OrderConfig } from '../types';
 
 interface PivotPositions { [key: string]: boolean; }
@@ -103,6 +103,17 @@ export const OrderConfigTab: React.FC<Props> = ({
           >
             Reset Order
           </button>
+        </div>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 text-sm text-blue-900 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-100 rounded-md p-3 flex gap-3 items-start">
+        <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <div>
+          <p>
+            To capture full trading-day data for a ticker, add the trade in the <strong>Trades</strong> tab before the market opens.
+            Custom orders can be created or deleted after the open&mdash;they will still use the complete day&apos;s data as long as
+            the ticker was added ahead of the opening bell.
+          </p>
         </div>
       </div>
 
