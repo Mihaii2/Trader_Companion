@@ -100,7 +100,7 @@ export function ConfigurationBox({
             type="text"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="Enter ranking box title"
+            placeholder="Enter industry name"
             className="h-9"
             disabled={isCreating}
           />
