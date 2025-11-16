@@ -413,6 +413,63 @@ class StockTradingServer:
         
         self.ib_wrapper = None
         self.ib_client = None
+
+    def test_ib_connection(self, sample_symbol: str = "SPY") -> dict:
+        """Lightweight connectivity check for the IBKR Web API."""
+        symbol = (sample_symbol or "SPY").upper()
+        checked_at = datetime.utcnow().isoformat() + "Z"
+        try:
+            ib_api = IBWebAPI()
+            
+            if not ib_api.is_connected():
+                return {
+                    'success': False,
+                    'stage': 'auth',
+                    'message': 'IBKR Web API is not authenticated. Launch Docker Desktop and ensure the IBEAM container is running.',
+                    'checked_at': checked_at,
+                    'sample_symbol': symbol
+                }
+            
+            accounts_response = ib_api.get_accounts()
+            status_code = getattr(accounts_response, 'status_code', None)
+            if not accounts_response or status_code != 200:
+                return {
+                    'success': False,
+                    'stage': 'accounts',
+                    'message': f'Unable to query IBKR accounts (status {status_code}).',
+                    'checked_at': checked_at,
+                    'sample_symbol': symbol
+                }
+            
+            conid = ib_api.get_contract_id(symbol)
+            if not conid:
+                return {
+                    'success': False,
+                    'stage': 'contract_lookup',
+                    'message': f'Connected but could not look up contract ID for {symbol}.',
+                    'checked_at': checked_at,
+                    'sample_symbol': symbol
+                }
+            
+            return {
+                'success': True,
+                'stage': 'ready',
+                'message': 'IBKR Web API responded successfully.',
+                'checked_at': checked_at,
+                'sample_symbol': symbol,
+                'sample_conid': conid
+            }
+        
+        except Exception as e:
+            error_msg = f"IB status check failed: {str(e)}"
+            self._log_error("IB_STATUS_CHECK_FAILED", symbol, error_msg)
+            return {
+                'success': False,
+                'stage': 'exception',
+                'message': error_msg,
+                'checked_at': checked_at,
+                'sample_symbol': symbol
+            }
         
     def _execute_order(self, symbol: str, side: str, quantity: float, order_type: str = "MKT", price: float = None, stop_price: float = None, tif: str = "DAY") -> dict:
         try:
@@ -1176,6 +1233,14 @@ def get_errors():
     errors = trading_server.get_errors()
     return jsonify({'success': True, 'errors': errors}), 200
 
+@app.route('/ib_status', methods=['GET'])
+def ib_status():
+    """Check IBKR Web API connectivity"""
+    sample_symbol = request.args.get('symbol', 'SPY')
+    result = trading_server.test_ib_connection(sample_symbol)
+    status_code = 200 if result.get('success') else 503
+    return jsonify(result), status_code
+
 @app.route('/update_risk', methods=['POST'])
 def update_risk():
     """Update available risk amount"""
@@ -1210,6 +1275,7 @@ if __name__ == '__main__':
     print("  POST /remove_trade - Remove a trade")  # ADD THIS LINE
     print("  GET /status - Get server status")
     print("  GET /errors - Get error log")
+    print("  GET /ib_status - Check IBKR Web API connectivity")
     print("  POST /update_risk - Update available risk amount")
     print("  GET /health - Health check")
 

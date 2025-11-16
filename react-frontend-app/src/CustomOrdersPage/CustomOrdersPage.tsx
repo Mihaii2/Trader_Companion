@@ -1,9 +1,9 @@
 // COMPLETE CLEAN REWRITE (previous file was corrupted with legacy fragments)
-import React, { useState, useEffect } from 'react';
-import { Play, Plus, Eye, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Play, Plus, Eye, AlertCircle, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { balanceAPI } from '../TradeStatisticsPage/services/balanceAPI';
 import { tradeAPI } from '../TradeStatisticsPage/services/tradeAPI';
-import { OrderConfig, NewTrade, NewTradeStop, ServerStatus, ErrorLog } from './types';
+import { OrderConfig, NewTrade, NewTradeStop, ServerStatus, ErrorLog, IbConnectionStatus } from './types';
 import { OrderConfigTab } from './components/OrderConfigTab';
 import { TradesTab } from './components/TradesTab';
 import { StatusTab } from './components/StatusTab';
@@ -44,6 +44,8 @@ export function CustomOrdersPage() {
   const subtleFlashClass = 'ring-2 ring-primary/50 bg-muted/60 shadow-sm';
   const triggerFlash = (k: keyof typeof flash, d=180) => { setFlash(p=>({...p,[k]:true})); window.setTimeout(()=>setFlash(p=>({...p,[k]:false})), d); };
   const [currentEquity, setCurrentEquity] = useState<number | null>(null);
+  const [ibStatus, setIbStatus] = useState<IbConnectionStatus | null>(null);
+  const [ibStatusLoading, setIbStatusLoading] = useState(false);
 
   // Equity polling
   useEffect(() => { let m=true; const load=async()=>{ try{ const balance=await balanceAPI.getBalance(); const resp=await tradeAPI.getTrades(); const trades:Array<{Return:number|null}> = resp.data; const ret=trades.reduce((s,t)=>s+(t.Return??0),0); if(m) setCurrentEquity(Math.round((balance+ret)*100)/100);}catch(e){console.error(e);} }; load(); const iv=setInterval(load,20000); return ()=>{m=false;clearInterval(iv);};},[]);
@@ -52,6 +54,35 @@ export function CustomOrdersPage() {
   const fetchStatus = async () => { try { const r = await fetch('http://localhost:5002/status'); setServerStatus(await r.json()); } catch(e){ console.error(e);} };
   const fetchErrors = async () => { try { const r = await fetch('http://localhost:5002/errors'); const j=await r.json(); if(j.success) setErrors(j.errors); } catch(e){ console.error(e);} };
   useEffect(()=>{ fetchStatus(); fetchErrors(); const iv=setInterval(()=>{fetchStatus();fetchErrors();},5000); return ()=>clearInterval(iv);},[]);
+  const fetchIbStatus = useCallback(async () => {
+    setIbStatusLoading(true);
+    try {
+      const response = await fetch('http://localhost:5002/ib_status');
+      const data = await response.json();
+      setIbStatus({
+        success: !!data.success,
+        stage: data.stage,
+        message: data.message || (data.success ? 'IBKR Web API responded successfully.' : 'Unable to reach IBKR Web API.'),
+        sample_symbol: data.sample_symbol,
+        sample_conid: data.sample_conid,
+        checked_at: data.checked_at || new Date().toISOString(),
+      });
+    } catch {
+      setIbStatus({
+        success: false,
+        stage: 'network',
+        message: 'Unable to reach IBKR status endpoint. Ensure the Stock Buyer server is running.',
+        checked_at: new Date().toISOString(),
+      });
+    } finally {
+      setIbStatusLoading(false);
+    }
+  }, []);
+  useEffect(() => {
+    fetchIbStatus();
+    const iv = setInterval(() => { fetchIbStatus(); }, 30000);
+    return () => clearInterval(iv);
+  }, [fetchIbStatus]);
 
   // Pivot position update
   const updatePivotPositions = (position: string, checked: boolean) => {
@@ -99,11 +130,46 @@ export function CustomOrdersPage() {
       <Icon className="w-4 h-4" />{label}
     </button>
   );
+  const isUnavailable = ibStatus != null && !ibStatus.success;
+  const ibStatusVariantClass = ibStatus == null
+    ? 'bg-muted/40 border-border'
+    : ibStatus.success
+      ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900'
+      : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 border-2';
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
       <div className="bg-card text-card-foreground rounded-lg shadow-sm border p-6">
         <h1 className="text-2xl font-bold mb-6">Custom Breakout Order Management</h1>
+        <div className={`mb-4 border rounded flex items-center justify-between gap-3 ${ibStatusVariantClass} ${isUnavailable ? 'px-4 py-3 shadow-md' : 'px-3 py-2'}`}>
+          <div className="flex items-center gap-2">
+            {ibStatus?.success ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+            ) : (
+              <AlertTriangle className={`text-rose-600 dark:text-rose-400 flex-shrink-0 ${isUnavailable ? 'w-5 h-5' : 'w-4 h-4'}`} />
+            )}
+            <span className={isUnavailable ? 'text-base font-semibold' : 'text-sm font-medium'}>
+              {ibStatus == null ? 'Checking IBKR...' : ibStatus.success ? 'IBKR API Ready' : 'IBKR API Unavailable'}
+            </span>
+            {ibStatus?.success && (
+              <span className="text-xs text-emerald-700 dark:text-emerald-300">• Application can submit orders</span>
+            )}
+            {!ibStatus?.success && (
+              <span className={isUnavailable ? 'text-sm text-rose-700 dark:text-rose-300 font-medium' : 'text-xs text-muted-foreground'}>
+                {isUnavailable ? "Can't place orders • Start Docker Desktop and ibeam container" : '• Start Docker ibeam container'}
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => fetchIbStatus()}
+            disabled={ibStatusLoading}
+            className={`inline-flex items-center gap-1 rounded border border-input hover:bg-muted/60 disabled:opacity-60 ${isUnavailable ? 'px-3 py-1.5 text-sm' : 'px-2 py-1 text-xs'}`}
+          >
+            <RefreshCw className={`${isUnavailable ? 'w-4 h-4' : 'w-3 h-3'} ${ibStatusLoading ? 'animate-spin' : ''}`} />
+            {ibStatusLoading ? 'Checking' : 'Refresh'}
+          </button>
+        </div>
         <div className="flex gap-2 mb-6">
           <TabButton tab="order" label="Order Config" icon={Play} />
           <TabButton tab="trades" label="Trades" icon={Plus} />

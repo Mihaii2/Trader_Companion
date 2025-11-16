@@ -58,6 +58,15 @@ export interface ServerStatus {
   is_processing?: boolean;
 }
 
+export interface IbConnectionStatus {
+  success: boolean;
+  message: string;
+  stage?: string;
+  sample_symbol?: string;
+  sample_conid?: number | string;
+  checked_at?: string;
+}
+
 export interface TradeData {
   ticker?: string;
   shares?: number;
