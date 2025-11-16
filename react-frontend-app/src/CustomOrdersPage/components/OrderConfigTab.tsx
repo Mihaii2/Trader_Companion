@@ -182,7 +182,7 @@ export const OrderConfigTab: React.FC<Props> = ({
             checked={convertDayToHourly}
             onChange={(e) => setConvertDayToHourly(e.target.checked)}
           />
-          Convert day=volume → 60=hourly (÷6.5)
+          Auto-convert daily volume to hourly (day=volume ➜ 60=volume/6.5)
         </label>
         {orderConfig.volume_requirements.length === 0 && (
           <p className="text-xs text-muted-foreground">No volume requirements added yet.</p>
