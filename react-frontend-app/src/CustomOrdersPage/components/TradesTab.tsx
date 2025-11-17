@@ -115,6 +115,9 @@ export const TradesTab: React.FC<Props> = ({
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Sell Stops</label>
           <div className="space-y-2">
+            <button onClick={addSellStop} className="w-full p-2 border-2 border-dashed border-border rounded-lg hover:border-border/80 text-muted-foreground hover:text-foreground">
+              + Add Sell Stop
+            </button>
             {newTrade.sell_stops.map((stop: NewTradeStop, index: number) => {
               const mode = (stop.__ui_mode || (stop.percent_below_fill != null ? 'percent' : 'price')) as 'price' | 'percent';
               const entry = computeMidPrice(newTrade.lower_price_range, newTrade.higher_price_range);
@@ -159,9 +162,6 @@ export const TradesTab: React.FC<Props> = ({
                 </div>
               );
             })}
-            <button onClick={addSellStop} className="w-full p-2 border-2 border-dashed border-border rounded-lg hover:border-border/80 text-muted-foreground hover:text-foreground">
-              + Add Sell Stop
-            </button>
             <div className="flex flex-col gap-2 mt-2">
               <label className="flex items-center gap-2 text-xs select-none">
                 <input type="checkbox" className="h-4 w-4" checked={autoCalcEnabled} onChange={(e) => setAutoCalcEnabled(e.target.checked)} />
