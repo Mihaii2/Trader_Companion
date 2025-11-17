@@ -14,6 +14,7 @@ export function CustomOrdersPage() {
   const NEW_TRADE_KEY = 'customOrdersPage.newTrade.v2';
   const PIVOT_KEY = 'customOrdersPage.pivotPositions.v1';
   const SHOW_ADV_KEY = 'customOrdersPage.showAdvanced.v1';
+  const SEEN_ERRORS_KEY = 'customOrdersPage.seenErrors.v1';
 
   const defaultOrderConfig: OrderConfig = {
     ticker: '', lower_price: 0, higher_price: 0, volume_requirements: [], pivot_adjustment: '0.0',
@@ -46,6 +47,23 @@ export function CustomOrdersPage() {
   const [currentEquity, setCurrentEquity] = useState<number | null>(null);
   const [ibStatus, setIbStatus] = useState<IbConnectionStatus | null>(null);
   const [ibStatusLoading, setIbStatusLoading] = useState(false);
+  
+  // Error tracking
+  const getErrorId = (error: ErrorLog): string => `${error.timestamp}_${error.error_type}_${error.error_message}`;
+  const [seenErrorIds, setSeenErrorIds] = useState<Set<string>>(() => {
+    if (typeof window === 'undefined') return new Set();
+    try {
+      const stored = localStorage.getItem(SEEN_ERRORS_KEY);
+      if (stored) {
+        const ids = JSON.parse(stored) as string[];
+        return new Set(ids);
+      }
+    } catch {
+      // ignore localStorage parse errors
+    }
+    return new Set();
+  });
+  const unseenErrorCount = errors.filter(e => !seenErrorIds.has(getErrorId(e))).length;
 
   // Equity polling
   useEffect(() => { let m=true; const load=async()=>{ try{ const balance=await balanceAPI.getBalance(); const resp=await tradeAPI.getTrades(); const trades:Array<{Return:number|null}> = resp.data; const ret=trades.reduce((s,t)=>s+(t.Return??0),0); if(m) setCurrentEquity(Math.round((balance+ret)*100)/100);}catch(e){console.error(e);} }; load(); const iv=setInterval(load,20000); return ()=>{m=false;clearInterval(iv);};},[]);
@@ -118,6 +136,18 @@ export function CustomOrdersPage() {
   useEffect(()=>{ try{ localStorage.setItem(NEW_TRADE_KEY,JSON.stringify(newTrade)); }catch{ /* ignore persistence error */ } },[newTrade]);
   useEffect(()=>{ try{ localStorage.setItem(PIVOT_KEY,JSON.stringify(pivotPositions)); }catch{ /* ignore persistence error */ } },[pivotPositions]);
   useEffect(()=>{ try{ localStorage.setItem(SHOW_ADV_KEY,JSON.stringify(showAdvanced)); }catch{ /* ignore persistence error */ } },[showAdvanced]);
+  useEffect(()=>{ try{ localStorage.setItem(SEEN_ERRORS_KEY,JSON.stringify(Array.from(seenErrorIds))); }catch{ /* ignore persistence error */ } },[seenErrorIds]);
+  
+  // Mark errors as seen when user visits errors tab
+  useEffect(() => {
+    if (activeTab === 'errors' && errors.length > 0) {
+      const newSeenIds = new Set(seenErrorIds);
+      errors.forEach(error => {
+        newSeenIds.add(getErrorId(error));
+      });
+      setSeenErrorIds(newSeenIds);
+    }
+  }, [activeTab, errors]); // eslint-disable-line react-hooks/exhaustive-deps
   const clearSavedOrderConfig=()=>{ setOrderConfig(defaultOrderConfig); try{localStorage.removeItem(ORDER_CONFIG_KEY);}catch{ /* ignore */ } triggerFlash('order'); };
   const clearSavedTrade=()=>{ setNewTrade(defaultNewTrade); try{localStorage.removeItem(NEW_TRADE_KEY);}catch{ /* ignore */ } triggerFlash('trade'); };
 
@@ -125,9 +155,14 @@ export function CustomOrdersPage() {
   const performStartOrder=async()=>{ setLoading(true); try{ const resp=await fetch('http://localhost:5003/start_bot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(orderConfig)}); const j=await resp.json(); alert(j.success?'Order started successfully!':`Error: ${j.error}`);}catch(e){ alert(`Network error: ${e}`);} finally{ setLoading(false);} };
   const startOrderHandler=()=>{ if(orderConfig.volume_requirements.length===0){ setShowVolumeWarningModal(true); return;} performStartOrder(); };
 
-  const TabButton=({tab,label,icon:Icon}:{tab:string;label:string;icon:React.ComponentType<{className?:string}>})=>(
-    <button onClick={()=>setActiveTab(tab as typeof activeTab)} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab===tab?'bg-primary text-primary-foreground':'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'}`}>
+  const TabButton=({tab,label,icon:Icon,badgeCount}:{tab:string;label:string;icon:React.ComponentType<{className?:string}>;badgeCount?:number})=>(
+    <button onClick={()=>setActiveTab(tab as typeof activeTab)} className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors relative ${activeTab===tab?'bg-primary text-primary-foreground':'bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground'}`}>
       <Icon className="w-4 h-4" />{label}
+      {badgeCount !== undefined && badgeCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </span>
+      )}
     </button>
   );
   const isUnavailable = ibStatus != null && !ibStatus.success;
@@ -174,7 +209,7 @@ export function CustomOrdersPage() {
           <TabButton tab="order" label="Order Config" icon={Play} />
           <TabButton tab="trades" label="Trades" icon={Plus} />
           <TabButton tab="status" label="Status" icon={Eye} />
-          <TabButton tab="errors" label="Errors" icon={AlertCircle} />
+          <TabButton tab="errors" label="Errors" icon={AlertCircle} badgeCount={unseenErrorCount} />
         </div>
         {activeTab==='order' && (
           <OrderConfigTab

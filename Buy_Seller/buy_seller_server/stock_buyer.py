@@ -1053,7 +1053,6 @@ class StockTradingServer:
                 msg = (f"Cannot add trade {trade.ticker}: required risk ${trade.risk_amount:.2f} "
                        f"exceeds available risk ${self.available_risk:.2f}")
                 print(f"❌ {msg}")
-                self._log_error("INSUFFICIENT_RISK_ADD", trade.ticker, msg, trade_data)
                 return {'success': False, 'error': msg, 'available_risk': self.available_risk}
             
             self.trades.append(trade)
