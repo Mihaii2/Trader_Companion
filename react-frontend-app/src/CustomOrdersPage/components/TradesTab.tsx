@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 import { NewTrade, NewTradeStop } from '../types';
 
@@ -39,6 +39,64 @@ export const TradesTab: React.FC<Props> = ({
   autoCalcReady,
   currentEquity
 }) => {
+  // Calculate risk from shares when in manual mode
+  const calculatedRisk = useMemo(() => {
+    if (autoCalcEnabled) return null;
+    
+    const entry = computeMidPrice(newTrade.lower_price_range, newTrade.higher_price_range);
+    if (entry == null || !isFinite(newTrade.shares) || newTrade.shares <= 0 || newTrade.sell_stops.length === 0) {
+      return null;
+    }
+
+    let weightedDrop = 0;
+    for (const stop of newTrade.sell_stops) {
+      const pct = Number(stop.position_pct) || 0;
+      if (pct <= 0) continue;
+      
+      let stopPrice: number | null = null;
+      const mode = (stop.__ui_mode ?? (stop.percent_below_fill != null ? 'percent' : 'price')) as 'price' | 'percent';
+      if (mode === 'percent') {
+        stopPrice = entry * (1 - (Number(stop.percent_below_fill) || 0) / 100);
+      } else {
+        stopPrice = Number(stop.price);
+      }
+      
+      if (!stopPrice || !isFinite(stopPrice)) continue;
+      const drop = entry - stopPrice;
+      if (drop <= 0) continue;
+      weightedDrop += pct * drop;
+    }
+
+    if (weightedDrop <= 0) {
+      return null;
+    }
+
+    const riskAmount = newTrade.shares * weightedDrop;
+    if (!isFinite(riskAmount) || riskAmount <= 0) {
+      return null;
+    }
+
+    const roundedRiskAmount = Math.round(riskAmount * 100) / 100;
+    let riskPercent: number | null = null;
+    if (currentEquity != null && currentEquity > 0) {
+      riskPercent = Math.round(((roundedRiskAmount / currentEquity) * 100) * 100) / 100;
+    }
+
+    return { riskAmount: roundedRiskAmount, riskPercent };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoCalcEnabled, newTrade.shares, newTrade.lower_price_range, newTrade.higher_price_range, JSON.stringify(newTrade.sell_stops), currentEquity, computeMidPrice]);
+
+  // Auto-update risk when in manual mode and calculation is ready
+  useEffect(() => {
+    if (!autoCalcEnabled && calculatedRisk?.riskAmount != null) {
+      setNewTrade(prev => ({
+        ...prev,
+        risk_amount: calculatedRisk.riskAmount!,
+        risk_percent_of_equity: calculatedRisk.riskPercent ?? prev.risk_percent_of_equity
+      }));
+    }
+  }, [autoCalcEnabled, calculatedRisk?.riskAmount, calculatedRisk?.riskPercent]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-6">
       <div className="bg-muted/50 p-4 rounded-lg">
@@ -74,7 +132,12 @@ export const TradesTab: React.FC<Props> = ({
             <input type="number" value={newTrade.higher_price_range} onChange={(e) => setNewTrade(prev => ({ ...prev, higher_price_range: parseFloat(e.target.value) }))} className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring" step="0.01" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Risk Amount ($)</label>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Risk Amount ($)
+              {!autoCalcEnabled && calculatedRisk?.riskAmount != null && (
+                <span className="ml-2 text-xs text-muted-foreground font-normal">(calculated)</span>
+              )}
+            </label>
             <input
               type="number"
               value={newTrade.risk_amount}
@@ -86,13 +149,19 @@ export const TradesTab: React.FC<Props> = ({
                 }
                 setNewTrade(prev => ({ ...prev, risk_amount: dollars, risk_percent_of_equity: pct }));
               }}
-              className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+              readOnly={!autoCalcEnabled && calculatedRisk?.riskAmount != null}
+              className={`w-full p-3 border border-input ${!autoCalcEnabled && calculatedRisk?.riskAmount != null ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
               step="0.01"
               min={0}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Risk % of Equity</label>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Risk % of Equity
+              {!autoCalcEnabled && calculatedRisk?.riskPercent != null && (
+                <span className="ml-2 text-xs text-muted-foreground font-normal">(calculated)</span>
+              )}
+            </label>
             <input
               type="number"
               value={newTrade.risk_percent_of_equity ?? 0}
@@ -104,7 +173,8 @@ export const TradesTab: React.FC<Props> = ({
                 }
                 setNewTrade(prev => ({ ...prev, risk_percent_of_equity: pct, risk_amount: dollars }));
               }}
-              className="w-full p-3 border border-input bg-background text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring"
+              readOnly={!autoCalcEnabled && calculatedRisk?.riskPercent != null}
+              className={`w-full p-3 border border-input ${!autoCalcEnabled && calculatedRisk?.riskPercent != null ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
               step="0.01"
               min={0}
               max={100}
