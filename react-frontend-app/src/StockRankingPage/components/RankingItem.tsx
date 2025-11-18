@@ -32,6 +32,8 @@ interface Props {
   onRemove: () => void;
 }
 
+type ManualSaveField = 'note' | 'catalyst' | 'details';
+
 export const RankingItem: React.FC<Props> = ({
   stock: initialStock,
   onUpdate,
@@ -62,6 +64,7 @@ export const RankingItem: React.FC<Props> = ({
   const [lastClickedCharacteristic, setLastClickedCharacteristic] = useState<number | null>(null);
   const [hasTradeInHistory, setHasTradeInHistory] = useState<boolean | null>(null);
   const [isCheckingTrades, setIsCheckingTrades] = useState(false);
+  const [manualSavingField, setManualSavingField] = useState<ManualSaveField | null>(null);
 
   // Track if user is actively editing fields to avoid overwriting from server
   const [isEditingCaseText, setIsEditingCaseText] = useState(false);
@@ -486,6 +489,78 @@ export const RankingItem: React.FC<Props> = ({
     }, 900); // faster debounce while ensuring stability
   };
 
+  const manualSaveField = useCallback(async (field: ManualSaveField, value: string) => {
+    if (!stock.id) return;
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+
+    setManualSavingField(field);
+    const currentRequestVersion = ++requestVersionRef.current;
+
+    const payload = {
+      case_text: field === 'details' ? value : detailsText,
+      note: field === 'note' ? value : note,
+      demand_reason: field === 'catalyst' ? value : (stock.demand_reason ?? ''),
+      ranking_box: stock.ranking_box,
+      symbol: stock.symbol,
+      total_score: stock.total_score,
+      personal_opinion_score: stock.personal_opinion_score
+    };
+
+    try {
+      const response = await stockPicksApi.updateStockPick(stock.id, payload);
+      if (currentRequestVersion === requestVersionRef.current) {
+        let nextStock: StockPick | null = null;
+        setStock(prev => {
+          const merged = {
+            ...prev,
+            ...response.data,
+            case_text: field === 'details' ? value : prev.case_text,
+            note: field === 'note' ? value : prev.note,
+            demand_reason: field === 'catalyst' ? value : prev.demand_reason,
+          } as StockPick;
+          nextStock = merged;
+          return merged;
+        });
+
+        if (field === 'note') {
+          setNote(value);
+        } else if (field === 'details') {
+          setCaseText(value);
+        }
+
+        persistLocal({
+          case_text: payload.case_text,
+          note: payload.note,
+          demand_reason: payload.demand_reason
+        });
+
+        if (nextStock) {
+          onUpdate(nextStock);
+        }
+      }
+    } catch (err) {
+      console.error('Error saving field manually:', err);
+      setError('Failed to save changes');
+    } finally {
+      setManualSavingField(null);
+    }
+  }, [detailsText, note, onUpdate, persistLocal, stock]);
+
+  const handleManualSaveShortcut = useCallback((
+    event: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+    field: ManualSaveField
+  ) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+      event.preventDefault();
+      event.stopPropagation();
+      const target = event.target as (HTMLInputElement | HTMLTextAreaElement);
+      manualSaveField(field, target.value);
+    }
+  }, [manualSaveField]);
+
   // Toggle a characteristic on/off
   const handleToggleCharacteristic = async (characteristicId: number, checked: boolean) => {
     try {
@@ -893,7 +968,11 @@ export const RankingItem: React.FC<Props> = ({
                     }}
                     placeholder="Enter note..."
                     className="h-8"
+                    onKeyDown={(e) => handleManualSaveShortcut(e, 'note')}
                   />
+                  {manualSavingField === 'note' && (
+                    <div className="mt-1 text-xs text-muted-foreground">Saving...</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1043,7 +1122,11 @@ export const RankingItem: React.FC<Props> = ({
                     }}
                     placeholder="Enter demand reason..."
                     className="h-8"
+                    onKeyDown={(e) => handleManualSaveShortcut(e, 'catalyst')}
                   />
+                  {manualSavingField === 'catalyst' && (
+                    <div className="mt-1 text-xs text-muted-foreground">Saving...</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1111,11 +1194,14 @@ export const RankingItem: React.FC<Props> = ({
                 onFocus={() => setIsEditingCaseText(true)}
                 onBlur={() => setIsEditingCaseText(false)}
                 onChange={handleDetailsTextChange}
+                onKeyDown={(e) => handleManualSaveShortcut(e, 'details')}
                 className="mt-1"
                 rows={4}
                 style={{ resize: 'vertical' }}
               />
-              {/* saving indicator removed */}
+              {manualSavingField === 'details' && (
+                <div className="mt-1 text-xs text-muted-foreground">Saving...</div>
+              )}
             </div>
           </div>
         )}

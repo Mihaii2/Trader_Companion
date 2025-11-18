@@ -137,20 +137,25 @@ export const TradesTab: React.FC<Props> = ({
               {!autoCalcEnabled && calculatedRisk?.riskAmount != null && (
                 <span className="ml-2 text-xs text-muted-foreground font-normal">(calculated)</span>
               )}
+              {!autoCalcEnabled && calculatedRisk == null && (
+                <span className="ml-2 text-xs text-muted-foreground font-normal">(auto)</span>
+              )}
             </label>
             <input
               type="number"
               value={newTrade.risk_amount}
               onChange={(e) => {
-                const dollars = parseFloat(e.target.value) || 0;
-                let pct = newTrade.risk_percent_of_equity ?? 0;
-                if (currentEquity != null && currentEquity > 0) {
-                  pct = Math.round(((dollars / currentEquity) * 100) * 100) / 100;
+                if (autoCalcEnabled) {
+                  const dollars = parseFloat(e.target.value) || 0;
+                  let pct = newTrade.risk_percent_of_equity ?? 0;
+                  if (currentEquity != null && currentEquity > 0) {
+                    pct = Math.round(((dollars / currentEquity) * 100) * 100) / 100;
+                  }
+                  setNewTrade(prev => ({ ...prev, risk_amount: dollars, risk_percent_of_equity: pct }));
                 }
-                setNewTrade(prev => ({ ...prev, risk_amount: dollars, risk_percent_of_equity: pct }));
               }}
-              readOnly={!autoCalcEnabled && calculatedRisk?.riskAmount != null}
-              className={`w-full p-3 border border-input ${!autoCalcEnabled && calculatedRisk?.riskAmount != null ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
+              readOnly={!autoCalcEnabled}
+              className={`w-full p-3 border border-input ${!autoCalcEnabled ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
               step="0.01"
               min={0}
             />
@@ -161,20 +166,25 @@ export const TradesTab: React.FC<Props> = ({
               {!autoCalcEnabled && calculatedRisk?.riskPercent != null && (
                 <span className="ml-2 text-xs text-muted-foreground font-normal">(calculated)</span>
               )}
+              {!autoCalcEnabled && calculatedRisk == null && (
+                <span className="ml-2 text-xs text-muted-foreground font-normal">(auto)</span>
+              )}
             </label>
             <input
               type="number"
               value={newTrade.risk_percent_of_equity ?? 0}
               onChange={(e) => {
-                const pct = parseFloat(e.target.value) || 0;
-                let dollars = newTrade.risk_amount;
-                if (currentEquity != null && currentEquity > 0 && pct > 0) {
-                  dollars = Math.round((currentEquity * pct / 100) * 100) / 100;
+                if (autoCalcEnabled) {
+                  const pct = parseFloat(e.target.value) || 0;
+                  let dollars = newTrade.risk_amount;
+                  if (currentEquity != null && currentEquity > 0 && pct > 0) {
+                    dollars = Math.round((currentEquity * pct / 100) * 100) / 100;
+                  }
+                  setNewTrade(prev => ({ ...prev, risk_percent_of_equity: pct, risk_amount: dollars }));
                 }
-                setNewTrade(prev => ({ ...prev, risk_percent_of_equity: pct, risk_amount: dollars }));
               }}
-              readOnly={!autoCalcEnabled && calculatedRisk?.riskPercent != null}
-              className={`w-full p-3 border border-input ${!autoCalcEnabled && calculatedRisk?.riskPercent != null ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
+              readOnly={!autoCalcEnabled}
+              className={`w-full p-3 border border-input ${!autoCalcEnabled ? 'bg-muted' : 'bg-background'} text-foreground rounded-lg focus:ring-2 focus:ring-ring focus:border-ring`}
               step="0.01"
               min={0}
               max={100}
