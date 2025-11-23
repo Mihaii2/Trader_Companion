@@ -37,6 +37,7 @@ export interface NewTrade {
   lower_price_range: number;
   higher_price_range: number;
   sell_stops: NewTradeStop[];
+  consider_zero_risk?: boolean; // bypass risk limits for this trade
 }
 
 export interface ServerStatus {

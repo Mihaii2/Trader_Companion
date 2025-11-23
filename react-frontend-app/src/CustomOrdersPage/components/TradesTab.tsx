@@ -42,7 +42,7 @@ export const TradesTab: React.FC<Props> = ({
   // Calculate risk from shares when in manual mode
   const calculatedRisk = useMemo(() => {
     if (autoCalcEnabled) return null;
-    
+
     const entry = computeMidPrice(newTrade.lower_price_range, newTrade.higher_price_range);
     if (entry == null || !isFinite(newTrade.shares) || newTrade.shares <= 0 || newTrade.sell_stops.length === 0) {
       return null;
@@ -52,7 +52,7 @@ export const TradesTab: React.FC<Props> = ({
     for (const stop of newTrade.sell_stops) {
       const pct = Number(stop.position_pct) || 0;
       if (pct <= 0) continue;
-      
+
       let stopPrice: number | null = null;
       const mode = (stop.__ui_mode ?? (stop.percent_below_fill != null ? 'percent' : 'price')) as 'price' | 'percent';
       if (mode === 'percent') {
@@ -60,7 +60,7 @@ export const TradesTab: React.FC<Props> = ({
       } else {
         stopPrice = Number(stop.price);
       }
-      
+
       if (!stopPrice || !isFinite(stopPrice)) continue;
       const drop = entry - stopPrice;
       if (drop <= 0) continue;
@@ -192,6 +192,8 @@ export const TradesTab: React.FC<Props> = ({
           </div>
         </div>
 
+
+
         <div className="mt-4">
           <label className="block text-sm font-medium text-foreground mb-2">Sell Stops</label>
           <div className="space-y-2">
@@ -254,6 +256,24 @@ export const TradesTab: React.FC<Props> = ({
             </div>
           </div>
         </div>
+
+        <label className="mt-4 flex items-center gap-2 text-sm cursor-pointer select-none">
+          <input
+            type="checkbox"
+            className="h-4 w-4"
+            checked={newTrade.consider_zero_risk ?? false}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setNewTrade(prev => ({
+                ...prev,
+                consider_zero_risk: checked,
+                risk_amount: checked ? 0 : prev.risk_amount,
+                risk_percent_of_equity: checked ? 0 : prev.risk_percent_of_equity
+              }));
+            }}
+          />
+          <span>Consider 0 Risk For This Trade</span>
+        </label>
 
         <button onClick={addTrade} disabled={loading} className="mt-4 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 dark:bg-green-700 dark:hover:bg-green-800">
           {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
