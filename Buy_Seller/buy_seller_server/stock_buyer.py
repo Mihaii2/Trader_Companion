@@ -1051,7 +1051,7 @@ class StockTradingServer:
             # RISK CHECK when adding: ensure we don't enqueue trades that exceed available risk
             if self.available_risk < trade.risk_amount - 1e-9:
                 msg = (f"Cannot add trade {trade.ticker}: required risk ${trade.risk_amount:.2f} "
-                       f"exceeds available risk ${self.available_risk:.2f}")
+                       f"exceeds available risk ${self.available_risk:.2f}. Update your risk in the Status tab and try again")
                 print(f"❌ {msg}")
                 return {'success': False, 'error': msg, 'available_risk': self.available_risk}
             
