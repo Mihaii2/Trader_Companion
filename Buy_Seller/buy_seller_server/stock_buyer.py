@@ -223,6 +223,10 @@ class StockTradingServer:
         # IBKR Web API connection
         self.ib_api = None
         
+        # Idempotency tracking - prevent duplicate trades
+        self.executed_trade_ids: set = set()  # Track completed trades
+        self.executing_trade_ids: set = set()  # Track in-progress trades
+        
         # Start processing thread
         self.start_processing_thread()
         
@@ -366,8 +370,49 @@ class StockTradingServer:
         
         print(f"🚨 Error logged: {error_type} - {error_message}")
     
+    def _retry_with_backoff(self, func, max_retries=3, initial_delay=1.0, backoff_factor=2.0, error_name="OPERATION"):
+        """Retry a function with exponential backoff
+        
+        Args:
+            func: Function to retry (should return tuple of (success: bool, result: Any))
+            max_retries: Maximum number of retry attempts
+            initial_delay: Initial delay in seconds
+            backoff_factor: Multiplier for delay after each retry
+            error_name: Name for logging purposes
+        
+        Returns:
+            Tuple of (success: bool, result: Any)
+        """
+        delay = initial_delay
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                success, result = func()
+                if success:
+                    if attempt > 0:
+                        print(f"   ✅ {error_name} succeeded on attempt {attempt + 1}")
+                    return True, result
+                else:
+                    last_error = result
+                    if attempt < max_retries - 1:
+                        print(f"   ⚠️ {error_name} failed (attempt {attempt + 1}/{max_retries}): {result}")
+                        print(f"   ⏳ Retrying in {delay:.1f}s...")
+                        time.sleep(delay)
+                        delay *= backoff_factor
+            except Exception as e:
+                last_error = str(e)
+                if attempt < max_retries - 1:
+                    print(f"   ⚠️ {error_name} exception (attempt {attempt + 1}/{max_retries}): {str(e)}")
+                    print(f"   ⏳ Retrying in {delay:.1f}s...")
+                    time.sleep(delay)
+                    delay *= backoff_factor
+        
+        print(f"   ❌ {error_name} failed after {max_retries} attempts: {last_error}")
+        return False, last_error
+    
     def _connect_to_ib(self, ticker: str = "UNKNOWN") -> bool:
-        """Connect to IB Web API"""
+        """Connect to IB Web API with retry logic for contract lookup"""
         try:
             self.ib_api = IBWebAPI()
             
@@ -386,17 +431,35 @@ class StockTradingServer:
                 print(f"❌ {error_msg}")
                 return False
             
-            # Test account access and contract lookup
+            # Test account access
             print("✅ Testing account access...")
             self.ib_api.get_accounts()
 
+            # Test contract lookup with retry logic
             print(f"✅ Testing contract lookup for {ticker}...")
-            test_conid = self.ib_api.get_contract_id(ticker)
-            if test_conid:
-                print(f"✅ Found contract ID for {ticker}: {test_conid}")
-            else:
-                print(f"⚠️ Could not find contract ID for {ticker}")
-                    
+            
+            def lookup_contract():
+                conid = self.ib_api.get_contract_id(ticker)
+                if conid:
+                    return True, conid
+                else:
+                    return False, "Contract ID not found"
+            
+            success, result = self._retry_with_backoff(
+                lookup_contract,
+                max_retries=3,
+                initial_delay=1.0,
+                backoff_factor=2.0,
+                error_name=f"Contract lookup for {ticker}"
+            )
+            
+            if not success:
+                error_msg = f"Could not find contract ID for {ticker} after retries: {result}"
+                self._log_error("CONTRACT_LOOKUP_FAILED", ticker, error_msg)
+                print(f"❌ {error_msg}")
+                return False
+            
+            print(f"✅ Found contract ID for {ticker}: {result}")
             print("✅ Connected to IBKR Web API")
             return True
             
@@ -929,7 +992,7 @@ class StockTradingServer:
         return True, ""
     
     def _execute_trade_internal(self, data: dict) -> dict:
-        """Internal method to execute trade"""
+        """Internal method to execute trade with idempotency protection"""
         ticker = data['ticker']
         lower_price = data['lower_price']
         higher_price = data['higher_price']
@@ -947,38 +1010,63 @@ class StockTradingServer:
         
         print(f"✅ Found trade for {trade.ticker}")
         
-        # Validate trade
-        is_valid, error_msg = self._validate_trade(trade)
-        if not is_valid:
-            print(f"❌ {error_msg}. Removing invalid trade.")
-            self._log_error("TRADE_VALIDATION_FAILED", ticker, error_msg)
-            self.trades.remove(trade)
+        # IDEMPOTENCY CHECK - Prevent duplicate execution
+        if trade.trade_id in self.executed_trade_ids:
+            error_msg = f"Trade {trade.trade_id} has already been executed (duplicate prevention)"
+            print(f"🛑 {error_msg}")
+            self._log_error("DUPLICATE_TRADE_PREVENTED", ticker, error_msg)
             return {'success': False, 'error': error_msg}
+        
+        if trade.trade_id in self.executing_trade_ids:
+            error_msg = f"Trade {trade.trade_id} is currently being executed (concurrent execution prevented)"
+            print(f"🛑 {error_msg}")
+            self._log_error("CONCURRENT_EXECUTION_PREVENTED", ticker, error_msg)
+            return {'success': False, 'error': error_msg}
+        
+        # Mark trade as executing
+        self.executing_trade_ids.add(trade.trade_id)
+        print(f"🔒 Trade {trade.trade_id} locked for execution")
+        
+        try:
+            # Validate trade
+            is_valid, error_msg = self._validate_trade(trade)
+            if not is_valid:
+                print(f"❌ {error_msg}. Removing invalid trade.")
+                self._log_error("TRADE_VALIDATION_FAILED", ticker, error_msg)
+                self.trades.remove(trade)
+                return {'success': False, 'error': error_msg}
 
-        # RISK CHECK (prevent negative available_risk)
-        if self.available_risk < trade.risk_amount - 1e-9:
-            error_msg = (f"Insufficient available risk: have ${self.available_risk:.2f}, "
-                         f"need ${trade.risk_amount:.2f} for trade {trade.ticker}")
-            print(f"❌ {error_msg}")
-            self._log_error("INSUFFICIENT_RISK", ticker, error_msg)
-            # Do NOT remove trade; allow user to either increase risk or remove trade later
-            return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
-        # ------------------------------------------------------------
-        # EARLY RISK DEDUCTION & TRADE REMOVAL (as requested)
-        # Reserve (deduct) the full risk BEFORE any API interaction.
-        # ------------------------------------------------------------
-        self.trades.remove(trade)  # remove immediately
-        self.available_risk -= trade.risk_amount
-        if self.available_risk < 0 and self.available_risk > -1e-6:  # guard tiny negatives
-            self.available_risk = 0.0
-        print(f"✅ Trade removed & risk deducted upfront: -${trade.risk_amount:.2f}. New available risk: ${self.available_risk:.2f}")
+            # RISK CHECK (prevent negative available_risk)
+            if self.available_risk < trade.risk_amount - 1e-9:
+                error_msg = (f"Insufficient available risk: have ${self.available_risk:.2f}, "
+                             f"need ${trade.risk_amount:.2f} for trade {trade.ticker}")
+                print(f"❌ {error_msg}")
+                self._log_error("INSUFFICIENT_RISK", ticker, error_msg)
+                # Do NOT remove trade; allow user to either increase risk or remove trade later
+                return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
+            
+            # ------------------------------------------------------------
+            # EARLY RISK DEDUCTION & TRADE REMOVAL (as requested)
+            # Reserve (deduct) the full risk BEFORE any API interaction.
+            # ------------------------------------------------------------
+            self.trades.remove(trade)  # remove immediately
+            self.available_risk -= trade.risk_amount
+            if self.available_risk < 0 and self.available_risk > -1e-6:  # guard tiny negatives
+                self.available_risk = 0.0
+            print(f"✅ Trade removed & risk deducted upfront: -${trade.risk_amount:.2f}. New available risk: ${self.available_risk:.2f}")
 
-        # Connect to IB AFTER risk has been deducted
-        if not self._connect_to_ib(ticker):
-            error_msg = "Failed to connect to IB"
-            self._log_error("CONNECTION_FAILED", ticker, error_msg)
-            # Simplicity: do NOT restore risk automatically (per request to not overcomplicate)
-            return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
+            # Connect to IB AFTER risk has been deducted
+            if not self._connect_to_ib(ticker):
+                error_msg = "Failed to connect to IB"
+                self._log_error("CONNECTION_FAILED", ticker, error_msg)
+                # Simplicity: do NOT restore risk automatically (per request to not overcomplicate)
+                return {'success': False, 'error': error_msg, 'available_risk': self.available_risk}
+        
+        finally:
+            # Always remove from executing set, even on failure
+            if trade.trade_id in self.executing_trade_ids:
+                self.executing_trade_ids.remove(trade.trade_id)
+                print(f"🔓 Trade {trade.trade_id} execution lock released")
 
         try:
             # Update last trade time when a trade is executed
@@ -998,6 +1086,10 @@ class StockTradingServer:
             # Risk already fully deducted upfront; report full risk_amount as used regardless of fill.
             risk_used = trade.risk_amount
             print(f"💰 Risk recorded (already deducted earlier): ${risk_used:.2f}")
+            
+            # Mark trade as successfully executed (idempotency protection)
+            self.executed_trade_ids.add(trade.trade_id)
+            print(f"✅ Trade {trade.trade_id} marked as executed (duplicate prevention active)")
             
             result = {
                 'success': True,
