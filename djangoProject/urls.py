@@ -26,7 +26,17 @@ urlpatterns = [
     path('personal_ranking/', include('personal_ranking_list_app.urls')),
     path('trades_app/', include('trades_history.urls')),
     path('post_analysis/', include('post_analysis.urls')),
+    path('price_alerts/', include('price_alerts.urls')),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Serve alarm sounds in development
+    from django.views.static import serve
+    from django.urls import re_path
+    import os
+    
+    alarm_sounds_dir = os.path.join(settings.BASE_DIR, 'alarm_sounds')
+    urlpatterns += [
+        re_path(r'^alarm_sounds/(?P<path>.*)$', serve, {'document_root': alarm_sounds_dir}),
+    ]

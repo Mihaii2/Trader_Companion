@@ -9,6 +9,7 @@ import { TickerManagementPage } from './TickerManagementPage/TickerManagementPag
 import { Navigation } from './components/Navigation';
 import './App.css';
 import PostAnalysisPage from './PostAnalysisPage/PostAnalysisPage';
+import { PriceAlertsPage } from './PriceAlertsPage/PriceAlertsPage';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/trade_history" element={<TradeHistoryPage />} />
             <Route path="/trading_stats" element={<TradingStatsPage />} />
             <Route path="/custom_orders" element={<CustomOrdersPage />} />
+            <Route path="/price_alerts" element={<PriceAlertsPage />} />
             <Route path="/ticker_management" element={<TickerManagementPage />} />
             <Route path="/post_analysis" element={<PostAnalysisPage />} />
             {/* Redirect to personal ranking if no path matches */}

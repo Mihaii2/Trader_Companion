@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "trades_history",
     "post_analysis",
+    "price_alerts",
 ]
 
 MICROSERVICE_SETTINGS = {

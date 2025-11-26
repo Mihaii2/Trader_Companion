@@ -72,6 +72,16 @@ export function Navigation() {
               Custom Orders
             </Link>
             <Link
+              to="/price_alerts"
+              className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
+                ${currentPage === 'price_alerts' 
+                  ? 'border-b-2 border-primary text-primary' 
+                  : 'text-muted-foreground'
+                }`}
+            >
+              Price Alerts
+            </Link>
+            <Link
               to="/stocks_screeners"
               className={`inline-flex items-center px-4 py-2 text-sm font-medium transition-colors hover:text-primary
                 ${currentPage === 'stocks_screeners' 
@@ -81,6 +91,7 @@ export function Navigation() {
             >
               Stocks Screeners
             </Link>
+            
           </div>
           <div className="absolute right-3 top-1/2 -translate-y-1/2"> 
             <ThemeToggle />
