@@ -110,12 +110,17 @@ DATABASES = {
     'trades_db': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'dbs/trades_db.sqlite3',
+    },
+    'price_alerts_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'dbs/price_alerts.sqlite3',
     }
 }
 
 DATABASE_ROUTERS = [
     'personal_ranking_list_app.router.PersonalRankingRouter',
-    'trades_history.router.TradesRouter'
+    'trades_history.router.TradesRouter',
+    'price_alerts.router.PriceAlertsRouter'
 ]
 
 # Password validation
