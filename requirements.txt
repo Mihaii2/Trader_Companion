@@ -13,3 +13,4 @@ djangorestframework==3.15.2
 Pillow==11.0.0
 flask-cors==6.0.0
 pygame==2.6.1
+pydub==0.25.1

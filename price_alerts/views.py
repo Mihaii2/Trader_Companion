@@ -71,18 +71,25 @@ class AlertViewSet(viewsets.ModelViewSet):
         prev_is_active = instance.is_active
         prev_triggered = instance.triggered
 
+        print(f"[VIEWS UPDATE] Alert ID: {instance.id}, prev_is_active={prev_is_active}, prev_triggered={prev_triggered}")
+        print(f"[VIEWS UPDATE] Request data: {request.data}")
+
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
         requested_is_active = serializer.validated_data.get('is_active')
+        print(f"[VIEWS UPDATE] requested_is_active={requested_is_active}")
         
         # If user is stopping the alert (setting is_active=False), handle it immediately
         if requested_is_active is False:
+            print(f"[VIEWS UPDATE] User stopping alert, prev_is_active={prev_is_active}")
             if not prev_is_active:
                 # Already stopped, just return current state
+                print("[VIEWS UPDATE] Alert already stopped, returning")
                 return Response(AlertSerializer(instance).data)
             
             # Stop the alert - FORCE STOP ALARM IMMEDIATELY
+            print("[VIEWS UPDATE] CALLING stop_alarm_playback()")
             stop_alarm_playback()  # Stop alarm FIRST before saving
             instance.is_active = False
             instance.triggered = False
@@ -135,11 +142,9 @@ class AlertViewSet(viewsets.ModelViewSet):
         return Response(AlertSerializer(alert).data)
 
     def destroy(self, request, *args, **kwargs):
-        alert = self.get_object()
-        response = super().destroy(request, *args, **kwargs)
-        if alert.triggered or alert.is_active:
-            stop_alarm_playback()
-        return response
+        # Just delete the alert, don't stop the alarm
+        # User can use the stop button if they want to stop the alarm
+        return super().destroy(request, *args, **kwargs)
 
 
 @api_view(['GET', 'PUT'])

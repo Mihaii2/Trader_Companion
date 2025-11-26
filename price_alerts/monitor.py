@@ -4,11 +4,14 @@ Inspired by ticker_data_fetcher: we keep a rotating list of tickers and update t
 """
 import logging
 import os
+import signal
+import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
 
-import pygame
+import psutil
 import yfinance as yf
 from django.db import close_old_connections
 from django.utils import timezone
@@ -30,22 +33,11 @@ class PriceAlertMonitor:
         self.last_ticker_refresh = 0.0
         self.request_interval = 1.0  # seconds between ticker requests (imitates ticker_data_fetcher)
         self.idle_sleep = 5
-        self.pygame_initialized = False
-        self.alarm_stop_event = threading.Event()
-        self.alarm_thread = None
+        self.alarm_process = None
+        self.alarm_stop_file = None
         self.lock = threading.Lock()
 
     # ---------- Alarm playback ----------
-    def initialize_audio(self):
-        if not self.pygame_initialized:
-            try:
-                pygame.mixer.init()
-                self.pygame_initialized = True
-                logger.info("Audio system initialized")
-            except Exception as e:
-                logger.error(f"Failed to initialize audio: {e}")
-                self.pygame_initialized = False
-
     def get_alarm_sound_path(self):
         settings = AlarmSettings.get_settings()
         sound_file = settings.alarm_sound_path
@@ -59,81 +51,78 @@ class PriceAlertMonitor:
         return str(sound_path)
 
     def play_alarm(self):
+        """Start alarm playback in a separate subprocess that can be killed immediately."""
         try:
-            self.initialize_audio()
-            if not self.pygame_initialized:
-                logger.error("Audio system not initialized, cannot play alarm")
-                return
-
+            # Stop any existing alarm first
+            self.request_stop_alarm()
+            
             settings = AlarmSettings.get_settings()
             sound_path = self.get_alarm_sound_path()
 
-            logger.info(f"Playing alarm: {sound_path} ({settings.cycles} cycles)")
-            self.alarm_stop_event.clear()
-            self.alarm_thread = threading.current_thread()
-
-            for cycle in range(settings.cycles):
-                if self.alarm_stop_event.is_set():
-                    logger.info("Alarm stopped by user")
-                    try:
-                        pygame.mixer.music.stop()
-                        pygame.mixer.music.fadeout(0)
-                        pygame.mixer.stop()
-                    except Exception:
-                        pass
-                    return
-
+            print(f"[MAIN] Starting alarm subprocess: {sound_path} ({settings.cycles} cycles)")
+            logger.info(f"Starting alarm subprocess: {sound_path} ({settings.cycles} cycles)")
+            
+            # Create a unique stop file for this alarm instance
+            import tempfile
+            # Use mkstemp to get a file descriptor, then close it and delete it
+            # This ensures we get a unique filename that doesn't exist yet
+            fd, self.alarm_stop_file = tempfile.mkstemp(suffix=".stop")
+            os.close(fd)
+            os.unlink(self.alarm_stop_file)  # Delete it so it doesn't exist yet
+            print(f"[MAIN] Stop file: {self.alarm_stop_file}")
+            print(f"[MAIN] Stop file exists before start: {Path(self.alarm_stop_file).exists()}")
+            
+            # Get path to alarm_player.py
+            alarm_player_path = Path(__file__).parent / "alarm_player.py"
+            
+            # Start the alarm as a completely separate Python subprocess
+            # Use unbuffered output so we can see messages immediately
+            self.alarm_process = subprocess.Popen(
+                [
+                    sys.executable,  # python.exe
+                    "-u",  # Unbuffered output
+                    str(alarm_player_path),
+                    sound_path,
+                    str(settings.play_duration),
+                    str(settings.pause_duration),
+                    str(settings.cycles),
+                    self.alarm_stop_file,
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=0,  # No buffering
+            )
+            print(f"[MAIN] Alarm subprocess started with PID: {self.alarm_process.pid}")
+            logger.info(f"Alarm subprocess started with PID: {self.alarm_process.pid}")
+            
+            # Start threads to read stdout and stderr
+            def read_stdout():
                 try:
-                    pygame.mixer.music.load(sound_path)
-                    pygame.mixer.music.play()
-
-                    start_time = time.time()
-                    while pygame.mixer.music.get_busy() and (time.time() - start_time) < settings.play_duration:
-                        if self.alarm_stop_event.is_set():
-                            logger.info("Alarm stopped during playback")
-                            pygame.mixer.music.stop()
-                            pygame.mixer.music.fadeout(0)
-                            pygame.mixer.stop()
-                            return
-                        time.sleep(0.01)  # Check more frequently - every 10ms
-
-                    # Stop before pause
-                    pygame.mixer.music.stop()
-                    
-                    # Check stop event before pause
-                    if self.alarm_stop_event.is_set():
-                        logger.info("Alarm stopped before pause")
-                        return
-
-                    if cycle < settings.cycles - 1:
-                        pause_end = time.time() + settings.pause_duration
-                        while time.time() < pause_end:
-                            if self.alarm_stop_event.is_set():
-                                logger.info("Alarm stopped during pause")
-                                return
-                            time.sleep(0.05)  # Check more frequently
-
+                    if self.alarm_process.stdout:
+                        for line in iter(self.alarm_process.stdout.readline, ''):
+                            if line:
+                                print(f"[SUBPROCESS OUT] {line.rstrip()}")
                 except Exception as e:
-                    logger.error(f"Error playing alarm cycle {cycle + 1}: {e}")
-                    if self.alarm_stop_event.is_set():
-                        try:
-                            pygame.mixer.music.stop()
-                            pygame.mixer.music.fadeout(0)
-                            pygame.mixer.stop()
-                        except Exception:
-                            pass
-                        return
+                    print(f"[MAIN] Error reading stdout: {e}")
+            
+            def read_stderr():
+                try:
+                    if self.alarm_process.stderr:
+                        for line in iter(self.alarm_process.stderr.readline, ''):
+                            if line:
+                                print(f"[SUBPROCESS ERR] {line.rstrip()}")
+                except Exception as e:
+                    print(f"[MAIN] Error reading stderr: {e}")
+            
+            stdout_thread = threading.Thread(target=read_stdout, daemon=True)
+            stderr_thread = threading.Thread(target=read_stderr, daemon=True)
+            stdout_thread.start()
+            stderr_thread.start()
 
         except Exception as e:
-            logger.error(f"Error in play_alarm: {e}")
-        finally:
-            # Ensure music is stopped
-            try:
-                pygame.mixer.music.stop()
-            except Exception:
-                pass
-            if threading.current_thread() == self.alarm_thread:
-                self.alarm_thread = None
+            logger.error(f"Error starting alarm subprocess: {e}")
+            print(f"[MAIN] Error starting alarm: {e}")
 
     # ---------- Data fetching ----------
     def refresh_ticker_list(self):
@@ -227,14 +216,14 @@ class PriceAlertMonitor:
                     ]
                 )
 
-                trigger_msg = f"🚨 ALERT TRIGGERED: {alert.ticker} @ ${alert.alert_price:.2f} (current: ${current_price:.2f})"
+                trigger_msg = f"ALERT TRIGGERED: {alert.ticker} @ ${alert.alert_price:.2f} (current: ${current_price:.2f})"
                 print("=" * 60)
                 print(trigger_msg)
                 print("=" * 60)
                 logger.info(trigger_msg)
 
-                alarm_thread = threading.Thread(target=self.play_alarm, daemon=True)
-                alarm_thread.start()
+                # Start alarm in separate process
+                self.play_alarm()
             else:
                 alert.save(
                     update_fields=[
@@ -276,25 +265,123 @@ class PriceAlertMonitor:
 
     # ---------- Control ----------
     def request_stop_alarm(self):
-        """Immediately stop any playing alarm."""
-        logger.info("Stop alarm requested - forcing immediate stop")
-        print("STOPPING ALARM NOW")
-        self.alarm_stop_event.set()
-        if self.pygame_initialized:
+        """NUCLEAR OPTION: Signal stop file + forcefully kill the subprocess and all its children."""
+        # Method 0: Signal the subprocess to stop gracefully via file
+        if self.alarm_stop_file:
             try:
-                pygame.mixer.music.stop()
-                pygame.mixer.music.fadeout(0)
-                pygame.mixer.music.unload()
-                pygame.mixer.stop()
-                pygame.mixer.quit()
-                self.pygame_initialized = False
+                print(f"[MAIN] Creating stop signal file: {self.alarm_stop_file}")
+                Path(self.alarm_stop_file).touch()
             except Exception as e:
-                logger.error(f"Error stopping alarm: {e}")
-                print(f"Error stopping alarm: {e}")
-        if self.alarm_thread and self.alarm_thread.is_alive():
-            if threading.current_thread() != self.alarm_thread:
-                self.alarm_thread.join(timeout=1)
-            self.alarm_thread = None
+                print(f"[MAIN] Failed to create stop file: {e}")
+        else:
+            print("[MAIN] No stop file set — skipping graceful stop signal")
+        
+        if self.alarm_process and self.alarm_process.poll() is None:  # Process is still running
+            pid = self.alarm_process.pid
+            print(f"[MAIN] ☢️ NUCLEAR STOP - Killing subprocess PID {pid} and all children")
+            logger.info(f"Stop alarm requested - killing subprocess PID {pid}")
+            
+            try:
+                # Method 1: Windows-specific taskkill (NUCLEAR) - DO THIS FIRST
+                if os.name == 'nt':
+                    try:
+                        print(f"[MAIN] Executing Windows taskkill /F /T on PID {pid}")
+                        result = subprocess.run(
+                            ['taskkill', '/F', '/T', '/PID', str(pid)],
+                            capture_output=True,
+                            timeout=2,
+                            text=True
+                        )
+                        print(f"[MAIN] taskkill output: {result.stdout}")
+                        print(f"[MAIN] taskkill stderr: {result.stderr}")
+                    except Exception as e:
+                        print(f"[MAIN] taskkill failed: {e}")
+                
+                # Method 2: Use psutil to kill the entire process tree
+                try:
+                    parent = psutil.Process(pid)
+                    children = parent.children(recursive=True)
+                    
+                    # Kill all children first
+                    for child in children:
+                        try:
+                            print(f"[MAIN] Killing child process PID {child.pid}")
+                            child.kill()
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            pass
+                    
+                    # Kill the parent
+                    parent.kill()
+                    print(f"[MAIN] Killed parent process PID {pid}")
+                    
+                    # Wait for termination
+                    gone, alive = psutil.wait_procs([parent] + children, timeout=1)
+                    
+                    if alive:
+                        print(f"[MAIN] ⚠️ Some processes still alive: {[p.pid for p in alive]}")
+                        for p in alive:
+                            try:
+                                p.kill()
+                            except:
+                                pass
+                                
+                except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+                    print(f"[MAIN] psutil method failed: {e}")
+                
+                # Method 3: Python's subprocess kill
+                try:
+                    self.alarm_process.kill()
+                    self.alarm_process.wait(timeout=0.5)
+                except:
+                    pass
+                
+                # Method 4: Unix signal (if not Windows)
+                if os.name != 'nt':
+                    try:
+                        os.kill(pid, signal.SIGKILL)
+                    except:
+                        pass
+                
+                print("[MAIN] ✅ Alarm subprocess terminated")
+                logger.info("Alarm subprocess stopped")
+                
+            except Exception as e:
+                logger.error(f"Error stopping alarm subprocess: {e}")
+                print(f"[MAIN] ❌ Error stopping alarm: {e}")
+            finally:
+                self.alarm_process = None
+        else:
+            print("[MAIN] No running alarm_process reference — will scan for orphan alarm processes")
+        
+        # Method 5: Kill any orphan alarm_player.py processes we can still find
+        self._kill_orphan_alarm_processes(ignore_pid=None)
+        
+        # Cleanup stop file
+        if self.alarm_stop_file:
+            try:
+                if Path(self.alarm_stop_file).exists():
+                    Path(self.alarm_stop_file).unlink()
+                    print(f"[MAIN] Deleted stop file: {self.alarm_stop_file}")
+            except Exception as e:
+                print(f"[MAIN] Failed to delete stop file: {e}")
+            self.alarm_stop_file = None
+
+    def _kill_orphan_alarm_processes(self, ignore_pid):
+        """Kill any alarm_player.py processes still running (failsafe)."""
+        try:
+            for proc in psutil.process_iter(["pid", "cmdline"]):
+                pid = proc.info.get("pid")
+                if pid == ignore_pid:
+                    continue
+                cmd = proc.info.get("cmdline") or []
+                if any("price_alerts\\alarm_player.py" in arg or "price_alerts/alarm_player.py" in arg for arg in cmd):
+                    print(f"[MAIN] Killing orphan alarm process PID {pid}")
+                    try:
+                        proc.kill()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        pass
+        except Exception as e:
+            print(f"[MAIN] Failed to scan/kill orphan alarm processes: {e}")
 
     def start(self):
         if self.running:
@@ -308,6 +395,7 @@ class PriceAlertMonitor:
 
     def stop(self):
         self.running = False
+        self.request_stop_alarm()  # Stop any playing alarm
         if self.monitor_thread:
             self.monitor_thread.join(timeout=5)
         logger.info("Price alert monitor stopped")
@@ -334,6 +422,8 @@ def stop_monitoring():
 
 
 def stop_alarm_playback():
+    print("[API] stop_alarm_playback called")
     monitor = get_monitor()
+    print(f"[API] Monitor instance id: {id(monitor)}")
     monitor.request_stop_alarm()
 
