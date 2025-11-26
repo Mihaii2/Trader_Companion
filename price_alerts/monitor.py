@@ -64,8 +64,13 @@ class PriceAlertMonitor:
             settings = AlarmSettings.get_settings()
             sound_path = self.get_alarm_sound_path()
 
-            print(f"[MAIN] Starting alarm subprocess for alert {alert_id}: {sound_path} ({settings.cycles} cycles)")
-            logger.info(f"Starting alarm subprocess for alert {alert_id}: {sound_path} ({settings.cycles} cycles)")
+            print(f"[MAIN] ========== ALARM SETTINGS FOR ALERT {alert_id} ==========")
+            print(f"[MAIN] Sound path: {sound_path}")
+            print(f"[MAIN] Play duration: {settings.play_duration} seconds")
+            print(f"[MAIN] Pause duration: {settings.pause_duration} seconds")
+            print(f"[MAIN] Cycles: {settings.cycles}")
+            print(f"[MAIN] ========================================================")
+            logger.info(f"Starting alarm subprocess for alert {alert_id}: {sound_path} (play={settings.play_duration}s, pause={settings.pause_duration}s, cycles={settings.cycles})")
             
             # Create a unique stop file for this alarm instance
             import tempfile

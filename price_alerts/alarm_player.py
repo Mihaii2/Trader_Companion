@@ -30,7 +30,8 @@ def play_alarm_standalone(sound_path, play_duration, pause_duration, cycles, sto
                 break
                 
             print(f"[ALARM PROCESS] Playing cycle {cycle + 1}/{cycles}", flush=True)
-            pygame.mixer.music.play()
+            # Play with infinite loop (-1) so it repeats for the full duration
+            pygame.mixer.music.play(-1)
             
             # Wait for the music to actually start playing
             while not pygame.mixer.music.get_busy():
@@ -40,7 +41,7 @@ def play_alarm_standalone(sound_path, play_duration, pause_duration, cycles, sto
                     return
                 time.sleep(0.01)
             
-            print(f"[ALARM PROCESS] Music is playing...", flush=True)
+            print(f"[ALARM PROCESS] Music is playing (looping for {play_duration}s)...", flush=True)
             
             # Wait for play duration, checking stop signal frequently
             start_time = time.time()
@@ -49,10 +50,6 @@ def play_alarm_standalone(sound_path, play_duration, pause_duration, cycles, sto
                     print("[ALARM PROCESS] Stop signal during playback, exiting", flush=True)
                     pygame.mixer.music.stop()
                     return
-                # Also check if music stopped playing unexpectedly
-                if not pygame.mixer.music.get_busy():
-                    print("[ALARM PROCESS] Music stopped playing unexpectedly", flush=True)
-                    break
                 time.sleep(0.05)
             
             pygame.mixer.music.stop()
