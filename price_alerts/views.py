@@ -89,15 +89,15 @@ class AlertViewSet(viewsets.ModelViewSet):
                 return Response(AlertSerializer(instance).data)
             
             # Stop the alert - FORCE STOP ALARM IMMEDIATELY
-            print("[VIEWS UPDATE] CALLING stop_alarm_playback()")
-            stop_alarm_playback()  # Stop alarm FIRST before saving
+            print(f"[VIEWS UPDATE] CALLING stop_alarm_playback for alert {instance.id}")
+            stop_alarm_playback(instance.id)  # Stop alarm FIRST before saving
             instance.is_active = False
             instance.triggered = False
             instance.triggered_at = None
             instance.initial_price_above_alert = None
             instance.save(update_fields=['is_active', 'triggered', 'triggered_at', 'initial_price_above_alert'])
             # Stop again after save to be absolutely sure
-            stop_alarm_playback()
+            stop_alarm_playback(instance.id)
             return Response(AlertSerializer(instance).data)
         
         # Prevent reactivation of stopped alerts
@@ -132,18 +132,20 @@ class AlertViewSet(viewsets.ModelViewSet):
             alert.initial_price_above_alert = None
             # Don't update current_price or last_checked - keep last known values
             alert.save(update_fields=['triggered', 'triggered_at', 'initial_price_above_alert'])
-            stop_alarm_playback()
+            stop_alarm_playback(alert.id)
             alert.triggered = False
             alert.triggered_at = None
             alert.initial_price_above_alert = None
             alert.save(update_fields=['triggered', 'triggered_at', 'initial_price_above_alert'])
-            stop_alarm_playback()
+            stop_alarm_playback(alert.id)
 
         return Response(AlertSerializer(alert).data)
 
     def destroy(self, request, *args, **kwargs):
-        # Just delete the alert, don't stop the alarm
-        # User can use the stop button if they want to stop the alarm
+        alert = self.get_object()
+        # Stop any playing alarm before deleting
+        if alert.is_active or alert.triggered:
+            stop_alarm_playback(alert.id)
         return super().destroy(request, *args, **kwargs)
 
 
@@ -253,3 +255,41 @@ def serve_alarm_sound(request, filename):
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Methods'] = 'GET'
     return response
+
+
+@api_view(['POST'])
+def stop_alarm_view(request, alert_id=None):
+    """Stop alarm playback for a specific alert or all alarms.
+    
+    Args:
+        alert_id: Optional alert ID from URL. If provided, stops only that alarm.
+                 If None, stops all alarms.
+    """
+    try:
+        if alert_id is not None:
+            # Verify the alert exists
+            try:
+                Alert.objects.get(id=alert_id)
+            except Alert.DoesNotExist:
+                return Response(
+                    {'error': f'Alert with ID {alert_id} not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            stop_alarm_playback(alert_id)
+            return Response({
+                'message': f'Alarm stopped for alert {alert_id}',
+                'alert_id': alert_id
+            })
+        else:
+            stop_alarm_playback()
+            return Response({
+                'message': 'All alarms stopped'
+            })
+    except Exception as e:
+        logger.error(f"Error stopping alarm: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+

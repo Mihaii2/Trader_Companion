@@ -33,8 +33,9 @@ class PriceAlertMonitor:
         self.last_ticker_refresh = 0.0
         self.request_interval = 1.0  # seconds between ticker requests (imitates ticker_data_fetcher)
         self.idle_sleep = 5
-        self.alarm_process = None
-        self.alarm_stop_file = None
+        # Track multiple independent alarms by alert_id
+        self.alarm_processes = {}  # {alert_id: subprocess.Popen}
+        self.alarm_stop_files = {}  # {alert_id: stop_file_path}
         self.lock = threading.Lock()
 
     # ---------- Alarm playback ----------
@@ -50,34 +51,38 @@ class PriceAlertMonitor:
 
         return str(sound_path)
 
-    def play_alarm(self):
-        """Start alarm playback in a separate subprocess that can be killed immediately."""
+    def play_alarm(self, alert_id):
+        """Start alarm playback in a separate subprocess for a specific alert.
+        
+        Args:
+            alert_id: Unique identifier for the alert triggering this alarm
+        """
         try:
-            # Stop any existing alarm first
-            self.request_stop_alarm()
+            # Stop any existing alarm for this specific alert
+            self.request_stop_alarm(alert_id)
             
             settings = AlarmSettings.get_settings()
             sound_path = self.get_alarm_sound_path()
 
-            print(f"[MAIN] Starting alarm subprocess: {sound_path} ({settings.cycles} cycles)")
-            logger.info(f"Starting alarm subprocess: {sound_path} ({settings.cycles} cycles)")
+            print(f"[MAIN] Starting alarm subprocess for alert {alert_id}: {sound_path} ({settings.cycles} cycles)")
+            logger.info(f"Starting alarm subprocess for alert {alert_id}: {sound_path} ({settings.cycles} cycles)")
             
             # Create a unique stop file for this alarm instance
             import tempfile
             # Use mkstemp to get a file descriptor, then close it and delete it
             # This ensures we get a unique filename that doesn't exist yet
-            fd, self.alarm_stop_file = tempfile.mkstemp(suffix=".stop")
+            fd, stop_file = tempfile.mkstemp(suffix=f".alert_{alert_id}.stop")
             os.close(fd)
-            os.unlink(self.alarm_stop_file)  # Delete it so it doesn't exist yet
-            print(f"[MAIN] Stop file: {self.alarm_stop_file}")
-            print(f"[MAIN] Stop file exists before start: {Path(self.alarm_stop_file).exists()}")
+            os.unlink(stop_file)  # Delete it so it doesn't exist yet
+            print(f"[MAIN] Stop file for alert {alert_id}: {stop_file}")
+            print(f"[MAIN] Stop file exists before start: {Path(stop_file).exists()}")
             
             # Get path to alarm_player.py
             alarm_player_path = Path(__file__).parent / "alarm_player.py"
             
             # Start the alarm as a completely separate Python subprocess
             # Use unbuffered output so we can see messages immediately
-            self.alarm_process = subprocess.Popen(
+            alarm_process = subprocess.Popen(
                 [
                     sys.executable,  # python.exe
                     "-u",  # Unbuffered output
@@ -86,34 +91,40 @@ class PriceAlertMonitor:
                     str(settings.play_duration),
                     str(settings.pause_duration),
                     str(settings.cycles),
-                    self.alarm_stop_file,
+                    stop_file,
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
                 bufsize=0,  # No buffering
             )
-            print(f"[MAIN] Alarm subprocess started with PID: {self.alarm_process.pid}")
-            logger.info(f"Alarm subprocess started with PID: {self.alarm_process.pid}")
+            
+            # Store the process and stop file for this alert
+            with self.lock:
+                self.alarm_processes[alert_id] = alarm_process
+                self.alarm_stop_files[alert_id] = stop_file
+            
+            print(f"[MAIN] Alarm subprocess for alert {alert_id} started with PID: {alarm_process.pid}")
+            logger.info(f"Alarm subprocess for alert {alert_id} started with PID: {alarm_process.pid}")
             
             # Start threads to read stdout and stderr
             def read_stdout():
                 try:
-                    if self.alarm_process.stdout:
-                        for line in iter(self.alarm_process.stdout.readline, ''):
+                    if alarm_process.stdout:
+                        for line in iter(alarm_process.stdout.readline, ''):
                             if line:
-                                print(f"[SUBPROCESS OUT] {line.rstrip()}")
+                                print(f"[SUBPROCESS {alert_id} OUT] {line.rstrip()}")
                 except Exception as e:
-                    print(f"[MAIN] Error reading stdout: {e}")
+                    print(f"[MAIN] Error reading stdout for alert {alert_id}: {e}")
             
             def read_stderr():
                 try:
-                    if self.alarm_process.stderr:
-                        for line in iter(self.alarm_process.stderr.readline, ''):
+                    if alarm_process.stderr:
+                        for line in iter(alarm_process.stderr.readline, ''):
                             if line:
-                                print(f"[SUBPROCESS ERR] {line.rstrip()}")
+                                print(f"[SUBPROCESS {alert_id} ERR] {line.rstrip()}")
                 except Exception as e:
-                    print(f"[MAIN] Error reading stderr: {e}")
+                    print(f"[MAIN] Error reading stderr for alert {alert_id}: {e}")
             
             stdout_thread = threading.Thread(target=read_stdout, daemon=True)
             stderr_thread = threading.Thread(target=read_stderr, daemon=True)
@@ -121,8 +132,8 @@ class PriceAlertMonitor:
             stderr_thread.start()
 
         except Exception as e:
-            logger.error(f"Error starting alarm subprocess: {e}")
-            print(f"[MAIN] Error starting alarm: {e}")
+            logger.error(f"Error starting alarm subprocess for alert {alert_id}: {e}")
+            print(f"[MAIN] Error starting alarm for alert {alert_id}: {e}")
 
     # ---------- Data fetching ----------
     def refresh_ticker_list(self):
@@ -222,8 +233,8 @@ class PriceAlertMonitor:
                 print("=" * 60)
                 logger.info(trigger_msg)
 
-                # Start alarm in separate process
-                self.play_alarm()
+                # Start alarm in separate process with unique alert ID
+                self.play_alarm(alert.id)
             else:
                 alert.save(
                     update_fields=[
@@ -264,38 +275,65 @@ class PriceAlertMonitor:
                 time.sleep(self.idle_sleep)
 
     # ---------- Control ----------
-    def request_stop_alarm(self):
-        """NUCLEAR OPTION: Signal stop file + forcefully kill the subprocess and all its children."""
-        # Method 0: Signal the subprocess to stop gracefully via file
-        if self.alarm_stop_file:
-            try:
-                print(f"[MAIN] Creating stop signal file: {self.alarm_stop_file}")
-                Path(self.alarm_stop_file).touch()
-            except Exception as e:
-                print(f"[MAIN] Failed to create stop file: {e}")
-        else:
-            print("[MAIN] No stop file set — skipping graceful stop signal")
+    def request_stop_alarm(self, alert_id=None):
+        """Stop alarm(s). If alert_id is provided, stops only that alarm. Otherwise stops all alarms.
         
-        if self.alarm_process and self.alarm_process.poll() is None:  # Process is still running
-            pid = self.alarm_process.pid
-            print(f"[MAIN] ☢️ NUCLEAR STOP - Killing subprocess PID {pid} and all children")
-            logger.info(f"Stop alarm requested - killing subprocess PID {pid}")
+        Args:
+            alert_id: Optional alert ID. If provided, stops only that specific alarm.
+                     If None, stops all running alarms.
+        """
+        if alert_id is not None:
+            # Stop a specific alarm
+            self._stop_single_alarm(alert_id)
+        else:
+            # Stop all alarms
+            with self.lock:
+                alert_ids = list(self.alarm_processes.keys())
+            
+            print(f"[MAIN] Stopping all alarms ({len(alert_ids)} active)")
+            for aid in alert_ids:
+                self._stop_single_alarm(aid)
+        
+        # Method 5: Kill any orphan alarm_player.py processes we can still find
+        # This is a failsafe, run after attempting to stop known processes
+        self._kill_orphan_alarm_processes(ignore_pid=None)
+    
+    def _stop_single_alarm(self, alert_id):
+        """NUCLEAR OPTION: Signal stop file + forcefully kill the subprocess and all its children for a specific alert."""
+        with self.lock:
+            alarm_process = self.alarm_processes.get(alert_id)
+            alarm_stop_file = self.alarm_stop_files.get(alert_id)
+        
+        # Method 0: Signal the subprocess to stop gracefully via file
+        if alarm_stop_file:
+            try:
+                print(f"[MAIN] Creating stop signal file for alert {alert_id}: {alarm_stop_file}")
+                Path(alarm_stop_file).touch()
+            except Exception as e:
+                print(f"[MAIN] Failed to create stop file for alert {alert_id}: {e}")
+        else:
+            print(f"[MAIN] No stop file set for alert {alert_id} — skipping graceful stop signal")
+        
+        if alarm_process and alarm_process.poll() is None:  # Process is still running
+            pid = alarm_process.pid
+            print(f"[MAIN] ☢️ NUCLEAR STOP - Killing subprocess PID {pid} for alert {alert_id}")
+            logger.info(f"Stop alarm requested for alert {alert_id} - killing subprocess PID {pid}")
             
             try:
                 # Method 1: Windows-specific taskkill (NUCLEAR) - DO THIS FIRST
                 if os.name == 'nt':
                     try:
-                        print(f"[MAIN] Executing Windows taskkill /F /T on PID {pid}")
+                        print(f"[MAIN] Executing Windows taskkill /F /T on PID {pid} for alert {alert_id}")
                         result = subprocess.run(
                             ['taskkill', '/F', '/T', '/PID', str(pid)],
                             capture_output=True,
                             timeout=2,
                             text=True
                         )
-                        print(f"[MAIN] taskkill output: {result.stdout}")
-                        print(f"[MAIN] taskkill stderr: {result.stderr}")
+                        print(f"[MAIN] taskkill output for alert {alert_id}: {result.stdout}")
+                        print(f"[MAIN] taskkill stderr for alert {alert_id}: {result.stderr}")
                     except Exception as e:
-                        print(f"[MAIN] taskkill failed: {e}")
+                        print(f"[MAIN] taskkill failed for alert {alert_id}: {e}")
                 
                 # Method 2: Use psutil to kill the entire process tree
                 try:
@@ -305,20 +343,20 @@ class PriceAlertMonitor:
                     # Kill all children first
                     for child in children:
                         try:
-                            print(f"[MAIN] Killing child process PID {child.pid}")
+                            print(f"[MAIN] Killing child process PID {child.pid} for alert {alert_id}")
                             child.kill()
                         except (psutil.NoSuchProcess, psutil.AccessDenied):
                             pass
                     
                     # Kill the parent
                     parent.kill()
-                    print(f"[MAIN] Killed parent process PID {pid}")
+                    print(f"[MAIN] Killed parent process PID {pid} for alert {alert_id}")
                     
                     # Wait for termination
                     gone, alive = psutil.wait_procs([parent] + children, timeout=1)
                     
                     if alive:
-                        print(f"[MAIN] ⚠️ Some processes still alive: {[p.pid for p in alive]}")
+                        print(f"[MAIN] ⚠️ Some processes still alive for alert {alert_id}: {[p.pid for p in alive]}")
                         for p in alive:
                             try:
                                 p.kill()
@@ -326,12 +364,12 @@ class PriceAlertMonitor:
                                 pass
                                 
                 except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-                    print(f"[MAIN] psutil method failed: {e}")
+                    print(f"[MAIN] psutil method failed for alert {alert_id}: {e}")
                 
                 # Method 3: Python's subprocess kill
                 try:
-                    self.alarm_process.kill()
-                    self.alarm_process.wait(timeout=0.5)
+                    alarm_process.kill()
+                    alarm_process.wait(timeout=0.5)
                 except:
                     pass
                 
@@ -342,29 +380,28 @@ class PriceAlertMonitor:
                     except:
                         pass
                 
-                print("[MAIN] ✅ Alarm subprocess terminated")
-                logger.info("Alarm subprocess stopped")
+                print(f"[MAIN] ✅ Alarm subprocess for alert {alert_id} terminated")
+                logger.info(f"Alarm subprocess for alert {alert_id} stopped")
                 
             except Exception as e:
-                logger.error(f"Error stopping alarm subprocess: {e}")
-                print(f"[MAIN] ❌ Error stopping alarm: {e}")
-            finally:
-                self.alarm_process = None
+                logger.error(f"Error stopping alarm subprocess for alert {alert_id}: {e}")
+                print(f"[MAIN] ❌ Error stopping alarm for alert {alert_id}: {e}")
         else:
-            print("[MAIN] No running alarm_process reference — will scan for orphan alarm processes")
-        
-        # Method 5: Kill any orphan alarm_player.py processes we can still find
-        self._kill_orphan_alarm_processes(ignore_pid=None)
+            print(f"[MAIN] No running alarm_process for alert {alert_id}")
         
         # Cleanup stop file
-        if self.alarm_stop_file:
+        if alarm_stop_file:
             try:
-                if Path(self.alarm_stop_file).exists():
-                    Path(self.alarm_stop_file).unlink()
-                    print(f"[MAIN] Deleted stop file: {self.alarm_stop_file}")
+                if Path(alarm_stop_file).exists():
+                    Path(alarm_stop_file).unlink()
+                    print(f"[MAIN] Deleted stop file for alert {alert_id}: {alarm_stop_file}")
             except Exception as e:
-                print(f"[MAIN] Failed to delete stop file: {e}")
-            self.alarm_stop_file = None
+                print(f"[MAIN] Failed to delete stop file for alert {alert_id}: {e}")
+        
+        # Remove from tracking dictionaries
+        with self.lock:
+            self.alarm_processes.pop(alert_id, None)
+            self.alarm_stop_files.pop(alert_id, None)
 
     def _kill_orphan_alarm_processes(self, ignore_pid):
         """Kill any alarm_player.py processes still running (failsafe)."""
@@ -421,9 +458,17 @@ def stop_monitoring():
     monitor.stop()
 
 
-def stop_alarm_playback():
-    print("[API] stop_alarm_playback called")
+def stop_alarm_playback(alert_id=None):
+    """Stop alarm playback for a specific alert or all alarms.
+    
+    Args:
+        alert_id: Optional alert ID. If provided, stops only that alarm.
+                 If None, stops all alarms.
+    """
+    if alert_id is not None:
+        print(f"[API] stop_alarm_playback called for alert {alert_id}")
+    else:
+        print("[API] stop_alarm_playback called for ALL alarms")
     monitor = get_monitor()
     print(f"[API] Monitor instance id: {id(monitor)}")
-    monitor.request_stop_alarm()
-
+    monitor.request_stop_alarm(alert_id)
