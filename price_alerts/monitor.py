@@ -32,6 +32,7 @@ class PriceAlertMonitor:
         self.idle_sleep = 5
         self.pygame_initialized = False
         self.alarm_stop_event = threading.Event()
+        self.alarm_thread = None
         self.lock = threading.Lock()
 
     # ---------- Alarm playback ----------
@@ -69,11 +70,17 @@ class PriceAlertMonitor:
 
             logger.info(f"Playing alarm: {sound_path} ({settings.cycles} cycles)")
             self.alarm_stop_event.clear()
+            self.alarm_thread = threading.current_thread()
 
             for cycle in range(settings.cycles):
                 if self.alarm_stop_event.is_set():
                     logger.info("Alarm stopped by user")
-                    pygame.mixer.music.stop()
+                    try:
+                        pygame.mixer.music.stop()
+                        pygame.mixer.music.fadeout(0)
+                        pygame.mixer.stop()
+                    except Exception:
+                        pass
                     return
 
                 try:
@@ -85,8 +92,10 @@ class PriceAlertMonitor:
                         if self.alarm_stop_event.is_set():
                             logger.info("Alarm stopped during playback")
                             pygame.mixer.music.stop()
+                            pygame.mixer.music.fadeout(0)
+                            pygame.mixer.stop()
                             return
-                        time.sleep(0.05)
+                        time.sleep(0.01)  # Check more frequently - every 10ms
 
                     # Stop before pause
                     pygame.mixer.music.stop()
@@ -107,7 +116,12 @@ class PriceAlertMonitor:
                 except Exception as e:
                     logger.error(f"Error playing alarm cycle {cycle + 1}: {e}")
                     if self.alarm_stop_event.is_set():
-                        pygame.mixer.music.stop()
+                        try:
+                            pygame.mixer.music.stop()
+                            pygame.mixer.music.fadeout(0)
+                            pygame.mixer.stop()
+                        except Exception:
+                            pass
                         return
 
         except Exception as e:
@@ -118,6 +132,8 @@ class PriceAlertMonitor:
                 pygame.mixer.music.stop()
             except Exception:
                 pass
+            if threading.current_thread() == self.alarm_thread:
+                self.alarm_thread = None
 
     # ---------- Data fetching ----------
     def refresh_ticker_list(self):
@@ -261,15 +277,24 @@ class PriceAlertMonitor:
     # ---------- Control ----------
     def request_stop_alarm(self):
         """Immediately stop any playing alarm."""
-        logger.info("Stop alarm requested")
+        logger.info("Stop alarm requested - forcing immediate stop")
+        print("STOPPING ALARM NOW")
         self.alarm_stop_event.set()
         if self.pygame_initialized:
             try:
                 pygame.mixer.music.stop()
-                # Force stop by unloading
+                pygame.mixer.music.fadeout(0)
                 pygame.mixer.music.unload()
+                pygame.mixer.stop()
+                pygame.mixer.quit()
+                self.pygame_initialized = False
             except Exception as e:
-                logger.debug(f"Error stopping alarm: {e}")
+                logger.error(f"Error stopping alarm: {e}")
+                print(f"Error stopping alarm: {e}")
+        if self.alarm_thread and self.alarm_thread.is_alive():
+            if threading.current_thread() != self.alarm_thread:
+                self.alarm_thread.join(timeout=1)
+            self.alarm_thread = None
 
     def start(self):
         if self.running:

@@ -82,12 +82,14 @@ class AlertViewSet(viewsets.ModelViewSet):
                 # Already stopped, just return current state
                 return Response(AlertSerializer(instance).data)
             
-            # Stop the alert
+            # Stop the alert - FORCE STOP ALARM IMMEDIATELY
+            stop_alarm_playback()  # Stop alarm FIRST before saving
             instance.is_active = False
             instance.triggered = False
             instance.triggered_at = None
             instance.initial_price_above_alert = None
             instance.save(update_fields=['is_active', 'triggered', 'triggered_at', 'initial_price_above_alert'])
+            # Stop again after save to be absolutely sure
             stop_alarm_playback()
             return Response(AlertSerializer(instance).data)
         
