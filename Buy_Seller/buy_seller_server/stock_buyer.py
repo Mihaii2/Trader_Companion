@@ -129,15 +129,73 @@ class IBWebAPI:
             raise
     
     def get_contract_id(self, symbol):
-        """Get contract ID for a symbol"""
+        """Get contract ID for a symbol with smart filtering"""
         url = f"{self.base_url}/iserver/secdef/search"
-        payload = {"symbol": symbol}
-        response = self.session.post(url, json=payload, timeout=30)
-        if response.status_code == 200:
-            data = response.json()
-            if data and len(data) > 0:
-                return data[0].get("conid")
-        return None
+        payload = {"symbol": symbol, "secType": "STK"}
+        try:
+            response = self.session.post(url, json=payload, timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                if data and len(data) > 0:
+                    # Filter and prioritize
+                    # 1. Exact symbol match
+                    # 2. Currency = USD
+                    # 3. US Exchanges
+                    
+                    candidates = []
+                    print(f"   🔎 Search returned {len(data)} results. Inspecting first 5:")
+                    for i, item in enumerate(data[:5]):
+                        # Safely get fields with defaults
+                        symbol_val = item.get('symbol')
+                        desc_val = item.get('description')
+                        sec_type_val = item.get('secType')
+                        currency_val = item.get('currency')
+                        conid_val = item.get('conid')
+                        
+                        print(f"      Result {i+1}: {symbol_val} | {desc_val} | {sec_type_val} | {currency_val} | ID: {conid_val}")
+                        
+                        # Relaxed validation - check both secType and type
+                        sec_type = sec_type_val or item.get('type')
+                        if sec_type and sec_type != 'STK' and sec_type != 'Stock':
+                            continue
+                            
+                        score = 0
+                        # Exact symbol match
+                        if symbol_val == symbol:
+                            score += 10
+                        
+                        # Currency match (assume USD preference)
+                        if currency_val == 'USD':
+                            score += 5
+                        
+                        # Exchange preference
+                        # Handle None description safely
+                        desc = (desc_val or '').upper()
+                        if 'NASDAQ' in desc or 'NYSE' in desc or 'AMEX' in desc:
+                            score += 3
+                        elif 'ARCA' in desc or 'BATS' in desc:
+                            score += 2
+                            
+                        candidates.append((score, item))
+                    
+                    # Sort by score descending
+                    candidates.sort(key=lambda x: x[0], reverse=True)
+                    
+                    if candidates:
+                        best_match = candidates[0][1]
+                        # Safely get description for logging
+                        best_desc = (best_match.get('description') or 'Unknown').upper()
+                        print(f"   🔍 Selected contract for {symbol}: {best_desc} (ID: {best_match.get('conid')})")
+                        return best_match.get("conid")
+                    
+                    # Fallback to first item if no candidates passed filter
+                    print(f"   ⚠️ No ideal match found for {symbol}, using first result")
+                    return data[0].get("conid")
+                    
+            return None
+        except Exception as e:
+            print(f"   ❌ Contract search error: {str(e)}")
+            return None
     
     def get_order_status(self, order_id=None):
         """Get order status"""
