@@ -7,24 +7,24 @@ const api = axios.create({
 });
 
 export const priceAlertsAPI = {
-  getAlerts: () => 
+  getAlerts: () =>
     api.get<Alert[]>('/alerts/'),
-  
-  createAlert: (data: CreateAlertData) => 
+
+  createAlert: (data: CreateAlertData) =>
     api.post<Alert>('/alerts/', data),
-  
-  updateAlert: (id: number, data: Partial<Alert>) => 
+
+  updateAlert: (id: number, data: Partial<Alert>) =>
     api.patch<Alert>(`/alerts/${id}/`, data),
-  
-  deleteAlert: (id: number) => 
+
+  deleteAlert: (id: number) =>
     api.delete(`/alerts/${id}/`),
-  
-  getAlarmSettings: () => 
+
+  getAlarmSettings: () =>
     api.get<AlarmSettings>('/alarm-settings/'),
-  
-  updateAlarmSettings: (data: Partial<AlarmSettings>) => 
+
+  updateAlarmSettings: (data: Partial<AlarmSettings>) =>
     api.put<AlarmSettings>('/alarm-settings/', data),
-  
+
   uploadAlarmSound: (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
@@ -38,8 +38,8 @@ export const priceAlertsAPI = {
       }
     );
   },
-  
-  listAlarmSounds: () => 
+
+  listAlarmSounds: () =>
     api.get<{ sounds: string[] }>('/list-alarm-sounds/'),
 };
 

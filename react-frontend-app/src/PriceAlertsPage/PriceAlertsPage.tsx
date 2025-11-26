@@ -19,7 +19,7 @@ export const PriceAlertsPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
-    
+
     // Set up auto-refresh every 1 second to show updated prices from backend
     const interval = setInterval(() => {
       loadAlerts();
@@ -109,8 +109,8 @@ export const PriceAlertsPage: React.FC = () => {
   const handleToggleActive = async (id: number, isActive: boolean) => {
     // Optimistic update - disable button immediately
     setAlerts(prev =>
-      prev.map(alert => 
-        alert.id === id 
+      prev.map(alert =>
+        alert.id === id
           ? { ...alert, is_active: isActive, triggered: false }
           : alert
       )
@@ -128,8 +128,8 @@ export const PriceAlertsPage: React.FC = () => {
       alert(message);
       // Revert optimistic update on error
       setAlerts(prev =>
-        prev.map(alert => 
-          alert.id === id 
+        prev.map(alert =>
+          alert.id === id
             ? { ...alert, is_active: !isActive }
             : alert
         )
