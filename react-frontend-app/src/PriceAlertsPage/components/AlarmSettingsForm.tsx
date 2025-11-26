@@ -126,11 +126,9 @@ export const AlarmSettingsForm: React.FC<AlarmSettingsFormProps> = ({ settings, 
       audio.preload = 'auto';
       
       const handleEnded = () => {
-        // Only handle if this audio element is still the current one
-        if (audioElement === audio) {
-          setIsPlaying(false);
-          setAudioElement(null);
-        }
+        // Reset playing state when audio ends
+        setIsPlaying(false);
+        setAudioElement(null);
         cleanupAudio(audio);
       };
       

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, AlarmSettings, CreateAlertData } from './types';
 import { priceAlertsAPI } from './services/priceAlertsAPI';
 import { AlertForm } from './components/AlertForm';
@@ -14,6 +14,8 @@ export const PriceAlertsPage: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
+  const [priceDirections, setPriceDirections] = useState<Map<number, 'up' | 'down'>>(new Map());
+  const lastPricesRef = useRef<Map<number, number | null>>(new Map());
 
   useEffect(() => {
     loadData();
@@ -45,7 +47,37 @@ export const PriceAlertsPage: React.FC = () => {
   const loadAlerts = async () => {
     try {
       const response = await priceAlertsAPI.getAlerts();
-      setAlerts(response.data);
+      const fetchedAlerts = response.data;
+
+      setPriceDirections(prev => {
+        const newDirections = new Map(prev);
+        const activeIds = new Set<number>();
+
+        fetchedAlerts.forEach(alert => {
+          activeIds.add(alert.id);
+          const prevPrice = lastPricesRef.current.get(alert.id);
+          const currentPrice = alert.current_price;
+
+          if (prevPrice !== undefined && prevPrice !== null && currentPrice !== null) {
+            if (currentPrice > prevPrice) {
+              newDirections.set(alert.id, 'up');
+            } else if (currentPrice < prevPrice) {
+              newDirections.set(alert.id, 'down');
+            }
+          }
+        });
+
+        Array.from(newDirections.keys()).forEach(id => {
+          if (!activeIds.has(id)) {
+            newDirections.delete(id);
+          }
+        });
+
+        return newDirections;
+      });
+
+      lastPricesRef.current = new Map(fetchedAlerts.map(alert => [alert.id, alert.current_price]));
+      setAlerts(fetchedAlerts);
     } catch (err) {
       console.error('Error loading alerts:', err);
     }
@@ -153,6 +185,7 @@ export const PriceAlertsPage: React.FC = () => {
           {/* Show alerts at the top */}
           <AlertsTable
             alerts={alerts}
+            priceDirections={priceDirections}
             onToggleActive={handleToggleActive}
             onDelete={handleDelete}
           />

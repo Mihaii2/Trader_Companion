@@ -8,11 +8,12 @@ import { Trash2, Power } from 'lucide-react';
 
 interface AlertsTableProps {
   alerts: AlertType[];
+  priceDirections: Map<number, 'up' | 'down'>;
   onToggleActive: (id: number, isActive: boolean) => Promise<void>;
   onDelete: (id: number) => Promise<void>;
 }
 
-export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, onToggleActive, onDelete }) => {
+export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, priceDirections, onToggleActive, onDelete }) => {
   const formatPrice = (price: number | null) => {
     if (price === null) return 'N/A';
     return `$${price.toFixed(2)}`;
@@ -67,16 +68,27 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, onToggleActive
               {alerts.map((alert) => {
                 const priceDiff = getPriceDifference(alert.current_price, alert.alert_price);
                 const isAbove = alert.current_price !== null && alert.current_price > alert.alert_price;
+                const direction = priceDirections.get(alert.id);
                 
                 return (
                   <TableRow key={alert.id}>
                     <TableCell className="font-medium">{alert.ticker}</TableCell>
                     <TableCell>
-                      {formatPrice(alert.current_price)}
-                      {alert.current_price !== null && alert.is_active && (
-                        <span className={`ml-2 text-xs ${isAbove ? 'text-green-600' : 'text-red-600'}`}>
-                          {isAbove ? '↑' : '↓'}
+                      {alert.current_price !== null ? (
+                        <span className={`font-semibold ${
+                          !alert.is_active 
+                            ? 'text-foreground' 
+                            : (() => {
+                                const direction = priceDirections.get(alert.id);
+                                if (direction === 'up') return 'text-green-600 dark:text-green-500';
+                                if (direction === 'down') return 'text-red-500 dark:text-red-400';
+                                return 'text-foreground';
+                              })()
+                        }`}>
+                          {formatPrice(alert.current_price)}
                         </span>
+                      ) : (
+                        formatPrice(alert.current_price)
                       )}
                       {!alert.is_active && alert.current_price !== null && (
                         <span className="ml-2 text-xs text-muted-foreground" title="Last known price (alert inactive)">
@@ -84,10 +96,18 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, onToggleActive
                         </span>
                       )}
                     </TableCell>
-                    <TableCell>{formatPrice(alert.alert_price)}</TableCell>
+                    <TableCell>
+                      <span className="font-semibold text-foreground">
+                        {formatPrice(alert.alert_price)}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       {priceDiff ? (
-                        <span className={priceDiff.diff >= 0 ? 'text-green-600' : 'text-red-600'}>
+                        <span className={`font-semibold ${
+                          priceDiff.diff >= 0 
+                            ? 'text-green-600 dark:text-green-500' 
+                            : 'text-red-500 dark:text-red-400'
+                        }`}>
                           {priceDiff.diff >= 0 ? '+' : ''}{priceDiff.diff.toFixed(2)} ({priceDiff.pct}%)
                         </span>
                       ) : (
@@ -98,7 +118,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, onToggleActive
                       {alert.triggered ? (
                         <Badge variant="destructive">Triggered</Badge>
                       ) : alert.is_active ? (
-                        <Badge variant="default" className="bg-green-600">Active</Badge>
+                        <Badge variant="default" className="bg-green-700 dark:bg-green-800">Active</Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
