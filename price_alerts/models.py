@@ -26,7 +26,7 @@ class Alert(models.Model):
 class AlarmSettings(models.Model):
     """Model for user alarm preferences"""
     # Alarm sound file path (relative to alarm_sounds folder or absolute)
-    alarm_sound_path = models.CharField(max_length=500, default='alarm-clock-short.mp3')
+    alarm_sound_path = models.CharField(max_length=500, default='alarm-clock-2.mp3')
     
     # Play duration in seconds
     play_duration = models.IntegerField(default=5, validators=[MinValueValidator(1)])

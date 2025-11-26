@@ -53,7 +53,7 @@ class PriceAlertMonitor:
 
         if not sound_path.exists():
             logger.warning(f"Alarm sound not found: {sound_path}, using default")
-            sound_path = base_dir / "alarm_sounds" / "alarm-clock-short.mp3"
+            sound_path = base_dir / "alarm_sounds" / "alarm-clock-2.mp3"
 
         return str(sound_path)
 

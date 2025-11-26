@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='AlarmSettings',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('alarm_sound_path', models.CharField(default='alarm-clock-short.mp3', max_length=500)),
+                ('alarm_sound_path', models.CharField(default='alarm-clock-2.mp3', max_length=500)),
                 ('play_duration', models.IntegerField(default=5, validators=[django.core.validators.MinValueValidator(1)])),
                 ('pause_duration', models.IntegerField(default=3, validators=[django.core.validators.MinValueValidator(0)])),
                 ('cycles', models.IntegerField(default=3, validators=[django.core.validators.MinValueValidator(1)])),
