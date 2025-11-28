@@ -293,3 +293,127 @@ def stop_alarm_view(request, alert_id=None):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+
+# ============ Telegram Notification Endpoints ============
+
+@api_view(['GET'])
+def get_telegram_config(request):
+    """Get current Telegram configuration"""
+    try:
+        from .models import TelegramConfig
+        config = TelegramConfig.get_config()
+        
+        return Response({
+            'bot_token': config.bot_token,
+            'chat_id': config.chat_id,
+            'enabled': config.enabled,
+            'configured': bool(config.bot_token and config.chat_id)
+        })
+    except Exception as e:
+        logger.error(f"Error getting Telegram config: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+def save_telegram_config(request):
+    """Save or update Telegram configuration"""
+    try:
+        from .models import TelegramConfig
+        
+        bot_token = request.data.get('bot_token', '').strip()
+        chat_id = request.data.get('chat_id', '').strip()
+        
+        if not bot_token or not chat_id:
+            return Response(
+                {'error': 'Both bot_token and chat_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        config = TelegramConfig.get_config()
+        config.bot_token = bot_token
+        config.chat_id = chat_id
+        config.save()
+        
+        return Response({
+            'message': 'Telegram configuration saved successfully',
+            'bot_token': config.bot_token,
+            'chat_id': config.chat_id,
+            'enabled': config.enabled
+        })
+    except Exception as e:
+        logger.error(f"Error saving Telegram config: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+def test_telegram_connection(request):
+    """Test Telegram bot connection"""
+    try:
+        from . import telegram_notifier
+        
+        bot_token = request.data.get('bot_token', '').strip()
+        chat_id = request.data.get('chat_id', '').strip()
+        
+        if not bot_token or not chat_id:
+            return Response(
+                {'error': 'Both bot_token and chat_id are required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        result = telegram_notifier.test_telegram_connection(bot_token, chat_id)
+        
+        if result['success']:
+            return Response(result)
+        else:
+            return Response(result, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error testing Telegram connection: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+def toggle_telegram_notifications(request):
+    """Enable or disable Telegram notifications"""
+    try:
+        from .models import TelegramConfig
+        
+        enabled = request.data.get('enabled')
+        
+        if enabled is None:
+            return Response(
+                {'error': 'enabled field is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        config = TelegramConfig.get_config()
+        
+        # Verify configuration exists if trying to enable
+        if enabled and (not config.bot_token or not config.chat_id):
+            return Response(
+                {'error': 'Cannot enable notifications without bot_token and chat_id configured'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        config.enabled = bool(enabled)
+        config.save()
+        
+        return Response({
+            'message': f'Telegram notifications {"enabled" if config.enabled else "disabled"}',
+            'enabled': config.enabled
+        })
+    except Exception as e:
+        logger.error(f"Error toggling Telegram notifications: {e}")
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

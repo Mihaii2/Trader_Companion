@@ -114,13 +114,18 @@ DATABASES = {
     'price_alerts_db': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'dbs/price_alerts.sqlite3',
+    },
+    'telegram_config_db': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'dbs/telegram_config.sqlite3',
     }
 }
 
 DATABASE_ROUTERS = [
     'personal_ranking_list_app.router.PersonalRankingRouter',
     'trades_history.router.TradesRouter',
-    'price_alerts.router.PriceAlertsRouter'
+    'price_alerts.router.PriceAlertsRouter',
+    'price_alerts.telegram_router.TelegramConfigRouter'
 ]
 
 # Password validation

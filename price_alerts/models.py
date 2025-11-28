@@ -49,3 +49,38 @@ class AlarmSettings(models.Model):
         """Get or create the single settings instance"""
         obj, created = cls.objects.get_or_create(id=1)
         return obj
+
+
+class TelegramConfig(models.Model):
+    """Model for Telegram notification configuration"""
+    # Bot token from @BotFather
+    bot_token = models.CharField(max_length=500, blank=True, default='')
+    
+    # Chat ID from @userinfobot
+    chat_id = models.CharField(max_length=100, blank=True, default='')
+    
+    # Enable/disable Telegram notifications
+    enabled = models.BooleanField(default=False)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "Telegram Configuration"
+    
+    def __str__(self):
+        status = "Enabled" if self.enabled else "Disabled"
+        configured = "Configured" if self.bot_token and self.chat_id else "Not Configured"
+        return f"Telegram Notifications: {status} ({configured})"
+    
+    @classmethod
+    def get_config(cls):
+        """Get or create the single config instance"""
+        obj, created = cls.objects.using('telegram_config_db').get_or_create(id=1)
+        return obj
+    
+    def save(self, *args, **kwargs):
+        """Override save to use telegram_config_db"""
+        kwargs['using'] = 'telegram_config_db'
+        super().save(*args, **kwargs)

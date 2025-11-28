@@ -47,7 +47,7 @@ export const AlertsTable: React.FC<AlertsTableProps> = ({ alerts, priceDirection
       <CardHeader>
         <CardTitle>Price Alerts</CardTitle>
         <CardDescription>
-          Monitor your ticker price alerts • Backend checks each ticker every ~1s
+          Monitor your ticker price alerts • Backend checks a ticker every ~1s
         </CardDescription>
       </CardHeader>
       <CardContent>

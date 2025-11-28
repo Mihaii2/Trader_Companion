@@ -240,6 +240,14 @@ class PriceAlertMonitor:
 
                 # Start alarm in separate process with unique alert ID
                 self.play_alarm(alert.id)
+                
+                # Send Telegram notification (fail-safe, non-blocking)
+                try:
+                    self._send_telegram_notification_if_enabled(alert, current_price)
+                except Exception as telegram_error:
+                    # CRITICAL: Never let Telegram errors break the alert system
+                    logger.error(f"Telegram notification failed (non-critical): {telegram_error}")
+                    # Alert and alarm continue working normally
             else:
                 alert.save(
                     update_fields=[
@@ -407,6 +415,56 @@ class PriceAlertMonitor:
         with self.lock:
             self.alarm_processes.pop(alert_id, None)
             self.alarm_stop_files.pop(alert_id, None)
+
+    def _send_telegram_notification_if_enabled(self, alert, current_price):
+        """
+        Send Telegram notification if configured and enabled.
+        This method is fail-safe and will never raise exceptions.
+        
+        Args:
+            alert: Alert model instance that was triggered
+            current_price: Current price that triggered the alert
+        """
+        try:
+            # Lazy import to avoid breaking if model not migrated yet
+            from .models import TelegramConfig
+            from . import telegram_notifier
+            
+            # Get Telegram configuration
+            try:
+                config = TelegramConfig.get_config()
+            except Exception as e:
+                # Database might not be migrated yet, silently skip
+                logger.debug(f"Could not load Telegram config: {e}")
+                return
+            
+            # Check if Telegram is enabled and configured
+            if not config.enabled:
+                logger.debug("Telegram notifications disabled")
+                return
+            
+            if not config.bot_token or not config.chat_id:
+                logger.warning("Telegram enabled but not configured (missing token or chat_id)")
+                return
+            
+            # Send notification
+            logger.info(f"Sending Telegram notification for {alert.ticker}")
+            success = telegram_notifier.send_telegram_alert(
+                bot_token=config.bot_token,
+                chat_id=config.chat_id,
+                ticker=alert.ticker,
+                alert_price=alert.alert_price,
+                current_price=current_price
+            )
+            
+            if success:
+                logger.info(f"Telegram notification sent successfully for {alert.ticker}")
+            else:
+                logger.warning(f"Telegram notification failed for {alert.ticker}")
+                
+        except Exception as e:
+            # Catch all exceptions to ensure alert system never breaks
+            logger.error(f"Error in Telegram notification (non-critical): {e}", exc_info=True)
 
     def _kill_orphan_alarm_processes(self, ignore_pid):
         """Kill any alarm_player.py processes still running (failsafe)."""

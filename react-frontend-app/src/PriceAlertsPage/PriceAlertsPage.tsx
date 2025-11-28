@@ -4,10 +4,12 @@ import { priceAlertsAPI } from './services/priceAlertsAPI';
 import { AlertForm } from './components/AlertForm';
 import { AlertsTable } from './components/AlertsTable';
 import { AlarmSettingsForm } from './components/AlarmSettingsForm';
+import { TelegramSetupPage } from './components/TelegramSetupPage';
 import { Alert as AlertComponent, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 
 export const PriceAlertsPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'alerts' | 'telegram'>('alerts');
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [alarmSettings, setAlarmSettings] = useState<AlarmSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -181,25 +183,52 @@ export const PriceAlertsPage: React.FC = () => {
           </AlertComponent>
         )}
 
-        <div className="space-y-6">
-          {/* Show alerts at the top */}
-          <AlertsTable
-            alerts={alerts}
-            priceDirections={priceDirections}
-            onToggleActive={handleToggleActive}
-            onDelete={handleDelete}
-          />
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <AlertForm onSubmit={handleCreateAlert} isLoading={isCreating} />
-            {alarmSettings && (
-              <AlarmSettingsForm
-                settings={alarmSettings}
-                onUpdate={handleUpdateSettings}
-              />
-            )}
-          </div>
+        {/* Tab Navigation */}
+        <div className="flex gap-4 border-b border-border mb-6">
+          <button
+            onClick={() => setActiveTab('alerts')}
+            className={`px-6 py-3 font-semibold transition-all ${activeTab === 'alerts'
+              ? 'border-b-2 border-blue-500 text-blue-600'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
+          >
+            🔔 Price Alerts
+          </button>
+          <button
+            onClick={() => setActiveTab('telegram')}
+            className={`px-6 py-3 font-semibold transition-all ${activeTab === 'telegram'
+              ? 'border-b-2 border-blue-500 text-blue-600'
+              : 'text-gray-500 hover:text-gray-700'
+              }`}
+          >
+            📱 Enable Phone Notifications
+          </button>
         </div>
+
+        {/* Tab Content */}
+        {activeTab === 'alerts' && (
+          <div className="space-y-6">
+            {/* Show alerts at the top */}
+            <AlertsTable
+              alerts={alerts}
+              priceDirections={priceDirections}
+              onToggleActive={handleToggleActive}
+              onDelete={handleDelete}
+            />
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <AlertForm onSubmit={handleCreateAlert} isLoading={isCreating} />
+              {alarmSettings && (
+                <AlarmSettingsForm
+                  settings={alarmSettings}
+                  onUpdate={handleUpdateSettings}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'telegram' && <TelegramSetupPage />}
       </div>
     </div>
   );

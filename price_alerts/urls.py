@@ -13,4 +13,9 @@ urlpatterns = [
     path('alarm-sounds/<str:filename>', views.serve_alarm_sound, name='serve-alarm-sound'),
     path('stop-alarm/', views.stop_alarm_view, name='stop-all-alarms'),  # Stop all alarms
     path('stop-alarm/<int:alert_id>/', views.stop_alarm_view, name='stop-alarm'),  # Stop specific alarm
+    # Telegram endpoints
+    path('telegram/config/', views.get_telegram_config, name='get-telegram-config'),
+    path('telegram/save/', views.save_telegram_config, name='save-telegram-config'),
+    path('telegram/test/', views.test_telegram_connection, name='test-telegram-connection'),
+    path('telegram/toggle/', views.toggle_telegram_notifications, name='toggle-telegram-notifications'),
 ]
