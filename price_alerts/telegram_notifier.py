@@ -32,22 +32,12 @@ def send_telegram_alert(bot_token, chat_id, ticker, alert_price, current_price, 
     
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     
-    # Determine direction based on prices
-    if current_price >= alert_price:
-        direction = "📈 ABOVE"
-        emoji = "🔔"
-    else:
-        direction = "📉 BELOW"
-        emoji = "🔔"
-    
     # Format message with HTML
     message = f"""
-{emoji} <b>PRICE ALERT TRIGGERED</b> {emoji}
+🔔 <b>PRICE ALERT TRIGGERED</b> 🔔
 
 <b>Symbol:</b> {ticker}
 <b>Alert Price:</b> ${alert_price:.2f}
-<b>Current Price:</b> ${current_price:.2f}
-<b>Status:</b> {direction}
 
 <i>Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>
     """.strip()
